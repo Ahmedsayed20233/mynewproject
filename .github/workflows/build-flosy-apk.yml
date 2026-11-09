@@ -1,0 +1,72 @@
+name: Build Flosy Android APK
+on:
+  push:
+    branches: [flosy-android]
+    paths:
+      - 'android/**'
+      - '.github/workflows/build-flosy-apk.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK platform
+        run: |
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Compile installable debug APK
+        run: |
+          gradle -p android --no-daemon --stacktrace assembleDebug
+
+      - name: Validate and stage APK
+        run: |
+          set -e
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          mkdir -p dist
+          cp "$APK" dist/Flosy-Android-v1.0.0.apk
+          ls -lh dist/Flosy-Android-v1.0.0.apk
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | head -12
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Flosy-Android-APK
+          path: dist/Flosy-Android-v1.0.0.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Publish APK as GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="flosy-android-v1.0.0"
+          APK="dist/Flosy-Android-v1.0.0.apk"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" "$APK" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "فلوسي Android v1.0.0 (testing)" \
+              --notes "Installable Android debug APK for personal testing. Connects to the live Flosy dashboard and the same Supabase account. Android 7+; internet required. Not a Play Store production-signed build."
+          fi
