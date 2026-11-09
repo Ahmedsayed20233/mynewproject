@@ -1,12 +1,12 @@
-# Flosy Android — فلوسي
+# Flosy Android v1.1.0 — فلوسي
 
-Native Android WebView wrapper for the existing published **Flosy** dashboard:
+Enhanced Android WebView app for the existing published **Flosy** dashboard:
 https://ahmedsayed20233.github.io/mynewproject/
 
 - Android 7.0+ (API 24+).
 - Java 17, Android Gradle Plugin 8.9.2, Gradle 8.11.1, compile/target SDK 35.
 - Does not bundle passwords, service-role keys, or financial user data.
-- Supports Android system printing / Save to PDF from the updated detailed Reports section.
+- Supports Android system printing / Save to PDF from detailed Reports.\n- The mobile website now has a 5-control bottom toolbar, prominent Add action and an expanded More panel for budget, goals and settings/sync.\n- Android adds a loading bar, smart Back handling, and clear double-back exit.
 - Uses the published website and Supabase project already configured there. Needs internet.
 - Same Supabase account as browser. On-device WebView storage is separate from Chrome. Signing in and syncing restores cloud records.
 - HTTPS-only remote content; disables mixed content and direct file/content access. Outside links open Android browser.
