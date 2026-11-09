@@ -6,6 +6,7 @@ https://ahmedsayed20233.github.io/mynewproject/
 - Android 7.0+ (API 24+).
 - Java 17, Android Gradle Plugin 8.9.2, Gradle 8.11.1, compile/target SDK 35.
 - Does not bundle passwords, service-role keys, or financial user data.
+- Supports Android system printing / Save to PDF from the updated detailed Reports section.
 - Uses the published website and Supabase project already configured there. Needs internet.
 - Same Supabase account as browser. On-device WebView storage is separate from Chrome. Signing in and syncing restores cloud records.
 - HTTPS-only remote content; disables mixed content and direct file/content access. Outside links open Android browser.
