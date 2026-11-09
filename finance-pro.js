@@ -139,7 +139,7 @@
       box("الديون والالتزامات",m.debt,"تُطرح من صافي الثروة","pro-warn")+'</div>';
     html+='<div class="pro-card"><div class="pro-head"><div><h3>حساباتك وأرصدة الأموال</h3><p>أدخل الرصيد الافتتاحي مرة واحدة، وسجّل بعده العمليات عبر حساب محدد.</p></div><button class="btn primary" data-pro="add-account">＋ حساب</button></div>';
     html+=line(cashAccounts().map(function(a){
-      var amount=m.balances[a.id]||0;return ['<span class="pro-icon">▣</span> '+esc(a.name),esc(a.type),'<strong class="'+(amount<0?"pro-negative":"")+'">'+money(amount)+'</strong>',
+      var amount=m.balances[a.id]||0;return ['<span class="pro-icon">▣</span> '+esc(a.name),esc(({cash:"نقدية",bank:"حساب بنكي",emergency:"طوارئ",reserve:"احتياطي",thndr:"ثاندر",other:"حساب آخر"})[a.type]||a.type),'<strong class="'+(amount<0?"pro-negative":"")+'">'+money(amount)+'</strong>',
       '<button class="smallbtn" data-pro="edit-account" data-id="'+esc(a.id)+'">تعديل</button>'];
     }),["الحساب","النوع","الرصيد المحسوب",""]);
     html+='<div class="pro-note">العمليات القديمة المسجلة قبل إضافة الحسابات لا تُوزع تلقائيًا لمنع احتسابها مرتين. أدخل الأرصدة الحالية بدقة وراجع تطابقها مع البنك وثاندر.</div></div>';
@@ -151,10 +151,10 @@
       '<label class="pro-wide">وصف التحويل<input name="description" maxlength="100" value="تحويل بين حساباتي" required></label>'+
       '<button class="btn primary pro-wide" type="submit">حفظ التحويل — ليس مصروفًا</button></form></div>';
     html+='<div class="pro-two"><div class="pro-card"><div class="pro-head"><h3>أصول أخرى</h3><button class="btn" data-pro="add-asset">إضافة أصل</button></div>'+
-      line((st().assets||[]).map(function(x){return [esc(x.name),money(x.value),'<button class="smallbtn" data-pro="delete-asset" data-id="'+esc(x.id)+'">حذف</button>']}),["الأصل","القيمة التقديرية",""])+
+      line((st().assets||[]).map(function(x){return [esc(x.name),money(x.value),'<button class="smallbtn" data-pro="edit-asset" data-id="'+esc(x.id)+'">تعديل</button> <button class="smallbtn" data-pro="delete-asset" data-id="'+esc(x.id)+'">حذف</button>']}),["الأصل","القيمة التقديرية",""])+
       '<p class="muted">لا تُضف هنا أصلًا مسجلًا بالفعل ضمن المحفظة الاستثمارية.</p></div>'+
       '<div class="pro-card"><div class="pro-head"><h3>الديون والالتزامات</h3><button class="btn" data-pro="add-debt">إضافة دين</button></div>'+
-      line((st().liabilities||[]).map(function(x){return [esc(x.name),money(x.balance),'<button class="smallbtn" data-pro="delete-debt" data-id="'+esc(x.id)+'">حذف</button>']}),["الالتزام","المتبقي",""])+
+      line((st().liabilities||[]).map(function(x){return [esc(x.name),money(x.balance),'<button class="smallbtn" data-pro="edit-debt" data-id="'+esc(x.id)+'">تعديل</button> <button class="smallbtn" data-pro="delete-debt" data-id="'+esc(x.id)+'">حذف</button>']}),["الالتزام","المتبقي",""])+
       '<p class="muted">حدّث الرصيد يدويًا بعد أي سداد، ولا تخصمه مرتين من الحسابات.</p></div></div>';
     if(m.unassigned)html+='<div class="pro-alert">⚠ توجد '+m.unassigned+' معاملات قديمة بلا حساب مرتبط. لم تُحتسب في أرصدة الحسابات الجديدة. لا تعِد تسجيلها دون مراجعة الرصيد.</div>';
     target.innerHTML=html;
@@ -331,6 +331,15 @@
       var y=prompt("الرصيد الافتتاحي للحساب: "+x.name+"\nملحوظة: لا تكتب الرصيد الحالي الناتج عن معاملات سجّلتها بالفعل.",String(x.opening));if(y===null)return;
       var z=Number(y);if(!Number.isFinite(z)||z<0){C.toast("الرصيد غير صالح");return}
       C.mutate(function(s){var a=s.accounts.find(function(k){return k.id===id});if(a){a.opening=z;a.updatedAt=new Date().toISOString()}});
+    }
+    if(action==="edit-asset"||action==="edit-debt"){
+      var kind=action==="edit-asset"?"assets":"liabilities",valueKey=kind==="assets"?"value":"balance";
+      var item=(st()[kind]||[]).find(function(x){return x.id===id});if(!item)return;
+      var edit=prompt("القيمة الحالية: "+item.name,String(item[valueKey]||0));
+      if(edit===null)return;
+      var updated=Number(edit);if(!Number.isFinite(updated)||updated<0){C.toast("القيمة غير صالحة");return}
+      C.mutate(function(s){var x=s[kind].find(function(r){return r.id===id});if(x){x[valueKey]=updated;x.updatedAt=new Date().toISOString()}});
+      C.toast("تم تحديث التقييم الحالي");
     }
     if(action==="add-asset"||action==="add-debt"){
       var kind=action==="add-asset"?"assets":"liabilities",title=kind==="assets"?"الأصل غير النقدي":"الدين أو الالتزام";
