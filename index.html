@@ -474,7 +474,76 @@ function printDetailedReport(){
 function api(path,opts={}){if(!cloud.url||!cloud.key)throw Error('أدخل إعدادات Supabase أولًا');const headers={'apikey':cloud.key,'Content-Type':'application/json',...(session?{'Authorization':'Bearer '+session.access_token}:{})};return fetch(cloud.url.replace(/\/$/,'')+path,{...opts,headers:{...headers,...opts.headers}}).then(async r=>{const txt=await r.text();let data;try{data=txt?JSON.parse(txt):null}catch{data=txt}if(!r.ok)throw Error(typeof data==='object'?(data.msg||data.message||data.error_description||data.error||r.status):String(data));return data})}
 $('cloudConfig').onsubmit=e=>{e.preventDefault();let f=new FormData(e.target),url=String(f.get('url')).trim(),key=String(f.get('key')).trim();if(url&&!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url))return toast('تحقق من رابط مشروع Supabase');cloud={url,key};localStorage.setItem(CLOUD,JSON.stringify(cloud));render();toast('تم حفظ إعدادات الاتصال محليًا')};$('cloudConfig').elements.url.value=cloud.url||'';$('cloudConfig').elements.key.value=cloud.key||'';
 async function auth(signup=false){let f=new FormData($('cloudAuth')),email=String(f.get('email')).trim(),password=String(f.get('password'));try{const data=await api(signup?'/auth/v1/signup':'/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});if(signup&&!data.access_token){toast('تم إنشاء الحساب. تحقق من بريدك لتأكيده ثم سجّل الدخول.');return}session=data;sessionStorage.setItem('flosy_session',JSON.stringify(session));toast('تم الاتصال بقاعدة البيانات');render();await sync()}catch(err){toast('فشل الاتصال: '+err.message)}}$('cloudAuth').onsubmit=e=>{e.preventDefault();auth()};$('signUp').onclick=()=>auth(true);$('signOut').onclick=()=>{session=null;sessionStorage.removeItem('flosy_session');render();toast('تم تسجيل الخروج')};$('syncNow').onclick=sync;
-async function sync(){if(saving)return;if(!session)return toast('سجل دخولك أولًا');saving=true;try{const remote=await api('/rest/v1/flosy_data?select=payload&user_id=eq.'+encodeURIComponent(session.user.id),{headers:{'Prefer':'return=representation'}});let r=remote?.[0]?.payload;let merged;if(r&&Array.isArray(r.transactions)){const map=new Map();for(const t of r.transactions)map.set(t.id,t);for(const t of state.transactions)map.set(t.id,t);merged={settings:state.settings,transactions:[...map.values()]};if(state.transactions.length===0){merged.settings={...def,...r.settings}}}else merged=state;const payload=[{user_id:session.user.id,payload:merged,updated_at:new Date().toISOString()}];await api('/rest/v1/flosy_data?on_conflict=user_id',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(payload)});state=merged;localStorage.setItem('flosy_last_sync_'+session.user.id,new Date().toISOString());save();toast('تمت المزامنة مع Supabase بنجاح')}catch(err){toast('تعذرت المزامنة: '+err.message)}finally{saving=false}}
+
+function mergeRecords(remoteItems,localItems,kind,deleted){
+ const map=new Map();
+ for(const item of Array.isArray(remoteItems)?remoteItems:[]){
+   if(item&&item.id)map.set(String(item.id),item)
+ }
+ for(const item of Array.isArray(localItems)?localItems:[]){
+   if(!item||!item.id)continue;
+   const id=String(item.id),prior=map.get(id);
+   if(!prior||String(item.updatedAt||item.createdAt||"")>=String(prior.updatedAt||prior.createdAt||""))map.set(id,item);
+ }
+ return [...map.values()].filter(x=>!deleted.has(kind+"/"+x.id));
+}
+function mergeFinanceData(remote,local){
+ const r=normalizeData(remote),l=normalizeData(local);
+ const tombstones=new Set([...(r.deletedIds||[]),...(l.deletedIds||[])]);
+ const localNewer=String(l._updatedAt||"")>=String(r._updatedAt||"");
+ const merged=normalizeData({...r,...l,
+   settings:localNewer?l.settings:r.settings,
+   plan:localNewer?(l.plan||r.plan):(r.plan||l.plan),
+   deletedIds:[...tombstones],
+   _updatedAt:localNewer?l._updatedAt:r._updatedAt
+ });
+ ["transactions","accounts","trades","assets","liabilities"].forEach(k=>{
+   merged[k]=mergeRecords(r[k],l[k],k,tombstones);
+ });
+ merged.prices={};
+ for(const k of new Set([...Object.keys(r.prices||{}),...Object.keys(l.prices||{})])){
+   const a=r.prices[k],b=l.prices[k];
+   merged.prices[k]=!a?b:!b?a:String(b.updatedAt||"")>=String(a.updatedAt||"")?b:a;
+ }
+ return merged;
+}
+async function ensureSession(){
+ if(!session)return false;
+ if(Number(session.expires_at||0)>Date.now()/1000+40)return true;
+ if(!session.refresh_token){session=null;sessionStorage.removeItem('flosy_session');return false}
+ const response=await fetch(cloud.url.replace(/\/$/,'')+'/auth/v1/token?grant_type=refresh_token',{
+   method:'POST',headers:{apikey:cloud.key,'Content-Type':'application/json'},
+   body:JSON.stringify({refresh_token:session.refresh_token})
+ });
+ const data=await response.json();
+ if(!response.ok||!data.access_token)throw Error('انتهت جلسة الدخول. سجّل الدخول مرة أخرى');
+ session=data;
+ sessionStorage.setItem('flosy_session',JSON.stringify(data));
+ return true;
+}
+async function sync(){
+ if(saving)return;
+ if(!session)return toast('سجّل دخولك أولًا');
+ saving=true;
+ try{
+  if(!await ensureSession())throw Error('سجّل الدخول أولًا');
+  const remote=await api('/rest/v1/flosy_data?select=payload&user_id=eq.'+encodeURIComponent(session.user.id),{
+    headers:{'Prefer':'return=representation'}
+  });
+  const r=remote&&remote[0]?remote[0].payload:null;
+  const merged=r?mergeFinanceData(r,state):normalizeData(state);
+  const payload=[{user_id:session.user.id,payload:merged,updated_at:new Date().toISOString()}];
+  await api('/rest/v1/flosy_data?on_conflict=user_id',{
+   method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+   body:JSON.stringify(payload)
+  });
+  state=merged;
+  localStorage.setItem('flosy_last_sync_'+session.user.id,new Date().toISOString());
+  save(true);
+  toast('تمت مزامنة الحسابات والاستثمارات والمعاملات بأمان');
+ }catch(err){toast('تعذرت المزامنة: '+err.message)}
+ finally{saving=false}
+}
 function syncIfReady(){if(session)sync()}
 
 window.FLOSY_BRIDGE={
@@ -487,7 +556,7 @@ window.FLOSY_BRIDGE={
  persistInitial:()=>{try{localStorage.setItem(STORE,JSON.stringify(state))}catch{}},
  mutate:(fn)=>{fn(state);save();syncIfReady()}
 };
-try{let s=JSON.parse(sessionStorage.getItem('flosy_session'));if(s&&s.expires_at>Date.now()/1000)session=s}catch{}categoryOptions();render();if(session)sync();})();
+try{let s=JSON.parse(sessionStorage.getItem('flosy_session'));if(s&&s.refresh_token)session=s}catch{}categoryOptions();render();if(session)sync();})();
 </script>
 <script src="finance-pro.js?v=120"></script>
 </body></html>
