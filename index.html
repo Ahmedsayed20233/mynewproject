@@ -122,13 +122,164 @@ $('allocation').innerHTML=`<div class="budgetrow"><div class="rowflex"><span>ا�
 let yms=[];let [yy,mm]=selectedMonth.split('-').map(Number);for(let i=5;i>=0;i--){let dt=new Date(yy,mm-1-i,1);yms.push(dt.toISOString().slice(0,7))}const monthly=yms.map(y=>({y,...totals(y)}));const max=Math.max(1,...monthly.map(x=>Math.max(x.income,x.expense)));$('sixChart').innerHTML=`<div class="hbar">${monthly.map(x=>`<div class="barblock"><div class="bars"><i style="background:#2eddb4;height:${x.income/max*100}%" title="الدخل ${fmt(x.income)}"></i><i style="background:#7a72df;height:${x.expense/max*100}%" title="المصروفات ${fmt(x.expense)}"></i></div><span>${safe(monthLabel(x.y).split(' ')[0])}</span></div>`).join('')}</div><div class="rowflex footnote"><span><i class="dot" style="background:#2eddb4"></i> دخل</span><span><i class="dot" style="background:#7a72df"></i> مصروفات</span></div>`;
 let reserveMonths=budget?b.الطوارئ/budget:0;$('insights').innerHTML=`<strong>تغطية صندوق الطوارئ:</strong> ${reserveMonths.toFixed(1)} شهر من المصروفات المستهدفة.<br><strong>الفائض المتوقع:</strong> ${fmt(planned)} شهريًا عند الالتزام بالخطة.<br><strong>الإنفاق المسجل:</strong> ${fmt(t.expense)} هذا الشهر.<br><strong>التحويلات المسجلة للادخار:</strong> ${fmt(t.transfer)} هذا الشهر.<br><small>مؤشرات مستمدة من السجلات، لا تعبر عن أرصدة البنوك أو العوائد السوقية.</small>`;
 $('kpiReport').innerHTML=[['نسبة الإنفاق الفعلي',t.income?Math.round(t.expense/t.income*100)+'%':'—'],['نسبة الادخار المخططة',s.salary?Math.round(planned/s.salary*100)+'%':'—'],['أشهر تغطية الطوارئ',reserveMonths.toFixed(1)],['عدد العمليات',state.transactions.length]].map(([l,v])=>`<div class="card compact"><div class="muted">${l}</div><h2 style="margin:5px 0">${v}</h2></div>`).join('');$('monthChip').textContent=monthLabel(selectedMonth)+' ▾';
-for(const [key,val] of Object.entries(s)){let input=$('settingsForm').elements.namedItem(key);if(input)input.value=val} $('cloudStatus').textContent=session?'متصل بحساب '+(session.user?.email||'سحابي'):'الوضع المحلي — '+(cloud.url?'إعدادات Supabase محفوظة. سجل دخولك.':'لم يتم الاتصال بقاعدة بيانات.');}
+for(const [key,val] of Object.entries(s)){let input=$('settingsForm').elements.namedItem(key);if(input)input.value=val} $('cloudStatus').textContent=session?'متصل بحساب '+(session.user?.email||'سحابي'):'الوضع المحلي — '+(cloud.url?'إعدادات Supabase محفوظة. سجل دخولك.':'لم يتم الاتصال بقاعدة بيانات.');if(page==='reports')renderDetailedReportPreview();}
 function goto(p){page=p;document.querySelectorAll('.page').forEach(e=>e.classList.toggle('active',e.id==='page-'+p));document.querySelectorAll('[data-page]').forEach(e=>e.classList.toggle('active',e.dataset.page===p));const titles={dashboard:'مرحبًا بك في فلوسي 👋',transactions:'معاملاتك المالية',budget:'الميزانية الشهرية',goals:'أهدافك المالية',reports:'تقارير وتحليلات',settings:'الإعدادات والخصوصية'};$('pageTitle').textContent=titles[p];render();window.scrollTo({top:0,behavior:'smooth'})}
 function openModal(type='expense'){$('modalback').classList.add('open');$('txnForm').reset();$('formType').value=type;$('txnForm').elements.date.value=new Date().toLocaleDateString('en-CA');categoryOptions();$('txnForm').elements.amount.focus()}
 function closeModal(){$('modalback').classList.remove('open')}
 document.addEventListener('click',e=>{const nav=e.target.closest('[data-page]');if(nav)goto(nav.dataset.page);const go=e.target.closest('[data-go]');if(go)goto(go.dataset.go);const quick=e.target.closest('[data-quick]');if(quick)openModal(quick.dataset.quick);const del=e.target.closest('[data-delete]');if(del&&confirm('هل تريد حذف هذه المعاملة؟')){state.transactions=state.transactions.filter(t=>t.id!==del.dataset.delete);save();toast('تم حذف المعاملة');syncIfReady()}});$('addBtn').onclick=()=>openModal();$('closeModal').onclick=$('cancelModal').onclick=closeModal;$('modalback').onclick=e=>{if(e.target===$('modalback'))closeModal()};$('formType').onchange=categoryOptions;$('searchTxn').oninput=render;$('typeTxn').onchange=render;$('monthChip').onclick=()=>{const m=prompt('اختر الشهر بصيغة YYYY-MM',selectedMonth);if(m&&/^\d{4}-(0[1-9]|1[0-2])$/.test(m)){selectedMonth=m;render()}};$('themeBtn').onclick=()=>{document.body.classList.toggle('light');localStorage.setItem('flosy_theme',document.body.classList.contains('light')?'light':'dark')};if(localStorage.getItem('flosy_theme')==='light')document.body.classList.add('light');
 $('txnForm').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target),v=Number(f.get('amount'));if(!Number.isFinite(v)||v<=0)return toast('أدخل مبلغًا صحيحًا');state.transactions.push({id:uid(),type:String(f.get('type')),category:String(f.get('category')),amount:v,date:String(f.get('date')),description:String(f.get('description')).trim(),createdAt:new Date().toISOString()});save();closeModal();toast('تم حفظ المعاملة بنجاح');syncIfReady()};$('settingsForm').onsubmit=e=>{e.preventDefault();let f=new FormData(e.target);for(let k of Object.keys(def)){let val=Number(f.get(k));if(!Number.isFinite(val)||val<0)return toast('راجع القيم المدخلة');state.settings[k]=val}save();toast('تم حفظ إعداداتك');syncIfReady()};
 function download(name,text,type){let a=document.createElement('a'),u=URL.createObjectURL(new Blob([text],{type}));a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}$('exportJSON').onclick=()=>download('flosy-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify({app:'flosy',version:1,exportedAt:new Date().toISOString(),...state},null,2),'application/json');$('exportCSV').onclick=()=>{const rows=[['التاريخ','النوع','الفئة','الوصف','المبلغ'],...state.transactions.map(t=>[t.date,t.type,t.category,t.description,t.amount])];download('flosy-transactions.csv','\ufeff'+rows.map(row=>row.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(',')).join('\r\n'),'text/csv;charset=utf-8')};$('importJSON').onclick=()=>$('importFile').click();$('importFile').onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());if(!d.settings||!Array.isArray(d.transactions))throw Error('ملف غير صالح');if(!confirm('سيتم استبدال البيانات المحلية بالنسخة المستوردة. هل توافق؟'))return;state={settings:{...def,...d.settings},transactions:d.transactions.filter(x=>x&&x.id&&['expense','income','transfer'].includes(x.type)&&Number.isFinite(Number(x.amount)))};save();toast('تم استيراد البيانات')}catch(err){toast('تعذر استيراد الملف: '+err.message)}e.target.value=''};
+
+// Comprehensive period reporting: all amounts below are based on the user's recorded transactions.
+function reportISO(d){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
+function reportDate(d){return new Date(d+'T12:00:00').toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'})}
+function reportRange(){
+ const period=$('reportPeriod').value;
+ const until=$('reportEnd').value;
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(until)||Number.isNaN(new Date(until+'T12:00:00').getTime()))throw Error('حدد تاريخ نهاية صحيحًا');
+ const endDate=new Date(until+'T12:00:00');
+ let start;
+ if(period==='custom'){start=$('reportStart').value}
+ else if(period==='week'){const d=new Date(endDate);d.setDate(d.getDate()-6);start=reportISO(d)}
+ else {const months=Number(period);if(!Number.isInteger(months)||months<1||months>24)throw Error('فترة التقرير غير صالحة');start=reportISO(new Date(endDate.getFullYear(),endDate.getMonth()-months+1,1,12))}
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||Number.isNaN(new Date(start+'T12:00:00').getTime()))throw Error('حدد تاريخ بداية صحيحًا');
+ if(start>until)throw Error('تاريخ البداية يجب ألا يتجاوز تاريخ النهاية');
+ const days=Math.round((Date.parse(until+'T12:00:00')-Date.parse(start+'T12:00:00'))/86400000)+1;
+ if(days>800)throw Error('الحد الأقصى للتقرير هو سنتان تقريبًا (800 يوم)');
+ return {start,end:until,days,period};
+}
+function reportBudgetProrated(start,end){
+ let rent=0,bills=0,living=0;
+ let d=new Date(start+'T12:00:00'),stop=new Date(end+'T12:00:00');
+ while(d<=stop){
+  const monthDays=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  rent+=Number(state.settings.rent)/monthDays;
+  bills+=Number(state.settings.bills)/monthDays;
+  living+=Number(state.settings.living)/monthDays;
+  d.setDate(d.getDate()+1);
+ }
+ return {rent,bills,living,total:rent+bills+living};
+}
+function reportSum(arr,type){return arr.filter(t=>t.type===type).reduce((sum,t)=>sum+Number(t.amount||0),0)}
+function reportTable(headers,rows){
+ return '<table><thead><tr>'+headers.map(x=>'<th>'+safe(x)+'</th>').join('')+'</tr></thead><tbody>'+
+ (rows.length?rows.map(cells=>'<tr>'+cells.map(v=>'<td>'+v+'</td>').join('')+'</tr>').join(''):'<tr><td colspan="'+headers.length+'" class="r-muted">لا توجد بيانات مسجلة لهذه الفترة.</td></tr>')+'</tbody></table>';
+}
+function reportMoney(n){return '<span class="r-num">'+amount(n)+'</span>'}
+function reportHtml(range){
+ const trs=state.transactions.filter(t=>t&&typeof t.date==='string'&&t.date>=range.start&&t.date<=range.end&&Number.isFinite(Number(t.amount))&&Number(t.amount)>=0)
+ .slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.createdAt||'').localeCompare(String(b.createdAt||'')));
+ const totalIncome=reportSum(trs,'income'),totalExpense=reportSum(trs,'expense'),totalTransfer=reportSum(trs,'transfer');
+ const net=totalIncome-totalExpense-totalTransfer;
+ const budget=reportBudgetProrated(range.start,range.end);
+ const usage=budget.total>0?Math.round(totalExpense/budget.total*100):0;
+ const groupOf=t=>t.category==='إيجار'?'rent':billCategories.includes(t.category)?'bills':'living';
+ const bucketTotals={rent:0,bills:0,living:0};
+ trs.filter(t=>t.type==='expense').forEach(t=>bucketTotals[groupOf(t)]+=Number(t.amount));
+ const groupRows=[
+  ['الإيجار',budget.rent,bucketTotals.rent],
+  ['الفواتير',budget.bills,bucketTotals.bills],
+  ['المعيشة والمصروفات الأخرى',budget.living,bucketTotals.living]
+ ].map(([name,expected,actual])=>[safe(name),reportMoney(expected),reportMoney(actual),reportMoney(expected-actual)]);
+ groupRows.push(['<b>الإجمالي</b>','<b>'+reportMoney(budget.total)+'</b>','<b>'+reportMoney(totalExpense)+'</b>','<b>'+reportMoney(budget.total-totalExpense)+'</b>']);
+ const categoryTotals=new Map();
+ trs.filter(t=>t.type==='expense').forEach(t=>categoryTotals.set(t.category,(categoryTotals.get(t.category)||0)+Number(t.amount)));
+ const categoryRows=[...categoryTotals].sort((a,b)=>b[1]-a[1]).map(([cat,sum])=>[safe(cat),reportMoney(sum),totalExpense?(sum/totalExpense*100).toFixed(1)+'%':'—']);
+ const bills=trs.filter(t=>t.type==='expense'&&billCategories.includes(t.category));
+ const billAmount=reportSum(bills,'expense');
+ const billRows=billCategories.map(cat=>{
+  const matching=bills.filter(t=>t.category===cat);
+  const value=reportSum(matching,'expense');
+  return [safe(cat==='فواتير'?'فواتير أخرى':cat),String(matching.length),reportMoney(value),billAmount?(value/billAmount*100).toFixed(1)+'%':'—'];
+ });
+ const transfers=trs.filter(t=>t.type==='transfer');
+ const transferRows=['الطوارئ','الاستثمار','الاحتياطي'].map(cat=>{
+  const matching=transfers.filter(t=>t.category===cat);
+  return [safe(cat),String(matching.length),reportMoney(reportSum(matching,'transfer'))];
+ });
+ const monthlyRows=[];
+ const startDate=new Date(range.start+'T12:00:00'),endDate=new Date(range.end+'T12:00:00');
+ for(let d=new Date(startDate.getFullYear(),startDate.getMonth(),1,12);d<=endDate;d.setMonth(d.getMonth()+1)){
+  const m=reportISO(d).slice(0,7),first=m+'-01',last=reportISO(new Date(d.getFullYear(),d.getMonth()+1,0,12));
+  const begin=first<range.start?range.start:first,finish=last>range.end?range.end:last;
+  const seg=trs.filter(t=>t.date>=begin&&t.date<=finish);
+  const inc=reportSum(seg,'income'),exp=reportSum(seg,'expense'),tr=reportSum(seg,'transfer');
+  monthlyRows.push([safe(monthLabel(m)),reportMoney(inc),reportMoney(exp),reportMoney(tr),reportMoney(inc-exp-tr),String(seg.length)]);
+ }
+ const transactionRows=trs.map((t,i)=>{
+  const typ=t.type==='income'?'دخل':t.type==='expense'?'مصروف':'تحويل للادخار';
+  return [String(i+1),safe(t.date),safe(typ),safe(t.category),safe(t.description||'—'),reportMoney(Number(t.amount))];
+ });
+ const printedAt=new Date().toLocaleString('ar-EG',{dateStyle:'full',timeStyle:'short'});
+ const stat=(name,value)=>'<div class="r-stat"><small>'+name+'</small><b>'+reportMoney(value)+'</b></div>';
+ let html='<article class="report-paper">';
+ html+='<header class="r-head"><div><div class="r-brand">↗ فلوسي</div><div class="r-kicker">التقرير المالي الشخصي • نسخة للطباعة</div></div><div><strong>تقرير مالي تفصيلي</strong><div class="r-sub">'+safe(reportDate(range.start))+' — '+safe(reportDate(range.end))+'</div><div class="r-kicker">تاريخ الإصدار: '+safe(printedAt)+'</div></div></header>';
+ html+='<div class="r-stats">'+stat('إجمالي الدخل المسجل',totalIncome)+stat('إجمالي المصروفات',totalExpense)+stat('تحويلات الادخار والاستثمار',totalTransfer)+stat('صافي التدفق بعد التحويلات',net)+'</div>';
+ html+='<div class="r-note">الفترة: '+range.days+' يوم • عدد المعاملات: '+trs.length+' • استخدام ميزانية المصروفات التقديرية: '+usage+'%. مبالغ الدخل والمصروفات هي المعاملات المسجلة فقط، ولا يضيف التطبيق الراتب المخطط تلقائيًا.</div>';
+ html+='<h2>1. مقارنة المصروفات بالميزانية</h2>';
+ html+=reportTable(['البند','الميزانية التقديرية','الإنفاق الفعلي','المتبقي / التجاوز'],groupRows);
+ html+='<p class="r-muted">ميزانيات الفترات الجزئية محسوبة تناسبيًا حسب عدد الأيام داخل كل شهر؛ هي مرجعية للمقارنة وليست كشف حساب بنكي.</p>';
+ html+='<h2>2. توزيع المصروفات حسب الفئة</h2>';
+ html+=reportTable(['الفئة','المبلغ','النسبة من إجمالي المصروفات'],categoryRows);
+ html+='<h2>3. تفاصيل الفواتير</h2>';
+ html+=reportTable(['نوع الفاتورة','عدد العمليات','المبلغ','النسبة من الفواتير'],billRows);
+ html+='<h2>4. مساهمات الادخار والاستثمار</h2>';
+ html+=reportTable(['الوجهة','عدد التحويلات','إجمالي التحويلات'],transferRows);
+ html+='<div class="r-note">التحويلات ليست مصروفات استهلاكية؛ ولا تعكس قيمة الاستثمارات السوقية أو عوائدها. الرصيد الفعلي يجب مطابقته مع الحسابات البنكية.</div>';
+ html+='<h2>5. الملخص الشهري خلال الفترة</h2>';
+ html+=reportTable(['الشهر','الدخل','المصروفات','التحويلات','صافي الحركة','العمليات'],monthlyRows);
+ html+='<h2>6. سجل جميع المعاملات بالتفصيل</h2>';
+ html+=reportTable(['#','التاريخ','النوع','الفئة / الوجهة','الوصف','المبلغ'],transactionRows);
+ html+='<div class="r-foot">أُنشئ هذا التقرير من تطبيق «فلوسي» باستخدام المعاملات التي سجلها صاحب الحساب. لا يعد تقريرًا مصرفيًا أو مستندًا مدققًا، وقد تتغير النتائج إذا لم تُسجل جميع العمليات.</div>';
+ html+='</article>';
+ return html;
+}
+function renderDetailedReportPreview(){
+ try{
+  const r=reportRange();
+  $('reportPreview').innerHTML=reportHtml(r);
+  $('reportPrintBtn').disabled=false;
+ }catch(err){
+  $('reportPreview').innerHTML='<div class="empty">'+safe(err.message)+'</div>';
+  $('reportPrintBtn').disabled=true;
+ }
+}
+function printDetailedReport(){
+ try{
+  const html=reportHtml(reportRange());
+  $('printOnlyReport').innerHTML=html;
+  if(window.FLOSY_NATIVE_ANDROID===true){
+   window.location.href='flosyapp://print';
+  }else{
+   window.print();
+  }
+ }catch(err){toast('تعذر إنشاء التقرير: '+err.message)}
+}
+(function initializeReportTools(){
+ const period=$('reportPeriod');
+ for(let i=1;i<=24;i++){
+  const opt=document.createElement('option');
+  opt.value=String(i);
+  opt.textContent=i===1?'الشهر الحالي':i===12?'سنة (12 شهرًا)':i===24?'سنتان (24 شهرًا)':i+' أشهر';
+  period.appendChild(opt);
+ }
+ const custom=document.createElement('option');
+ custom.value='custom';custom.textContent='فترة مخصصة';period.appendChild(custom);
+ period.value='1';
+ $('reportEnd').value=reportISO(new Date());
+ $('reportStart').value=reportISO(new Date(new Date().getFullYear(),new Date().getMonth(),1,12));
+ function onChange(){
+  $('reportStartWrap').style.display=period.value==='custom'?'grid':'none';
+  renderDetailedReportPreview();
+ }
+ period.addEventListener('change',onChange);
+ $('reportEnd').addEventListener('change',onChange);
+ $('reportStart').addEventListener('change',onChange);
+ $('reportPreviewBtn').addEventListener('click',renderDetailedReportPreview);
+ $('reportPrintBtn').addEventListener('click',printDetailedReport);
+ onChange();
+})();
+
 // Supabase REST integration: user data is protected by auth.uid()=user_id RLS rules from schema.sql.
 function api(path,opts={}){if(!cloud.url||!cloud.key)throw Error('أدخل إعدادات Supabase أولًا');const headers={'apikey':cloud.key,'Content-Type':'application/json',...(session?{'Authorization':'Bearer '+session.access_token}:{})};return fetch(cloud.url.replace(/\/$/,'')+path,{...opts,headers:{...headers,...opts.headers}}).then(async r=>{const txt=await r.text();let data;try{data=txt?JSON.parse(txt):null}catch{data=txt}if(!r.ok)throw Error(typeof data==='object'?(data.msg||data.message||data.error_description||data.error||r.status):String(data));return data})}
 $('cloudConfig').onsubmit=e=>{e.preventDefault();let f=new FormData(e.target),url=String(f.get('url')).trim(),key=String(f.get('key')).trim();if(url&&!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url))return toast('تحقق من رابط مشروع Supabase');cloud={url,key};localStorage.setItem(CLOUD,JSON.stringify(cloud));render();toast('تم حفظ إعدادات الاتصال محليًا')};$('cloudConfig').elements.url.value=cloud.url||'';$('cloudConfig').elements.key.value=cloud.key||'';
