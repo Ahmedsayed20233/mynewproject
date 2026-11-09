@@ -78,3 +78,7 @@ The newest site provides four additional tabs: **All My Money (wealth)**, **Thnd
 
 ### Data security
 The same Supabase \`flosy_data\` JSONB table and ownership-based Row-Level Security apply to the new fields: data never belongs in the public GitHub repo. Only the publishable Supabase key is shipped; never expose a service_role/secret key. The app keeps a local browser copy; uninstalling the Android app or clearing WebView data can destroy that local copy. Sync and export backups before uninstalling.
+
+
+### Expense categories update (2026-11-10)
+The New Transaction form now supports **الهدايا** as a standalone expense category, and separate optional expense subcategory selectors for: **طعام ومشروبات** → فطار، غداء، عشاء، مطعم، كافية الجامعة، أخرى; **ترفيه** → القهوة، كافية الجامعة، أخرى. A subcategory is required when either parent is selected. Existing records remain readable, and grouped expense budgets remain based on the parent category. The itemized expense report, printed PDF and CSV export include the subcategory. This is a live website update; the Android WebView app uses the same published site and does not need to be reinstalled. Restart the app if its cached page is stale.
