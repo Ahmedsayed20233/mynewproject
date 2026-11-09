@@ -3,6 +3,10 @@ package com.flosy.finance;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.Context;
+import android.print.PrintAttributes;
+import android.print.PrintDocumentAdapter;
+import android.print.PrintManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -70,6 +74,12 @@ public class MainActivity extends Activity {
                 Uri uri = request.getUrl();
                 String scheme = uri.getScheme();
                 String host = uri.getHost();
+                if ("flosyapp".equalsIgnoreCase(scheme) && "print".equalsIgnoreCase(host)) {
+                    if (request.isForMainFrame()) {
+                        view.post(() -> printReport());
+                    }
+                    return true;
+                }
                 if ("https".equalsIgnoreCase(scheme)
                     && HOME_HOST.equalsIgnoreCase(host)
                     && (uri.getPath() == null || uri.getPath().startsWith("/mynewproject"))) {
@@ -86,6 +96,14 @@ public class MainActivity extends Activity {
                     }
                 }
                 return true;
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                if (url != null && url.startsWith(HOME)) {
+                    view.evaluateJavascript("window.FLOSY_NATIVE_ANDROID=true;", null);
+                }
             }
 
             @Override
@@ -126,6 +144,21 @@ public class MainActivity extends Activity {
         } else {
             webView.loadUrl(HOME);
         }
+    }
+
+    private void printReport() {
+        if (webView == null) return;
+        PrintManager pm = (PrintManager) getSystemService(Context.PRINT_SERVICE);
+        if (pm == null) {
+            Toast.makeText(this, "خدمة الطباعة غير متاحة", Toast.LENGTH_LONG).show();
+            return;
+        }
+        PrintDocumentAdapter adapter = webView.createPrintDocumentAdapter("Flosy-Financial-Report");
+        PrintAttributes attributes = new PrintAttributes.Builder()
+            .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
+            .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
+            .build();
+        pm.print("Flosy Financial Report", adapter, attributes);
     }
 
     @Override
