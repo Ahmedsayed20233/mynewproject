@@ -490,7 +490,7 @@ function mergeRecords(remoteItems,localItems,kind,deleted){
 function mergeFinanceData(remote,local){
  const r=normalizeData(remote),l=normalizeData(local);
  const tombstones=new Set([...(r.deletedIds||[]),...(l.deletedIds||[])]);
- const localNewer=String(l._updatedAt||"")>=String(r._updatedAt||"");
+ const localNewer=Boolean(l._updatedAt)&&String(l._updatedAt)>String(r._updatedAt||"");
  const merged=normalizeData({...r,...l,
    settings:localNewer?l.settings:r.settings,
    plan:localNewer?(l.plan||r.plan):(r.plan||l.plan),
@@ -558,5 +558,5 @@ window.FLOSY_BRIDGE={
 };
 try{let s=JSON.parse(sessionStorage.getItem('flosy_session'));if(s&&s.refresh_token)session=s}catch{}categoryOptions();render();if(session)sync();})();
 </script>
-<script src="finance-pro.js?v=122"></script>
+<script src="finance-pro.js?v=123"></script>
 </body></html>
