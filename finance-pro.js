@@ -137,10 +137,10 @@
       box("الأصول الاستثمارية",m.portfolio.market,"القيمة من الأسعار التي تدخلها")+
       box("أصول أخرى",m.other,"مثل سيارة أو عقار")+
       box("الديون والالتزامات",m.debt,"تُطرح من صافي الثروة","pro-warn")+'</div>';
-    html+='<div class="pro-card"><div class="pro-head"><div><h3>حساباتك وأرصدة الأموال</h3><p>أدخل الرصيد الافتتاحي مرة واحدة، وسجّل بعده العمليات عبر حساب محدد.</p></div><button class="btn primary" data-pro="add-account">＋ حساب</button></div>';
+    html+='<div class="pro-card"><div class="pro-head"><div><h3>حساباتك وأرصدة الأموال</h3><p>أدخل الرصيد الافتتاحي مرة واحدة، وسجّل بعده العمليات عبر حساب محدد. استخدم «مطابقة» لو الرصيد الحالي مختلف عن البنك.</p></div><button class="btn primary" data-pro="add-account">＋ حساب</button></div>';
     html+=line(cashAccounts().map(function(a){
       var amount=m.balances[a.id]||0;return ['<span class="pro-icon">▣</span> '+esc(a.name),esc(({cash:"نقدية",bank:"حساب بنكي",emergency:"طوارئ",reserve:"احتياطي",thndr:"ثاندر",other:"حساب آخر"})[a.type]||a.type),'<strong class="'+(amount<0?"pro-negative":"")+'">'+money(amount)+'</strong>',
-      '<button class="smallbtn" data-pro="edit-account" data-id="'+esc(a.id)+'">تعديل</button>'];
+      '<button class="smallbtn" data-pro="reconcile-account" data-id="'+esc(a.id)+'">مطابقة</button> <button class="smallbtn" data-pro="edit-account" data-id="'+esc(a.id)+'">افتتاحي</button>'];
     }),["الحساب","النوع","الرصيد المحسوب",""]);
     html+='<div class="pro-note">العمليات القديمة المسجلة قبل إضافة الحسابات لا تُوزع تلقائيًا لمنع احتسابها مرتين. أدخل الأرصدة الحالية بدقة وراجع تطابقها مع البنك وثاندر.</div></div>';
     html+='<div class="pro-card"><div class="pro-head"><h3>تحويل بين حساباتك</h3></div><form id="proAccountTransfer" class="pro-grid-fields">'+
@@ -325,6 +325,19 @@
       var a=prompt("الرصيد الافتتاحي الحالي بالجنيه","0");if(a===null)return;var v=Number(a);
       if(!Number.isFinite(v)||v<0){C.toast("أدخل رصيدًا صحيحًا");return}
       store("accounts",{name:an.trim().slice(0,60),type:"other",opening:v});
+    }
+    if(action==="reconcile-account"){
+      var a=acc(id);if(!a)return;
+      var before=rowsForAccounts()[id]||0;
+      var entered=prompt("الرصيد الحالي الفعلي للحساب: "+a.name+"\nفلوسي يحتسب حاليًا "+money(before)+"\nأدخل الرصيد الذي يظهر في البنك/المحفظة لتسوية الفرق.",String(before));
+      if(entered===null)return;
+      var actual=Number(entered);
+      if(!Number.isFinite(actual)||actual<0){C.toast("الرصيد الفعلي غير صالح");return}
+      var difference=actual-before;
+      if(Math.abs(difference)<.005){C.toast("الرصيد مطابق بالفعل");return}
+      if(!confirm("سيتم تطبيق فرق مطابقة بمبلغ "+money(difference)+" دون تسجيله كمصروف أو دخل. هل توافق؟"))return;
+      C.mutate(function(s){var x=s.accounts.find(function(v){return v.id===id});if(x){x.opening=num(x.opening)+difference;x.lastReconciledAt=new Date().toISOString();x.lastReconciledTo=actual;x.updatedAt=x.lastReconciledAt}});
+      C.toast("تمت مطابقة الرصيد. راجع أي عمليات غير مسجلة.");
     }
     if(action==="edit-account"){
       var x=acc(id);if(!x)return;
