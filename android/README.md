@@ -1,4 +1,4 @@
-# Flosy Android v1.1.0 — فلوسي
+# Flosy Android v1.2.0 — فلوسي
 
 Enhanced Android WebView app for the existing published **Flosy** dashboard:
 https://ahmedsayed20233.github.io/mynewproject/
@@ -17,3 +17,10 @@ https://ahmedsayed20233.github.io/mynewproject/
 - Be aware a GitHub Actions debug keystore is generally ephemeral across build runs; installing a later APK may require uninstalling the previous one (back up/sync data first). Production updates need a securely preserved release signing key.
 
 To build in Android Studio, open the `android` folder and run the app.
+
+### v1.2.0 — Complete financial tracking
+
+- The live Flosy app now tracks manually entered cash accounts, investment holdings, other assets, debts, net worth, a 24-month plan, and crisis indicators.
+- Enter account opening balances; transactions recorded before account tracking are not assigned retroactively to avoid double counting.
+- Record Thndr executed transactions and update current prices yourself. No authenticated Thndr/bank API connection exists; the Android app does not trade or transfer real money.
+- Data remain in local WebView storage until cloud synchronization completes. Back up existing data in Settings and verify the Supabase sync before reinstalling.
