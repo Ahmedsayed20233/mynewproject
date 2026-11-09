@@ -48,15 +48,15 @@ jobs:
           APK="android/app/build/outputs/apk/debug/app-debug.apk"
           test -s "$APK"
           mkdir -p dist
-          cp "$APK" dist/Flosy-Android-v1.1.0.apk
-          ls -lh dist/Flosy-Android-v1.1.0.apk
+          cp "$APK" dist/Flosy-Android-v1.2.0.apk
+          ls -lh dist/Flosy-Android-v1.2.0.apk
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | head -12
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: Flosy-Android-APK
-          path: dist/Flosy-Android-v1.1.0.apk
+          path: dist/Flosy-Android-v1.2.0.apk
           retention-days: 30
           if-no-files-found: error
 
@@ -64,14 +64,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="flosy-android-v1.1.0"
-          APK="dist/Flosy-Android-v1.1.0.apk"
+          TAG="flosy-android-v1.2.0"
+          APK="dist/Flosy-Android-v1.2.0.apk"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$TAG" "$APK" \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --title "فلوسي Android v1.1.0 (mobile UX upgrade)" \
+              --title "فلوسي Android v1.2.0 (mobile UX upgrade)" \
               --notes "Android 7+ test build of Flosy. Improved 5-item bottom navigation, an accessible More panel (settings, budgets, goals, sync), loading indicator, Android back handling, and PDF print. Uses the live website and your existing Supabase account. Internet required. Debug signed; not a Play Store production release."
           fi
