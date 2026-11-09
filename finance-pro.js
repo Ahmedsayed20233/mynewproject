@@ -155,14 +155,15 @@
       box("أصول أخرى",m.other,"مثل سيارة أو عقار")+
       box("الديون والالتزامات",m.debt,"تُطرح من صافي الثروة","pro-warn")+'</div>';
     var plan=st().plan||{},visa=Number(plan.initialVisa||20000),seed=Number(plan.initialEmergency||15000),visaBalance=m.balances.bank||0,emergencyBalance=m.balances.emergency||0;
+    var hasStartingTransfer=(st().transactions||[]).some(function(t){return !!t.startingAllocation});
     html+='<div class="pro-card"><div class="pro-head"><h3>تجهيز رصيد الفيزا وخطة البداية</h3><span class="pro-meta">عملية اختيارية وآمنة</span></div>'+
       '<p>ذكرت أن رصيد الفيزا الحالي '+money(visa)+'، والخطة المقترحة: '+money(seed)+' للطوارئ و'+money(visa-seed)+' سيولة تشغيلية متاحة.</p>'+
       '<div class="pro-stat-grid">'+box("رصيد البنك المسجل",visaBalance,"يتغير بعد كل معاملة")+
       box("رصيد الطوارئ المسجل",emergencyBalance,"من الحسابات الفعلية")+
       box("البداية المستهدفة للطوارئ",seed,"جزء من رصيد الفيزا")+
       box("سيولة تشغيلية مستهدفة",visa-seed,"تبقى داخل الفيزا")+'</div>'+
-      '<div class="pro-toolbar"><button type="button" class="btn primary" data-pro="set-visa">1. مطابقة الفيزا مع '+money(visa)+'</button>'+
-      '<button type="button" class="btn" data-pro="seed-emergency">2. تسجيل تحويل '+money(seed)+' للطوارئ</button></div>'+
+      '<div class="pro-toolbar"><button type="button" class="btn primary" data-pro="set-visa" '+(hasStartingTransfer?'disabled title="تم تسجيل تحويل البداية"':'')+'>1. مطابقة الفيزا مع '+money(visa)+'</button>'+
+      '<button type="button" class="btn" data-pro="seed-emergency" '+(hasStartingTransfer||emergencyBalance>=seed-.005?'disabled title="مخصص البداية مسجل بالفعل"':'')+'>2. تسجيل تحويل '+money(seed)+' للطوارئ</button></div>'+
       '<div class="pro-note">هذان الزران لا يحركان أي أموال حقيقية: يُسجلان ما حدث بالفعل فقط داخل فلوسي. إذا كانت الفيزا ائتمانية والمبلغ حدًا ائتمانيًا أو قرضًا وليس رصيدًا مملوكًا لك، لا تستخدم زر المطابقة؛ سجّل الالتزام في «الديون» بدلًا من ذلك. لا تضغط تسجيل التحويل حتى تنفذه فعليًا من البنك.</div></div>';
     html+='<div class="pro-card"><div class="pro-head"><div><h3>حساباتك وأرصدة الأموال</h3><p>أدخل الرصيد الافتتاحي مرة واحدة، وسجّل بعده العمليات عبر حساب محدد. استخدم «مطابقة» لو الرصيد الحالي مختلف عن البنك.</p></div><button class="btn primary" data-pro="add-account">＋ حساب</button></div>';
     html+=line(cashAccounts().map(function(a){
@@ -365,6 +366,9 @@
       store("accounts",{name:an.trim().slice(0,60),type:"other",opening:v});
     }
     if(action==="set-visa"){
+      if((st().transactions||[]).some(function(t){return !!t.startingAllocation})){
+        C.toast("تم تسجيل تحويل بداية الطوارئ؛ لا تعِد رصيد الفيزا إلى 20 ألف لأن ذلك سيكرر الأموال.");return;
+      }
       var targetVisa=num(st().plan.initialVisa),actualBank=num(rowsForAccounts().bank),difference=targetVisa-actualBank;
       if(targetVisa<=0||!acc("bank")){C.toast("راجع رصيد الفيزا في الخطة");return}
       if(!confirm("هل لديك فعلًا "+money(targetVisa)+" رصيد مملوك ومتوافر في الفيزا، وليس حدًا ائتمانيًا؟\nسيتم تعديل رصيد حساب البنك إلى "+money(targetVisa)+" دون إنشاء دخل أو مصروف. إذا سبق أن سجلت عمليات قديمة راجع المطابقة بدقة."))return;
