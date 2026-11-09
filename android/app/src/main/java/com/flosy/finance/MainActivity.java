@@ -8,6 +8,11 @@ import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
 import android.graphics.Color;
+import android.content.res.ColorStateList;
+import android.view.View;
+import android.view.Gravity;
+import android.widget.FrameLayout;
+import android.widget.ProgressBar;
 import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.DownloadListener;
@@ -25,7 +30,9 @@ public class MainActivity extends Activity {
     private static final String HOME_HOST = "ahmedsayed20233.github.io";
     private static final int PICK_FILE = 71;
     private WebView webView;
+    private ProgressBar loadingBar;
     private ValueCallback<Uri[]> selectedFiles;
+    private long lastBackPressTime = 0L;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -33,9 +40,19 @@ public class MainActivity extends Activity {
         getWindow().setStatusBarColor(Color.rgb(8, 20, 34));
         getWindow().setNavigationBarColor(Color.rgb(8, 20, 34));
 
+        FrameLayout root = new FrameLayout(this);
         webView = new WebView(this);
         webView.setBackgroundColor(Color.rgb(8, 20, 34));
-        setContentView(webView);
+        root.addView(webView, new FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        loadingBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        loadingBar.setMax(100);
+        loadingBar.setProgressTintList(ColorStateList.valueOf(Color.rgb(35, 220, 177)));
+        loadingBar.setProgressBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+        FrameLayout.LayoutParams loadingParams = new FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT, 5, Gravity.TOP);
+        root.addView(loadingBar, loadingParams);
+        setContentView(root);
         WebView.setWebContentsDebuggingEnabled(false);
 
         WebSettings settings = webView.getSettings();
@@ -47,8 +64,18 @@ public class MainActivity extends Activity {
         settings.setAllowContentAccess(false);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         settings.setSupportZoom(false);
+        settings.setTextZoom(100);
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
 
         webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onProgressChanged(WebView view, int progress) {
+                if (loadingBar != null) {
+                    loadingBar.setProgress(progress);
+                    loadingBar.setVisibility(progress >= 100 ? View.GONE : View.VISIBLE);
+                }
+            }
+
             @Override
             public boolean onShowFileChooser(WebView w,
                                               ValueCallback<Uri[]> callback,
@@ -179,11 +206,27 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (webView.canGoBack()) {
-            webView.goBack();
-        } else {
-            super.onBackPressed();
+        if (webView == null) {
+            finish();
+            return;
         }
+        webView.evaluateJavascript(
+            "(window.FLOSY_HANDLE_BACK ? window.FLOSY_HANDLE_BACK() : 'exit')",
+            result -> {
+                if ("\"handled\"".equals(result)) return;
+                if (webView != null && webView.canGoBack()) {
+                    webView.goBack();
+                    return;
+                }
+                long now = System.currentTimeMillis();
+                if (now - lastBackPressTime < 2200) {
+                    finish();
+                } else {
+                    lastBackPressTime = now;
+                    Toast.makeText(this, "اضغط رجوع مرة أخرى للخروج من فلوسي",
+                        Toast.LENGTH_SHORT).show();
+                }
+            });
     }
 
     @Override
