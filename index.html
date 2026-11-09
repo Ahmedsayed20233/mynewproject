@@ -56,6 +56,93 @@
  #printOnlyReport .report-paper .r-stat{break-inside:avoid}
  #printOnlyReport .report-paper{print-color-adjust:exact;-webkit-print-color-adjust:exact}
 }
+
+/* Flosy mobile v1.1: spacious 5-action bottom dock + accessible More sheet. */
+.mobile-dock,.mobile-more-shade{display:none}
+.network-banner{position:fixed;top:0;right:0;left:0;background:#9d4a12;color:#fff;padding:9px 16px;text-align:center;z-index:39;font-weight:700;font-size:12px}
+.network-banner[hidden]{display:none!important}
+@media (max-width:680px){
+ html,body{overflow-x:hidden}
+ .sidebar{display:none!important}
+ .main{padding:17px 13px calc(110px + env(safe-area-inset-bottom,0px));}
+ .top{align-items:center;gap:8px;margin-bottom:17px}
+ .top h1{font-size:18px;line-height:1.35}
+ .topactions{gap:6px}
+ .topactions #settingsShortcut{display:inline-flex;align-items:center;justify-content:center;min-width:42px;min-height:42px;font-size:19px}
+ .topactions #addBtn{display:none}
+ .topactions #themeBtn{display:none}
+ .kpis .metric{min-height:116px;border-radius:16px}
+ .kpis .metric .value{font-size:clamp(17px,5vw,23px);overflow-wrap:anywhere}
+ .card{border-radius:15px}
+ .chip,.btn{white-space:normal}
+ .modalback{z-index:28;align-items:flex-end;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px))}
+ .modal{width:100%;max-height:min(86vh,760px);border-radius:24px 24px 16px 16px;padding:20px 16px;overscroll-behavior:contain}
+ .modal input,.modal select{min-height:43px;font-size:16px}
+ .toast{bottom:calc(91px + env(safe-area-inset-bottom,0px));left:12px;right:12px;text-align:center;z-index:35}
+ .mobile-dock{
+    display:flex;position:fixed;inset:auto 0 0;align-items:center;
+    justify-content:space-between;gap:3px;z-index:19;
+    padding:9px 8px calc(8px + env(safe-area-inset-bottom,0px));
+    min-height:76px;border-top:1px solid var(--outline);
+    background:color-mix(in srgb,var(--panel) 94%, transparent);
+    box-shadow:0 -12px 32px #0004;
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+ }
+ .mobile-dock .dock-item{
+    appearance:none;background:transparent;border:0;border-radius:13px;
+    color:var(--muted);padding:6px 0;display:flex;flex-direction:column;
+    justify-content:center;align-items:center;gap:2px;font-family:inherit;
+    flex:1;min-width:0;min-height:51px;font-weight:800;font-size:10px;
+    line-height:1.35;touch-action:manipulation;
+ }
+ .mobile-dock .dock-icon{font-size:24px;font-weight:900;line-height:1.1}
+ .mobile-dock .dock-item.active{color:var(--teal);background:color-mix(in srgb,var(--teal) 9%,transparent)}
+ .mobile-dock .dock-item:focus-visible,.more-grid button:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+ .mobile-dock .dock-action{
+    flex:0 0 55px;height:55px;border-radius:18px;
+    background:linear-gradient(150deg,#31efbf,#1abea9)!important;
+    color:#05272a!important;box-shadow:0 8px 24px #22dbb450;
+    margin-top:-20px;border:3px solid var(--bg);padding:1px 2px;
+ }
+ .mobile-dock .dock-action .dock-icon{font-size:29px;line-height:1}
+ .mobile-dock .dock-action span:last-child{font-size:9px}
+ .mobile-more-shade{display:none;position:fixed;inset:0;z-index:21;background:#010910af}
+ .mobile-more-shade.open{display:block}
+ .mobile-more-panel{
+   position:absolute;bottom:calc(82px + env(safe-area-inset-bottom,0px));
+   right:10px;left:10px;max-height:min(76vh,650px);overflow:auto;
+   border:1px solid var(--outline);border-radius:23px;
+   background:var(--panel);padding:13px 15px 16px;
+   box-shadow:0 18px 70px #0008;overscroll-behavior:contain
+ }
+ .more-grip{width:39px;height:4px;background:var(--outline);border-radius:7px;margin:0 auto 14px}
+ .more-head{display:flex;justify-content:space-between;align-items:start;gap:8px;margin-bottom:14px}
+ .more-head b{display:block;font-size:16px}
+ .more-head small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+ .more-head button{background:var(--panel2);color:var(--text);border:1px solid var(--outline);border-radius:12px;width:36px;height:36px}
+ .more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .more-grid button{min-height:101px;text-align:right;border:1px solid var(--outline);border-radius:16px;background:var(--panel2);color:var(--text);padding:13px;display:flex;flex-direction:column;align-items:flex-start;gap:1px}
+ .more-grid button>span{font-size:23px;color:var(--teal);line-height:1.2;margin-bottom:4px}
+ .more-grid button strong{font-size:12px}
+ .more-grid button small{font-size:10px;color:var(--muted)}
+ .more-sync{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid #218170;background:#0d483a30;border-radius:14px;padding:11px;margin-top:14px}
+ .more-sync b{display:block;font-size:12px}
+ .more-sync small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+ .more-sync button{border:0;border-radius:10px;background:var(--teal);color:#05282a;padding:9px 10px;font-weight:900;font-size:11px;white-space:nowrap}
+ .more-actions{display:flex;gap:8px;margin-top:11px}
+ .more-actions button{flex:1;border:1px solid var(--outline);background:var(--panel2);color:var(--text);border-radius:11px;padding:11px 7px;font-size:11px;font-weight:800}
+ body.keyboard-open .mobile-dock{display:none!important}
+ body.keyboard-open .main{padding-bottom:30px}
+ body.keyboard-open .mobile-more-shade{display:none!important}
+}
+@media (max-width:345px){
+ .mobile-dock{padding-right:4px;padding-left:4px;gap:0}
+ .mobile-dock .dock-item{font-size:9px}
+ .mobile-dock .dock-icon{font-size:22px}
+ .mobile-dock .dock-action{flex-basis:50px;height:50px}
+ .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media print{.mobile-dock,.mobile-more-shade,.network-banner{display:none!important}}
 </style>
 </head>
 <body>
@@ -99,6 +186,27 @@
 <section class="page" id="page-settings"><div id="saveStatusCard" class="card" style="margin-bottom:15px"></div><div class="grid settinggrid"><div class="card"><h3>الإعدادات المالية</h3><p class="muted">الأرقام خطط وليست معاملات مسجلة.</p><form id="settingsForm" class="formgrid"><div class="field"><label>الدخل الشهري المخطط</label><input name="salary" type="number" min="0" required></div><div class="field"><label>الإيجار</label><input name="rent" type="number" min="0" required></div><div class="field"><label>الفواتير</label><input name="bills" type="number" min="0" required></div><div class="field"><label>المعيشة</label><input name="living" type="number" min="0" required></div><div class="field"><label>هدف الطوارئ</label><input name="emergencyTarget" type="number" min="0" required></div><div class="field"><label>هدف الاستثمار</label><input name="investmentTarget" type="number" min="0" required></div><div class="field"><label>رصيد الطوارئ الابتدائي</label><input name="emergencyOpening" type="number" min="0" required></div><div class="field"><label>قيمة الاستثمار الحالية الابتدائية</label><input name="investmentOpening" type="number" min="0" required></div><div class="field"><label>رصيد الاحتياطي الابتدائي</label><input name="reserveOpening" type="number" min="0" required></div><div class="field"><label>هدف الاحتياطي</label><input name="reserveTarget" type="number" min="0" required></div><div class="buttonbar" style="grid-column:1/-1"><button type="submit" class="btn primary">حفظ الميزانية</button></div></form></div>
 <div class="card"><h3>خصوصية البيانات والنسخ الاحتياطي</h3><p class="callout"><strong>💾 الحفظ المحلي مفعّل تلقائيًا:</strong> تُحفظ المعاملات على نفس الجهاز داخل مساحة بيانات تطبيق فلوسي أو المتصفح المستخدم، ولا تُرسل إلى GitHub. هذا التخزين ليس نسخة احتياطية؛ قد تفقد بياناته عند حذف التطبيق أو مسح بياناته أو تغيير الهاتف. <strong>☁ المزامنة السحابية:</strong> بعد تسجيل الدخول إلى حساب فلوسي، استخدم «مزامنة الآن» لحفظ المعاملات في Supabase واسترجاعها من جهاز آخر. نزّل نسخة JSON احتياطية بانتظام، خصوصًا قبل حذف التطبيق.</p><div class="buttonbar"><button class="btn" id="exportJSON">تنزيل نسخة JSON</button><button class="btn" id="importJSON">استيراد نسخة</button><input class="fileinput" id="importFile" type="file" accept=".json,application/json"></div><hr style="border:0;border-top:1px solid var(--outline);margin:24px 0"><h3>مزامنة Supabase المجانية (اختياري)</h3><p class="muted">قاعدة بيانات سحابية بحساب مستخدم وصلاحيات RLS. لا تضع مفتاح service_role هنا، استخدم Publishable / anon key فقط.</p><form id="cloudConfig" class="field"><label>Project URL</label><input name="url" placeholder="https://project.supabase.co" autocomplete="off"><label>Publishable / anon key</label><input name="key" type="password" placeholder="sb_publishable_..." autocomplete="off"><div class="buttonbar"><button class="btn" type="submit">حفظ إعدادات الاتصال</button></div></form><form id="cloudAuth" class="field" style="margin-top:12px"><label>البريد الإلكتروني</label><input name="email" type="email" placeholder="you@example.com" required autocomplete="email"><label>كلمة المرور (لحساب التطبيق السحابي)</label><input name="password" type="password" minlength="8" required autocomplete="current-password"><div class="buttonbar"><button class="btn primary" type="submit">تسجيل الدخول</button><button class="btn" type="button" id="signUp">إنشاء حساب</button><button class="btn" type="button" id="syncNow">مزامنة الآن</button><button class="btn" type="button" id="signOut">خروج</button></div></form><p class="footnote" id="cloudStatus">قاعدة البيانات جاهزة. سجّل حسابًا داخل فلوسي وفعّل المزامنة.</p></div></div></section>
 </main></div>
+<nav id="mobileDock" class="mobile-dock" aria-label="التنقل الرئيسي للموبايل">
+<button type="button" data-page="dashboard" class="dock-item active" aria-label="لوحة التحكم"><span class="dock-icon">⌂</span><span>الرئيسية</span></button>
+<button type="button" data-page="transactions" class="dock-item" aria-label="المعاملات"><span class="dock-icon">⇄</span><span>المعاملات</span></button>
+<button type="button" id="dockAdd" class="dock-item dock-action" aria-label="إضافة معاملة"><span class="dock-icon">＋</span><span>إضافة</span></button>
+<button type="button" data-page="reports" class="dock-item" aria-label="التقارير"><span class="dock-icon">▥</span><span>التقارير</span></button>
+<button type="button" id="dockMoreButton" class="dock-item" aria-label="المزيد والإعدادات" aria-expanded="false" aria-controls="mobileMorePanel"><span class="dock-icon">☰</span><span>المزيد</span></button>
+</nav>
+<div id="mobileMoreShade" class="mobile-more-shade" aria-hidden="true">
+<section id="mobileMorePanel" class="mobile-more-panel" role="dialog" aria-modal="true" aria-label="قائمة المزيد">
+<div class="more-grip"></div>
+<div class="more-head"><div><b>المزيد في فلوسي</b><small>كل أدواتك المالية في مكان واحد</small></div><button type="button" id="closeMore" aria-label="إغلاق القائمة">✕</button></div>
+<div class="more-grid">
+<button data-go="budget" type="button"><span>◉</span><strong>الميزانية</strong><small>خطة الإنفاق</small></button>
+<button data-go="goals" type="button"><span>◎</span><strong>أهداف الادخار</strong><small>الطوارئ والاستثمار</small></button>
+<button data-go="settings" type="button"><span>⚙</span><strong>الإعدادات</strong><small>النسخ والمزامنة</small></button>
+<button data-go="reports" type="button"><span>▥</span><strong>التقارير</strong><small>PDF للفترات المختلفة</small></button>
+</div>
+<div class="more-sync"><div><b id="moreSyncTitle">💾 حفظ محلي</b><small id="moreSyncHint">سجّل دخولك من الإعدادات للمزامنة السحابية</small></div><button type="button" id="moreSyncBtn">مزامنة</button></div>
+<div class="more-actions"><button type="button" data-go="settings">↗ إدارة بياناتي</button><button type="button" id="moreRefresh">⟳ تحديث الموقع</button></div>
+</section></div>
+<div id="netBanner" class="network-banner" role="status" aria-live="polite" hidden>أنت غير متصل بالإنترنت. المعاملات المحلية محفوظة على الجهاز، والمزامنة تتطلب اتصالًا.</div>
 <div id="printOnlyReport" aria-hidden="true"></div>
 <div class="modalback" id="modalback"><div class="modal"><div class="modalhead"><h2>تسجيل معاملة جديدة</h2><button id="closeModal" aria-label="إغلاق">×</button></div><form id="txnForm"><div class="formgrid"><div class="field"><label>نوع المعاملة</label><select name="type" id="formType"><option value="expense">مصروف</option><option value="income">دخل</option><option value="transfer">تحويل للادخار</option></select></div><div class="field"><label>المبلغ (جنيه)</label><input type="number" name="amount" min="0.01" step="0.01" required placeholder="0.00"></div><div class="field"><label>التاريخ</label><input type="date" name="date" required></div><div class="field"><label>الفئة / الوجهة</label><select name="category" id="formCategory"></select></div><div class="field" style="grid-column:1/-1"><label>الوصف</label><input name="description" maxlength="100" placeholder="مثال: مشتريات الأسبوع" required></div></div><div class="buttonbar"><button type="submit" class="btn primary">حفظ المعاملة</button><button type="button" class="btn" id="cancelModal">إلغاء</button></div></form></div></div><div class="toast" id="toast"></div>
 <script>
@@ -131,7 +239,45 @@ $('saveStatusCard').innerHTML='<h3>💾 حالة حفظ بياناتك</h3><p cl
 $('saveStatusSyncButton').onclick=()=>{if(!session){toast('سجّل الدخول لتفعيل المزامنة السحابية');return}sync()};
 $('saveStatusExportButton').onclick=()=>$('exportJSON').click();
 if(page==='reports')renderDetailedReportPreview();}
-function goto(p){page=p;document.querySelectorAll('.page').forEach(e=>e.classList.toggle('active',e.id==='page-'+p));document.querySelectorAll('[data-page]').forEach(e=>e.classList.toggle('active',e.dataset.page===p));const titles={dashboard:'مرحبًا بك في فلوسي 👋',transactions:'معاملاتك المالية',budget:'الميزانية الشهرية',goals:'أهدافك المالية',reports:'تقارير وتحليلات',settings:'الإعدادات والخصوصية'};$('pageTitle').textContent=titles[p];render();window.scrollTo({top:0,behavior:'smooth'})}
+function goto(p){page=p;setMobileMore(false);document.querySelectorAll('.page').forEach(e=>e.classList.toggle('active',e.id==='page-'+p));document.querySelectorAll('[data-page]').forEach(e=>e.classList.toggle('active',e.dataset.page===p));$('dockMoreButton').classList.toggle('active',['budget','goals','settings'].includes(p));const titles={dashboard:'مرحبًا بك في فلوسي 👋',transactions:'معاملاتك المالية',budget:'الميزانية الشهرية',goals:'أهدافك المالية',reports:'تقارير وتحليلات',settings:'الإعدادات والخصوصية'};$('pageTitle').textContent=titles[p];render();window.scrollTo({top:0,behavior:'smooth'})}
+
+function setMobileMore(open){
+ const shade=$('mobileMoreShade');
+ if(!shade)return;
+ const active=!!open;
+ shade.classList.toggle('open',active);
+ shade.setAttribute('aria-hidden',String(!active));
+ $('dockMoreButton').setAttribute('aria-expanded',String(active));
+ $('dockMoreButton').classList.toggle('active',active||['budget','goals','settings'].includes(page));
+ if(active){updateMobileSync();} 
+}
+function updateMobileSync(){
+ const connected=!!(session&&session.user);
+ const title=$('moreSyncTitle'),hint=$('moreSyncHint');
+ if(!title||!hint)return;
+ title.textContent=connected?'☁ حساب متصل':'💾 محفوظ على الهاتف';
+ hint.textContent=connected?'حساب '+(session.user.email||'فلوسي')+' • اضغط مزامنة':'سجل الدخول من الإعدادات لحفظ نسخة سحابية';
+}
+window.FLOSY_HANDLE_BACK=()=>{
+ if($('modalback').classList.contains('open')){closeModal();return 'handled'}
+ if($('mobileMoreShade').classList.contains('open')){setMobileMore(false);return 'handled'}
+ if(page!=='dashboard'){goto('dashboard');return 'handled'}
+ return 'exit';
+};
+$('dockAdd').onclick=()=>openModal();
+$('dockMoreButton').onclick=()=>setMobileMore(!$('mobileMoreShade').classList.contains('open'));
+$('closeMore').onclick=()=>setMobileMore(false);
+$('mobileMoreShade').onclick=e=>{if(e.target.id==='mobileMoreShade')setMobileMore(false)};
+$('moreSyncBtn').onclick=()=>{
+ if(!session){setMobileMore(false);goto('settings');toast('سجل الدخول أولاً ثم اضغط مزامنة الآن');return;}
+ setMobileMore(false);sync();
+};
+$('moreRefresh').onclick=()=>{setMobileMore(false);if(confirm('تحديث الواجهة؟ بياناتك المحلية المحفوظة لن تُحذف.'))location.reload()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('modalback').classList.contains('open'))closeModal();else setMobileMore(false)}});
+document.addEventListener('focusin',e=>{if(e.target.matches('input:not([type=checkbox]):not([type=radio]),textarea,select'))document.body.classList.add('keyboard-open')});
+document.addEventListener('focusout',e=>{if(e.target.matches('input,textarea,select'))setTimeout(()=>{if(!document.activeElement.matches('input,textarea,select'))document.body.classList.remove('keyboard-open')},120)});
+function updateNetworkBanner(){$('netBanner').hidden=navigator.onLine}
+window.addEventListener('online',updateNetworkBanner);window.addEventListener('offline',updateNetworkBanner);updateNetworkBanner();
 function openModal(type='expense'){$('modalback').classList.add('open');$('txnForm').reset();$('formType').value=type;$('txnForm').elements.date.value=new Date().toLocaleDateString('en-CA');categoryOptions();$('txnForm').elements.amount.focus()}
 function closeModal(){$('modalback').classList.remove('open')}
 document.addEventListener('click',e=>{const nav=e.target.closest('[data-page]');if(nav)goto(nav.dataset.page);const go=e.target.closest('[data-go]');if(go)goto(go.dataset.go);const quick=e.target.closest('[data-quick]');if(quick)openModal(quick.dataset.quick);const del=e.target.closest('[data-delete]');if(del&&confirm('هل تريد حذف هذه المعاملة؟')){state.transactions=state.transactions.filter(t=>t.id!==del.dataset.delete);save();toast('تم حذف المعاملة');syncIfReady()}});$('addBtn').onclick=()=>openModal();$('closeModal').onclick=$('cancelModal').onclick=closeModal;$('modalback').onclick=e=>{if(e.target===$('modalback'))closeModal()};$('formType').onchange=categoryOptions;$('searchTxn').oninput=render;$('typeTxn').onchange=render;$('monthChip').onclick=()=>{const m=prompt('اختر الشهر بصيغة YYYY-MM',selectedMonth);if(m&&/^\d{4}-(0[1-9]|1[0-2])$/.test(m)){selectedMonth=m;render()}};$('storageChip').onclick=()=>goto('settings');$('themeBtn').onclick=()=>{document.body.classList.toggle('light');localStorage.setItem('flosy_theme',document.body.classList.contains('light')?'light':'dark')};if(localStorage.getItem('flosy_theme')==='light')document.body.classList.add('light');
