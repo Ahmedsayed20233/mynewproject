@@ -337,13 +337,13 @@
   }
   function reportSection(){
     var m=metrics(),p=m.portfolio;
-    var html='<h2>7. ملحق الثروة الحالية (تقييم بتاريخ إصدار التقرير)</h2>';
+    var html='<h2>8. ملحق الثروة الحالية (تقييم بتاريخ إصدار التقرير)</h2>';
     html+='<div class="r-note">هذا الملحق يمثل القيم المُدخلة حاليًا ولا يعيد إنشاء أرصدة تاريخية للفترة. تجنب تكرار احتساب نفس الأصل.</div>';
     html+='<table><thead><tr><th>الحساب النقدي</th><th>الرصيد (جنيه)</th></tr></thead><tbody>'+
       cashAccounts().map(function(a){return '<tr><td>'+esc(a.name)+'</td><td>'+money(m.balances[a.id]||0)+'</td></tr>'}).join("")+'</tbody></table>';
-    html+='<h2>8. مراكز ثاندر الحالية</h2><table><thead><tr><th>الأصل</th><th>الكمية</th><th>التكلفة</th><th>القيمة المقدرة</th></tr></thead><tbody>'+
+    html+='<h2>9. مراكز ثاندر الحالية</h2><table><thead><tr><th>الأصل</th><th>الكمية</th><th>التكلفة</th><th>القيمة المقدرة</th></tr></thead><tbody>'+
       (p.holdings.length?p.holdings.map(function(a){return '<tr><td>'+esc(name(a.code))+'</td><td>'+a.qty.toFixed(4)+'</td><td>'+money(a.book)+'</td><td>'+money(a.value)+'</td></tr>'}).join(""):'<tr><td colspan="4">لم تُسجل مراكز بعد.</td></tr>')+
-      '</tbody></table><h2>9. ملخص صافي الثروة</h2><table><tbody>'+
+      '</tbody></table><h2>10. ملخص صافي الثروة</h2><table><tbody>'+
       '<tr><td>النقدية بالحسابات</td><td>'+money(m.cash)+'</td></tr>'+
       '<tr><td>القيمة السوقية للمراكز المسجلة</td><td>'+money(m.portfolio.market)+'</td></tr>'+
       '<tr><td>أصول أخرى</td><td>'+money(m.other)+'</td></tr>'+
