@@ -49,3 +49,32 @@ Planned net income EGP 17,000, rent EGP 2,500, bills EGP 500, living expenses EG
 - `.github/workflows/publish-flosy.yml`: automated GitHub Pages deployment
 
 <!-- GitHub Pages redeploy trigger, 2026-11-09 -->
+
+
+## Flosy 1.2 — All My Money + Thndr (manual tracking)
+
+The newest site provides four additional tabs: **All My Money (wealth)**, **Thndr Portfolio**, **24-Month Plan**, and **Crisis Protection**, in addition to existing transactions, budgets, goals, PDF reports, and Supabase sync.
+
+### What is tracked
+- Cash / wallet / bank / emergency reserve / irregular reserve / Thndr uninvested cash.
+- Income, expenses, and transfers with **from and to account**. Internal transfers affect balances without counting as consumption.
+- Manual Thndr executed buy/sell and opening holdings for CI30, T70, savings funds, gold grams, and custom symbols. Fees, weighted-average cost basis, quantity, realized and unrealized gains, and editable market prices.
+- Other manually valued assets, debts, and an estimated net worth = all cash account balances + Thndr holdings at **entered** prices + other assets – debts.
+- An editable 24-month plan with introductory emergency-fund funding, later investing, portfolio target weights, and progress from recorded transfers.
+- Financial crisis scenarios: expense inflation +15%, portfolio -25%, cash coverage months, budget overruns and stale-price warnings.
+- Printable reports include a **current-value** snapshot of accounts and holdings in addition to the selected-period cash-flow report.
+- Account **Reconcile** adjusts the opening baseline to match your actual bank statement without creating an artificial expense.
+
+### IMPORTANT: migration from earlier Flosy versions
+1. Open Settings and export a **JSON backup** of your existing Flosy data before making changes.
+2. Sign in to your existing Flosy account and manually sync to Supabase.
+3. Go to **All My Money → Accounts** and enter or reconcile the *current* balance for each real cash account. Old transactions without linked accounts are intentionally **not** applied retroactively, to prevent double counting when you enter current balances.
+4. Record all **new** income / expense / transfer transactions using their actual source and destination accounts. A transfer to Thndr is an internal move, NOT a spending category.
+5. In **Thndr Portfolio**, add existing holdings as **Opening holdings** (this does not deduct cash); future executed orders as Buy/Sell, including actual fees. Update prices yourself from the broker.
+6. Keep a separate backup. The cross-device sync merges rows by ID and deletion tombstones, but concurrent offline changes to a single record/settings can still conflict; compare your data after syncing and avoid editing the same item simultaneously on two devices.
+
+### Not automatic brokerage access
+**This application does not connect to Thndr, banks, electronic wallets, market price feeds, or execute trades.** No live balances or order book information is available. All linked amounts are user-entered and not investment advice.
+
+### Data security
+The same Supabase \`flosy_data\` JSONB table and ownership-based Row-Level Security apply to the new fields: data never belongs in the public GitHub repo. Only the publishable Supabase key is shipped; never expose a service_role/secret key. The app keeps a local browser copy; uninstalling the Android app or clearing WebView data can destroy that local copy. Sync and export backups before uninstalling.
