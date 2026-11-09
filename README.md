@@ -47,3 +47,5 @@ Planned net income EGP 17,000, rent EGP 2,500, bills EGP 500, living expenses EG
 - `manifest.webmanifest`, `icon.svg`: app presentation
 - `schema.sql`: PostgreSQL table + RLS
 - `.github/workflows/publish-flosy.yml`: automated GitHub Pages deployment
+
+<!-- GitHub Pages redeploy trigger, 2026-11-09 -->
