@@ -36,10 +36,23 @@
     ["trades","assets","liabilities"].forEach(function(k){if(!Array.isArray(state[k])){state[k]=[];changed=true}});
     if(!state.prices||typeof state.prices!=="object"){state.prices={};changed=true}
     if(!state.plan||typeof state.plan!=="object"){
-      state.plan={startMonth:ym(new Date()),emergencyTarget:60000,reserveTarget:12000,year1InvestTarget:24000,
-        p1Emergency:7000,p2Emergency:5750,p2Investment:1250,p3Investment:7000,reserveMonthly:1000,
-        weights:{CI30:50,T70:10,SAVINGS:25,GOLD:15}};
+      state.plan={startMonth:ym(new Date()),emergencyTarget:60000,reserveTarget:12000,year1InvestTarget:39000,
+        initialVisa:20000,initialEmergency:15000,initialBuffer:5000,p1Months:6,p2Months:1,
+        p1Emergency:7000,p2Emergency:3000,p2Investment:4000,p3Investment:7000,reserveMonthly:1000,
+        weights:{CI30:50,T70:10,SAVINGS:25,GOLD:15},planVersion:3};
       changed=true;
+    }
+    if(state.plan&&!state.plan.planVersion){
+      var old=state.plan;
+      var originalDefaults=Number(old.p1Emergency)===7000&&Number(old.p2Emergency)===5750&&Number(old.p2Investment)===1250&&Number(old.p3Investment)===7000&&Number(old.reserveMonthly)===1000;
+      if(originalDefaults){
+        Object.assign(old,{initialVisa:20000,initialEmergency:15000,initialBuffer:5000,
+          p1Months:6,p2Months:1,p2Emergency:3000,p2Investment:4000,year1InvestTarget:39000,planVersion:3});
+      }else{
+        Object.assign(old,{initialVisa:20000,initialEmergency:15000,initialBuffer:5000,
+          p1Months:2,p2Months:8,planVersion:2});
+      }
+      state._updatedAt=new Date().toISOString();changed=true;
     }
     if(changed)C.persistInitial();
   }
@@ -137,6 +150,16 @@
       box("الأصول الاستثمارية",m.portfolio.market,"القيمة من الأسعار التي تدخلها")+
       box("أصول أخرى",m.other,"مثل سيارة أو عقار")+
       box("الديون والالتزامات",m.debt,"تُطرح من صافي الثروة","pro-warn")+'</div>';
+    var plan=st().plan||{},visa=Number(plan.initialVisa||20000),seed=Number(plan.initialEmergency||15000),visaBalance=m.balances.bank||0,emergencyBalance=m.balances.emergency||0;
+    html+='<div class="pro-card"><div class="pro-head"><h3>تجهيز رصيد الفيزا وخطة البداية</h3><span class="pro-meta">عملية اختيارية وآمنة</span></div>'+
+      '<p>ذكرت أن رصيد الفيزا الحالي '+money(visa)+'، والخطة المقترحة: '+money(seed)+' للطوارئ و'+money(visa-seed)+' سيولة تشغيلية متاحة.</p>'+
+      '<div class="pro-stat-grid">'+box("رصيد البنك المسجل",visaBalance,"يتغير بعد كل معاملة")+
+      box("رصيد الطوارئ المسجل",emergencyBalance,"من الحسابات الفعلية")+
+      box("البداية المستهدفة للطوارئ",seed,"جزء من رصيد الفيزا")+
+      box("سيولة تشغيلية مستهدفة",visa-seed,"تبقى داخل الفيزا")+'</div>'+
+      '<div class="pro-toolbar"><button type="button" class="btn primary" data-pro="set-visa">1. مطابقة الفيزا مع '+money(visa)+'</button>'+
+      '<button type="button" class="btn" data-pro="seed-emergency">2. تسجيل تحويل '+money(seed)+' للطوارئ</button></div>'+
+      '<div class="pro-note">هذان الزران لا يحركان أي أموال حقيقية: يُسجلان ما حدث بالفعل فقط داخل فلوسي. إذا كانت الفيزا ائتمانية والمبلغ حدًا ائتمانيًا أو قرضًا وليس رصيدًا مملوكًا لك، لا تستخدم زر المطابقة؛ سجّل الالتزام في «الديون» بدلًا من ذلك. لا تضغط تسجيل التحويل حتى تنفذه فعليًا من البنك.</div></div>';
     html+='<div class="pro-card"><div class="pro-head"><div><h3>حساباتك وأرصدة الأموال</h3><p>أدخل الرصيد الافتتاحي مرة واحدة، وسجّل بعده العمليات عبر حساب محدد. استخدم «مطابقة» لو الرصيد الحالي مختلف عن البنك.</p></div><button class="btn primary" data-pro="add-account">＋ حساب</button></div>';
     html+=line(cashAccounts().map(function(a){
       var amount=m.balances[a.id]||0;return ['<span class="pro-icon">▣</span> '+esc(a.name),esc(({cash:"نقدية",bank:"حساب بنكي",emergency:"طوارئ",reserve:"احتياطي",thndr:"ثاندر",other:"حساب آخر"})[a.type]||a.type),'<strong class="'+(amount<0?"pro-negative":"")+'">'+money(amount)+'</strong>',
@@ -213,11 +236,13 @@
     var p=st().plan;var first=ymdate(p.startMonth||ym(new Date())),out=[];
     for(var i=0;i<24;i++){
       var d=new Date(first.getFullYear(),first.getMonth()+i,1),m=ym(d);
-      var e=i<2?num(p.p1Emergency):i<10?num(p.p2Emergency):0;
-      var investment=i<2?0:i<10?num(p.p2Investment):num(p.p3Investment);
+      var p1=Number.isInteger(Number(p.p1Months))?Number(p.p1Months):6;
+      var p2=Number.isInteger(Number(p.p2Months))?Number(p.p2Months):1;
+      var e=i<p1?num(p.p1Emergency):i<p1+p2?num(p.p2Emergency):0;
+      var investment=i<p1?0:i<p1+p2?num(p.p2Investment):num(p.p3Investment);
       var r=num(p.reserveMonthly);
       var actual={emergency:0,investment:0,reserve:0};
-      (st().transactions||[]).filter(function(t){return t.type==="transfer"&&String(t.date).slice(0,7)===m}).forEach(function(t){
+      (st().transactions||[]).filter(function(t){return t.type==="transfer"&&String(t.date).slice(0,7)===m&&!t.startingAllocation}).forEach(function(t){
         if(t.category==="الطوارئ")actual.emergency+=num(t.amount);
         if(t.category==="الاستثمار")actual.investment+=num(t.amount);
         if(t.category==="الاحتياطي")actual.reserve+=num(t.amount);
@@ -234,20 +259,29 @@
     var reserves=items.reduce(function(a,x){return a+x.reserve},0);
     var planSave=num(s.salary)-num(s.rent)-num(s.bills)-num(s.living);
     var actualEmergency=(st().transactions||[]).filter(function(t){return t.type==="transfer"&&t.category==="الطوارئ"}).reduce(function(a,t){return a+num(t.amount)},0);
+    var seed=num(p.initialEmergency),initialVisa=num(p.initialVisa),buffer=num(p.initialBuffer);
+    var yearOne=items.slice(0,12).reduce(function(a,x){return a+x.investment},0);
+    var twoYears=total+initialVisa;
     var html='<div class="pro-hero"><div><small>خطة فلوسي × ثاندر</small><div class="pro-major">24 شهرًا</div><span>الأمان المالي أولًا، ثم زيادة الاستثمار على مراحل</span></div><span class="pro-hero-icon">◎</span></div>';
-    html+='<div class="pro-stat-grid">'+box("تخصيصات 24 شهرًا",total,"قبل العوائد والسحوبات")+
-      box("صندوق الطوارئ المستهدف بالخطة",emergency,"لا يُستثمر في الأسهم")+
-      box("مساهمات ثاندر بالخطة",investments,"لا تعني القيمة السوقية")+
-      box("الاحتياطي غير المنتظم",reserves,"قد يُستخدم للصيانة")+'</div>';
+    html+='<div class="pro-note">الخطة بعد تحديث رصيد الفيزا المبلغ عنه: '+money(initialVisa)+' كبداية (منها '+money(seed)+' تُخصص للطوارئ و'+money(buffer)+' تبقى سيولة تشغيلية)، ثم توزيع فائض شهري مقداره 8,000 جنيه إذا استمر الدخل 17,000 والمصروفات 9,000. <strong>الرصيد الافتتاحي في الخطة ليس معاملة مالية ولا يُضاف إلى الحسابات تلقائيًا.</strong></div>';
+    html+='<div class="pro-stat-grid">'+box("إجمالي المخصصات خلال 24 شهرًا",twoYears,"رصيد بداية + مخصصات شهرية")+
+      box("صندوق الطوارئ بنهاية الخطة",emergency+seed,"مع احتساب التخصيص الأولي")+
+      box("ثاندر — مساهمات 24 شهرًا",investments,"سنة أولى "+money(yearOne))+
+      box("الاحتياطي غير المنتظم",reserves,"+ "+money(buffer)+" سيولة تشغيلية")+'</div>';
     if(planSave<8000)html+='<div class="pro-alert">⚠ الفائض الحالي المحسوب من ميزانيتك '+money(planSave)+' أقل من مثال الخطة الأصلية البالغ 8,000 جنيه. راجع التخصيصات قبل الالتزام.</div>';
     html+='<div class="pro-card"><div class="pro-head"><h3>تخصيص مراحل الادخار</h3><span class="pro-meta">القيم قابلة للتعديل حسب دخلك</span></div>'+
       '<form id="proPlanForm" class="pro-grid-fields">'+
       '<label>بداية الخطة<input name="startMonth" type="month" required value="'+esc(p.startMonth)+'"></label>'+
       '<label>الاحتياطي كل شهر<input name="reserveMonthly" min="0" type="number" required value="'+num(p.reserveMonthly)+'"></label>'+
-      '<label>الطوارئ في أول شهرين<input name="p1Emergency" min="0" type="number" required value="'+num(p.p1Emergency)+'"></label>'+
-      '<label>الطوارئ شهريًا في الشهور 3–10<input name="p2Emergency" min="0" type="number" required value="'+num(p.p2Emergency)+'"></label>'+
-      '<label>الاستثمار شهريًا في الشهور 3–10<input name="p2Investment" min="0" type="number" required value="'+num(p.p2Investment)+'"></label>'+
-      '<label>الاستثمار شهريًا في الشهور 11–24<input name="p3Investment" min="0" type="number" required value="'+num(p.p3Investment)+'"></label>'+
+      '<label>عدد شهور المرحلة الأولى<input name="p1Months" min="1" max="22" type="number" required value="'+num(p.p1Months)+'"></label>'+
+      '<label>عدد شهور المرحلة الثانية<input name="p2Months" min="1" max="22" type="number" required value="'+num(p.p2Months)+'"></label>'+
+      '<label>رصيد الفيزا المبلغ عنه مبدئيًا<input name="initialVisa" min="0" type="number" required value="'+num(p.initialVisa)+'"></label>'+
+      '<label>جزء البداية المخصص للطوارئ<input name="initialEmergency" min="0" type="number" required value="'+num(p.initialEmergency)+'"></label>'+
+      '<label>السيولة التشغيلية من رصيد البداية<input name="initialBuffer" min="0" type="number" required value="'+num(p.initialBuffer)+'"></label>'+
+      '<label>طوارئ المرحلة الأولى / شهر<input name="p1Emergency" min="0" type="number" required value="'+num(p.p1Emergency)+'"></label>'+
+      '<label>طوارئ المرحلة الثانية / شهر<input name="p2Emergency" min="0" type="number" required value="'+num(p.p2Emergency)+'"></label>'+
+      '<label>ثاندر في المرحلة الثانية / شهر<input name="p2Investment" min="0" type="number" required value="'+num(p.p2Investment)+'"></label>'+
+      '<label>ثاندر بعد المرحلتين / شهر<input name="p3Investment" min="0" type="number" required value="'+num(p.p3Investment)+'"></label>'+
       '<label>هدف الطوارئ<input name="emergencyTarget" type="number" min="0" required value="'+num(p.emergencyTarget)+'"></label>'+
       '<label>هدف الاستثمار للسنة الأولى<input name="year1InvestTarget" type="number" min="0" required value="'+num(p.year1InvestTarget)+'"></label>'+
       '<button class="btn primary pro-wide" type="submit">حفظ الخطة المالية</button></form></div>';
@@ -326,6 +360,23 @@
       if(!Number.isFinite(v)||v<0){C.toast("أدخل رصيدًا صحيحًا");return}
       store("accounts",{name:an.trim().slice(0,60),type:"other",opening:v});
     }
+    if(action==="set-visa"){
+      var targetVisa=num(st().plan.initialVisa),actualBank=num(rowsForAccounts().bank),difference=targetVisa-actualBank;
+      if(targetVisa<=0||!acc("bank")){C.toast("راجع رصيد الفيزا في الخطة");return}
+      if(!confirm("هل لديك فعلًا "+money(targetVisa)+" رصيد مملوك ومتوافر في الفيزا، وليس حدًا ائتمانيًا؟\nسيتم تعديل رصيد حساب البنك إلى "+money(targetVisa)+" دون إنشاء دخل أو مصروف. إذا سبق أن سجلت عمليات قديمة راجع المطابقة بدقة."))return;
+      if(Math.abs(difference)<.005){C.toast("رصيد البنك مسجل بالفعل. لا حاجة للتعديل.");return}
+      C.mutate(function(s){var a=s.accounts.find(function(x){return x.id==="bank"});if(a){a.opening=num(a.opening)+difference;a.updatedAt=new Date().toISOString();a.lastReconciledAt=a.updatedAt;a.lastReconciledTo=targetVisa}});
+      C.toast("تمت مطابقة الرصيد في فلوسي فقط");
+    }
+    if(action==="seed-emergency"){
+      var amount=num(st().plan.initialEmergency),bal=rowsForAccounts(),month=iso();
+      if(amount<=0){C.toast("حدد مبلغ بداية الطوارئ");return}
+      if((bal.emergency||0)>=amount-.005){C.toast("رصيد الطوارئ المسجل يغطي مبلغ البداية. لا تسجل التحويل مرتين.");return}
+      if((bal.bank||0)<amount){C.toast("رصيد الفيزا المسجل أقل من مبلغ التحويل");return}
+      if(!confirm("هل نقلت فعليًا "+money(amount)+" من الفيزا إلى حساب طوارئ منفصل؟\nهذه الخطوة تسجيل محاسبي فقط ولن تحول أموالًا حقيقية."))return;
+      C.mutate(function(s){s.transactions.push({id:rid(),type:"transfer",date:month,description:"تخصيص بداية صندوق الطوارئ من الفيزا",category:"الطوارئ",amount:amount,accountId:"bank",targetAccountId:"emergency",startingAllocation:true,createdAt:new Date().toISOString()})});
+      C.toast("تم تسجيل تخصيص الطوارئ مرة واحدة");
+    }
     if(action==="reconcile-account"){
       var a=acc(id);if(!a)return;
       var before=rowsForAccounts()[id]||0;
@@ -394,11 +445,13 @@
       C.toast("تم تحديث تقييم المحفظة");
     }
     if(form.id==="proPlanForm"){
-      var fields=["reserveMonthly","p1Emergency","p2Emergency","p2Investment","p3Investment","emergencyTarget","year1InvestTarget"],result={},valid=true;
+      var fields=["reserveMonthly","p1Emergency","p2Emergency","p2Investment","p3Investment","emergencyTarget","year1InvestTarget","initialVisa","initialEmergency","initialBuffer","p1Months","p2Months"],result={},valid=true;
       fields.forEach(function(k){result[k]=Number(d.get(k));if(!Number.isFinite(result[k])||result[k]<0)valid=false});
       var start=String(d.get("startMonth")||"");if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(start))valid=false;
-      if(!valid){C.toast("راجع أرقام وتواريخ الخطة");return}
-      C.mutate(function(s){Object.assign(s.plan,result,{startMonth:start})});
+      if(!valid||result.initialEmergency+result.initialBuffer!==result.initialVisa||
+      !Number.isInteger(result.p1Months)||!Number.isInteger(result.p2Months)||
+      result.p1Months<1||result.p2Months<1||result.p1Months+result.p2Months>23){C.toast("راجع خطة البداية ومجموع 20 ألف وعدد شهور المراحل");return}
+      C.mutate(function(s){Object.assign(s.plan,result,{startMonth:start,planVersion:3})});
       C.toast("تم تحديث خطة 24 شهرًا");
     }
     if(form.id==="proWeightsForm"){
