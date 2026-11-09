@@ -54,6 +54,10 @@
       }
       state._updatedAt=new Date().toISOString();changed=true;
     }
+    if(Number(state.settings&&state.settings.investmentTarget)===24000&&
+        Number(state.plan&&state.plan.year1InvestTarget)===39000){
+      state.settings.investmentTarget=39000;state._updatedAt=new Date().toISOString();changed=true;
+    }
     if(changed)C.persistInitial();
   }
   function rowsForAccounts(){
