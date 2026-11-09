@@ -1,4 +1,4 @@
-# Flosy Android v1.2.0 — فلوسي
+# Flosy Android v1.3.0 — فلوسي
 
 Enhanced Android WebView app for the existing published **Flosy** dashboard:
 https://ahmedsayed20233.github.io/mynewproject/
@@ -18,9 +18,16 @@ https://ahmedsayed20233.github.io/mynewproject/
 
 To build in Android Studio, open the `android` folder and run the app.
 
-### v1.2.0 — Complete financial tracking
+### v1.3.0 — Complete financial tracking
 
 - The live Flosy app now tracks manually entered cash accounts, investment holdings, other assets, debts, net worth, a 24-month plan, and crisis indicators.
 - Enter account opening balances; transactions recorded before account tracking are not assigned retroactively to avoid double counting.
 - Record Thndr executed transactions and update current prices yourself. No authenticated Thndr/bank API connection exists; the Android app does not trade or transfer real money.
 - Data remain in local WebView storage until cloud synchronization completes. Back up existing data in Settings and verify the Supabase sync before reinstalling.
+
+### v1.3.0 — 20,000 EGP Visa plan
+- New first-year plan targets 60,000 EGP emergency and 39,000 EGP contributions to Thndr.
+- On **All My Money** use the guided Visa reconciliation button (only when the 20,000 is your OWN available money, not a credit line). A separate confirmation button records a 15,000 EGP real transfer to the emergency account after you actually move it.
+- The initial transfer is excluded from the monthly savings plan so it is not double-counted.
+- Budget assumes EGP 17,000 monthly salary, 9,000 costs, 8,000 monthly plan; month 1-6: 7,000 emergency + 1,000 irregular; month 7: 3,000 emergency + 4,000 Thndr + 1,000 irregular; months 8-24: 7,000 Thndr + 1,000 irregular.
+- The APK uses the live published Flosy site and the same Supabase data, with no direct bank / Thndr access.
