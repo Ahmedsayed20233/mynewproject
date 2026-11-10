@@ -394,6 +394,7 @@ test("Wealth widgets expose actual account metrics and only show manually saved 
 test("Reference UI assets appear across all target pages, and precache on offline shell",()=>{
  const html=fs.readFileSync("index.html","utf8"),sw=fs.readFileSync("service-worker.js","utf8");
  const css=fs.readFileSync("flosy-elevate.css","utf8");
+ assert.match(html,/<section class="page" id="page-transactions"><div id="flosyElevateTransactions"/);
  for(const name of ["flosyElevateDashboard","flosyElevateTransactions","flosyElevateBudgets","flosyElevateWealth"])
   assert.ok(html.includes('id="'+name+'"'),"Missing page root "+name);
  for(const name of ["flosy-elevate.js?v=801","flosy-elevate.css?v=801"]){
