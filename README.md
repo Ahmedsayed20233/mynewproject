@@ -1,5 +1,43 @@
 # فلوسي | Flosy Personal Finance
 
+## Flosy Pearl — 10 November 2026 (current website release)
+
+**Live website:** https://ahmedsayed20233.github.io/mynewproject/
+
+**Theme:** white-only, Arabic RTL, Egypt-first **Flosy Pearl**. New daily command panel surfaces *additional* safe-to-spend cash, urgent obligations and the actual Supabase revision status; it does **not** claim access to your bank account.
+
+| Priority | Feature | Implemented in code | Operational limits |
+| --- | --- | --- | --- |
+| P0 | Reliable Cloud Sync | Supabase v3 compare-and-swap revisions, backup snapshots, conflicts + local pending records, all-or-nothing app shell precache and user-initiated encrypted AES-256-GCM off-device backup | No guarantee against loss of an off-device backup or forgotten passphrase; Android offline/restore still needs physical-device tests |
+| P0 | Safe to Spend | Daily safe *discretionary* amount after scheduled bills, debt installments, spending budget, reserve and buffer | Only as correct as recorded balances and liabilities; planned salary is never treated as received cash |
+| P0 | Smart Transaction Import | Manual SMS preview, separate SMS Beta APK, bank CSV column mapping for Egyptian statements, optional bank reference and legacy fingerprint compatibility, row-level approval | No official bank connection; CSV formats and SMS wording vary; user confirmation and reconciliation mandatory |
+| P1 | Voice Expense | Egyptian Arabic browser/native speech and manual text fallback, review before posting | Depends on Android/recognizer and user-approved input |
+| P1 | Bills / Installments | Recurring bills, one-time dues, debt repayment caps, in-app reminder and opt-in ICS calendar export for 90 days | The app does not schedule guaranteed notifications when closed; calendar app controls alarms |
+| P1 | Wealth | Manual Thndr holdings, gold, currency, certificates, gam3eya, real estate, liabilities | No live official bank/Thndr/FX/gold feed; prices may become stale |
+| P1 | Crisis Simulator | Income disruption, inflation, medical outlay and emergency-fund reconstruction math | Illustrative scenario, not an outcome prediction |
+| P1 | Cash Flow Forecast | 7/14/30/60/90 day cash-flow outlook and lowest-point scenario | Assumes user-supplied pay/expense pattern; not a bank statement |
+| P2 | Family Budgets | Separate RLS-backed household entries, owner/member/viewer and expiring invitation codes | Requires a second account for end-to-end human QA; not shared full personal ledgers |
+| P2 | Receipt OCR | On-device OCR with Arabic and English language packs; labeled totals and receipt dates, user review | First use needs OCR download; inaccurate receipts require manual correction |
+| P2 | AI Coach 2.0 | Authenticated Supabase function, opt-in aggregate summary, server-only OpenAI key, response cost/usage quota | **Not active until project owner configures a paid OpenAI API key in Edge Function secrets.** Cannot borrow ChatGPT Plus |
+| P2 | Privacy Center | Balance concealment, Android biometric control, device log, session control, deletion RPC and encrypted backup | UI masking isn't encryption-at-rest; Supabase leaked-password protection and independent security audit remain pending |
+
+### Encrypted backup — explicit recovery
+
+1. Open **مركز الخصوصية → نسخة احتياطية مشفرة** in Chrome or a compatible browser; use a 10+ character passphrase.
+2. Download `.flosyenc` and keep it **outside the phone** (e.g. a secure separate device); Flosy does not know, store or recover the password.
+3. To restore, sign in to the **same Flosy account**, choose the encrypted file, enter the password, type `RESTORE` and explicitly confirm the cloud revision-safe replacement.
+4. Verify **actual balances, transaction counts and payments** on a second device before uninstalling an APK. The cloud snapshot is in the same Supabase project, not independent off-site disaster recovery.
+
+### Release checks and constraints
+
+- Node GitHub Actions financial / parser / cryptographic backup / offline-cache tests must be green on the release commit.
+- Production Supabase tables and the original private financial ledger have not been changed by this website code release.
+- Full Android device QA, store signing, policy-approved SMS distribution, receipt recognizer device behavior and a two-user family-budget trial are separate acceptance gates.
+- Never disable Play Protect to sideload the SMS Beta, never upload OTP, full account identifiers or API secrets to the public GitHub repo.
+
+---
+
+
 A mobile-friendly Arabic (RTL) personal finance dashboard for managing income, expenses, monthly budgets, an emergency fund and investment contributions.
 
 ## Status — November 9, 2026
