@@ -33,6 +33,11 @@ import android.os.CancellationSignal;
 import android.os.Build;
 import android.content.pm.PackageManager;
 import android.speech.RecognizerIntent;
+import com.google.mlkit.vision.common.InputImage;
+import com.google.mlkit.vision.text.TextRecognizer;
+import com.google.mlkit.vision.text.TextRecognition;
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
+import android.content.res.AssetFileDescriptor;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.provider.Telephony;
@@ -45,12 +50,15 @@ public class MainActivity extends Activity {
     private static final int PICK_FILE = 71;
     private static final int REQ_READ_SMS = 72;
     private static final int REQ_VOICE = 73;
+    private static final int REQ_OCR = 74;
     private WebView webView;
     private ProgressBar loadingBar;
     private ValueCallback<Uri[]> selectedFiles;
     private long lastBackPressTime = 0L;
     private String pendingSharedMessage = null;
     private boolean pageReady = false;
+    private String pendingNativeReceiptText = null;
+    private String pendingVoiceText = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -83,7 +91,9 @@ public class MainActivity extends Activity {
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setSupportMultipleWindows(false);
         settings.setAllowFileAccess(false);
-        settings.setAllowContentAccess(false);
+        // User-selected Android content:// images must be readable by the WebView file chooser.
+        // Filesystem access stays disabled; the chooser validates returned content URIs.
+        settings.setAllowContentAccess(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         settings.setSupportZoom(false);
         settings.setTextZoom(100);
@@ -142,6 +152,11 @@ public class MainActivity extends Activity {
                         view.post(() -> startEgyptianVoice());
                     return true;
                 }
+                if ("flosyapp".equalsIgnoreCase(scheme) && "ocr-receipt".equalsIgnoreCase(host)) {
+                    if (request.isForMainFrame() && view.getUrl()!=null && view.getUrl().startsWith(HOME))
+                        view.post(() -> pickNativeReceipt());
+                    return true;
+                }
                 if ("flosyapp".equalsIgnoreCase(scheme) && "sms-scan".equalsIgnoreCase(host)) {
                     if (request.isForMainFrame() && view.getUrl() != null
                         && view.getUrl().startsWith(HOME)) {
@@ -182,10 +197,13 @@ public class MainActivity extends Activity {
                         + "window.FLOSY_NATIVE_SMS_AVAILABLE="
                         + (BuildConfig.FLAVOR.equals("sms") ? "true" : "false") + ";"
                         + "window.FLOSY_NATIVE_VOICE_AVAILABLE=true;"
+                        + "window.FLOSY_NATIVE_OCR_AVAILABLE=true;"
                         + "window.FLOSY_NATIVE_BIOMETRIC_AVAILABLE="
                         + (Build.VERSION.SDK_INT >= 28 ? "true" : "false") + ";"
-                        + "if(window.FLOSY_NEXT)window.FLOSY_NEXT.render();", null);
+                        + "if(window.FLOSY_NEXT)window.FLOSY_NEXT.render();"
+                        + "if(window.FLOSY_REPAIR)window.FLOSY_REPAIR.render();", null);
                     deliverPendingSharedMessage();
+                    deliverNativePending();
                 }
             }
 
@@ -389,6 +407,82 @@ public class MainActivity extends Activity {
     }
 
     // Android's installed speech service handles microphone consent and Egyptian Arabic recognition.
+    // Open a user-controlled, read-only image picker. Never scan the gallery silently.
+    private void pickNativeReceipt() {
+        try {
+            Intent intent=new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("image/*");
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivityForResult(Intent.createChooser(intent,"اختار صورة إيصال واضحة"),REQ_OCR);
+        } catch(Exception ex) {
+            Toast.makeText(this,"لم يتم فتح معرض الصور. جرّب اختيار صورة من Flosy في Chrome.",
+                Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void recognizeReceipt(Uri uri) {
+        if(uri==null || !"content".equalsIgnoreCase(uri.getScheme())) {
+            Toast.makeText(this,"اختار صورة من تطبيق الصور أو الملفات.",Toast.LENGTH_LONG).show();
+            return;
+        }
+        try {
+            String mime=getContentResolver().getType(uri);
+            if(mime!=null && !mime.startsWith("image/"))throw new IllegalArgumentException("Not an image");
+            try(AssetFileDescriptor d=getContentResolver().openAssetFileDescriptor(uri,"r")){
+                if(d==null || (d.getLength()>8L*1024*1024))
+                    throw new IllegalArgumentException("Image exceeds 8 MB");
+            }
+            InputImage image=InputImage.fromFilePath(this,uri);
+            TextRecognizer engine=TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
+            Toast.makeText(this,"جارٍ استخراج النص محليًا من الإيصال...",Toast.LENGTH_SHORT).show();
+            engine.process(image)
+                .addOnSuccessListener(result -> {
+                    String txt=result==null?"":result.getText();
+                    if(txt.length()>12000)txt=txt.substring(0,12000);
+                    pendingNativeReceiptText=txt;
+                    deliverNativePending();
+                    if(txt.trim().isEmpty())Toast.makeText(this,
+                        "الصورة غير واضحة. جرّب إضاءة أفضل وإيصالًا أقرب.",
+                        Toast.LENGTH_LONG).show();
+                })
+                .addOnFailureListener(ex -> Toast.makeText(this,
+                    "فشل OCR المحلي؛ استخدم المسح من المتصفح أو إدخال نص الإيصال.",
+                    Toast.LENGTH_LONG).show())
+                .addOnCompleteListener(task -> engine.close());
+        }catch(Exception ex){
+            Toast.makeText(this,"تعذرت قراءة الصورة. تأكد أنها صورة إيصال أصغر من 8MB.",
+                Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void deliverNativePending() {
+        if(webView==null || !pageReady || webView.getUrl()==null ||
+                !webView.getUrl().startsWith(HOME))return;
+        if(pendingNativeReceiptText!=null) {
+            final String text=pendingNativeReceiptText;
+            pendingNativeReceiptText=null;
+            webView.evaluateJavascript(
+                "if(window.FLOSY_REPAIR&&window.FLOSY_REPAIR.receiveNativeReceipt)"+
+                "window.FLOSY_REPAIR.receiveNativeReceipt("+JSONObject.quote(text)+");",null);
+        }
+        if(pendingVoiceText!=null) {
+            final String text=pendingVoiceText;
+            pendingVoiceText=null;
+            webView.evaluateJavascript(
+                "if(window.FLOSY_CAPTURE&&window.FLOSY_CAPTURE.receiveNativeVoice)"+
+                "window.FLOSY_CAPTURE.receiveNativeVoice("+JSONObject.quote(text)+");",null);
+        }
+    }
+
+    private void notifyVoiceFailure(String message){
+        Toast.makeText(this,message,Toast.LENGTH_LONG).show();
+        if(webView!=null && pageReady && webView.getUrl()!=null && webView.getUrl().startsWith(HOME))
+            webView.evaluateJavascript(
+                "if(window.FLOSY_REPAIR&&window.FLOSY_REPAIR.nativeVoiceError)"+
+                "window.FLOSY_REPAIR.nativeVoiceError("+JSONObject.quote(message)+");",null);
+    }
+
     private void startEgyptianVoice() {
         try {
             Intent intent=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -398,9 +492,8 @@ public class MainActivity extends Activity {
             intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"قول مثلًا: دفعت 75 جنيه قهوة من الفيزا");
             intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,1);
             startActivityForResult(intent,REQ_VOICE);
-        }catch(ActivityNotFoundException ex){
-            Toast.makeText(this,"لا توجد خدمة للتعرف الصوتي على هذا الهاتف. استخدم الإدخال النصي.",
-                Toast.LENGTH_LONG).show();
+        }catch(Exception ex){
+            notifyVoiceFailure("لا توجد خدمة تعرف صوتي جاهزة على الهاتف. حدّث تطبيق Google وخدمة التعرف على الكلام، أو استخدم الإدخال النصي.");
         }
     }
 
@@ -428,21 +521,30 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == REQ_OCR) {
+            if(resultCode == RESULT_OK && data != null && data.getData()!=null)
+                recognizeReceipt(data.getData());
+            return;
+        }
         if (requestCode == REQ_VOICE) {
-            if (resultCode == RESULT_OK && data != null && webView != null && pageReady) {
+            if (resultCode == RESULT_OK && data != null) {
                 ArrayList<String> results=data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                if (results!=null && !results.isEmpty() && results.get(0)!=null) {
-                    String speech=results.get(0);
-                    if (speech.length()<=320)webView.evaluateJavascript(
-                        "if(window.FLOSY_CAPTURE)window.FLOSY_CAPTURE.receiveNativeVoice("
-                        + JSONObject.quote(speech) + ");",null);
-                }
-            }
+                if(results!=null && !results.isEmpty() && results.get(0)!=null &&
+                        !results.get(0).trim().isEmpty()) {
+                    pendingVoiceText=results.get(0).substring(0,Math.min(320,results.get(0).length()));
+                    deliverNativePending();
+                } else notifyVoiceFailure("لم يتم التقاط كلام واضح. حاول مرة أخرى أو اكتب المصروف.");
+            } else if(resultCode!=RESULT_CANCELED)
+                notifyVoiceFailure("التعرف الصوتي لم يُرجع نتيجة؛ راجع الخدمة والإذن.");
             return;
         }
         if (requestCode == PICK_FILE && selectedFiles != null) {
-            selectedFiles.onReceiveValue(
-                WebChromeClient.FileChooserParams.parseResult(resultCode, data));
+            Uri[] candidates=WebChromeClient.FileChooserParams.parseResult(resultCode,data);
+            ArrayList<Uri> allowed=new ArrayList<>();
+            if(candidates!=null)for(Uri uri:candidates) {
+                if(uri!=null && "content".equalsIgnoreCase(uri.getScheme()))allowed.add(uri);
+            }
+            selectedFiles.onReceiveValue(allowed.isEmpty()?null:allowed.toArray(new Uri[0]));
             selectedFiles = null;
         }
     }
