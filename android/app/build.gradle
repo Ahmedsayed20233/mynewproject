@@ -21,8 +21,8 @@ android {
         applicationId 'com.flosy.finance'
         minSdk 24
         targetSdk 35
-        versionCode 12
-        versionName '2.7.0'
+        versionCode 14
+        versionName '2.9.0'
     }
 
 
