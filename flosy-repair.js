@@ -8,25 +8,48 @@ const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 let voice=null,busyVoice=false,busyOCR=false,lastReceiptText="",receiptEngine="";
 function status(id,message){const x=el(id);if(x)x.textContent=message;return message}
 function render(){
- const host=el("flosyRepairRoot");
- if(!host)return;
+ const host=el("flosyRepairRoot");if(!host)return;
  const nativeOCR=Boolean(w.FLOSY_NATIVE_OCR_AVAILABLE);
- host.innerHTML='<div class="v4-surface v4-full" style="margin-top:13px"><h3>🎙️ مساعدة التسجيل الصوتي ومسح الإيصالات</h3>'+
- '<p>ابدأ التسجيل من الزر بالأعلى. لو تعذّر التعرف الصوتي أو قراءة الصورة، استخدم المدخلات أدناه؛ لا تُحفظ أي معاملة إلا بعد موافقتك.</p>'+
- '<div class="v4-bento"><div class="v4-half"><p class="v4-fineprint" id="flosyVoiceStatus" role="status" aria-live="polite">جاهز لسماع كلامك بالمصري.</p>'+
- '<button class="v4-btn secondary" type="button" data-repair="voice">🎤 حاول التسجيل الصوتي</button>'+
- '</div><div class="v4-half"><p class="v4-fineprint" id="flosyOcrStatus" role="status" aria-live="polite">ارفع صورة واضحة، أو اختَر قراءة الصورة على Android.</p>'+
- (nativeOCR?'<div class="v4-chips"><button class="v4-btn" type="button" data-repair="native-camera">📸 صوّر إيصال بالكاميرا</button><button class="v4-btn secondary" type="button" data-repair="native-ocr">🖼️ اختر صورة من الهاتف</button></div>':'')+
- '</div><div class="v4-full"><form id="flosyRepairOCRForm" class="v4-form">'+
- '<label class="full">نص الإيصال المستخرج — قابل للتعديل<textarea id="flosyRepairOCRText" name="ocrText" rows="4" maxlength="12000" placeholder="Cafe Campus&#10;Date: 10/11/2026&#10;Total: EGP 125.00">'+esc(lastReceiptText)+'</textarea></label>'+
- '<div class="v4-chips full"><button type="submit" class="v4-btn secondary">تحليل النص ومراجعة المعاملة</button>'+
- '<button type="button" class="v4-btn secondary" data-repair="copy-ocr">نسخ النص</button>'+
- '<button type="button" class="v4-btn" data-repair="export-ocr">💾 تصدير نص الإيصال</button></div></form>'+
- '<form id="flosyReceiptManualForm" class="v4-form" style="margin-top:12px"><h4>الإجمالي مش واضح؟ جهّز المصروف يدويًا</h4>'+
- '<label class="full">اسم التاجر<input name="merchant" maxlength="65" placeholder="مثال: كافيه الجامعة" required></label>'+
- '<label class="full">المبلغ بالجنيه<input type="number" name="amount" min="0.01" max="999999999" step="0.01" required></label>'+
- '<button class="v4-btn secondary full" type="submit">مراجعة قبل الحفظ</button></form></div></div>'+
- '<p class="v4-fineprint">Android OCR يتعرف على النص الإنجليزي/الأرقام محليًا باستخدام ML Kit، واللغة العربية تُعالج في المتصفح بواسطة Tesseract بعد تحميل نموذج اللغة. إذا تعذّر استخراج الإجمالي لا نخمّن رقمًا.</p></div>';
+ host.innerHTML='<div class="f10-capture" aria-label="تسجيل الصوت ومسح الإيصالات">'+
+ '<div class="f10-hero"><span class="f10-overline">FLOSY CAPTURE · SIMPLE & SECURE</span>'+
+ '<h2>سجّل فلوسك في ثواني</h2><p>قول المصروف بالمصري أو صوّر الإيصال. هنحوّله لمعاملة للمراجعة فقط — مش حفظ تلقائي.</p>'+
+ '<div class="f10-mini-pills"><span>◉ يدعم العامية المصرية</span><span>▣ بياناتك تحت سيطرتك</span><span>◷ مراجعة قبل الحفظ</span></div></div>'+
+ '<div class="f10-two">'+
+ '<section class="f10-card voice" aria-labelledby="f10VoiceTitle">'+
+ '<div class="f10-cardtitle"><span class="f10-step">01</span><div><h3 id="f10VoiceTitle">سجّل بالصوت</h3><p>مثال: «دفعت 75 جنيه قهوة من الكاش»</p></div></div>'+
+ '<div class="f10-mic-wrap"><span class="f10-mic-icon" aria-hidden="true">🎙</span>'+
+ '<button class="f10-primary" type="button" data-repair="voice">ابدأ التسجيل بالمصري</button></div>'+
+ '<p class="f10-live" id="flosyVoiceStatus" role="status" aria-live="polite">جاهز. اضغط الزر واسمح للميكروفون لو طلب.</p>'+
+ '<form id="v4-voice-text" class="f10-mini-form"><label for="f10Spoken">أو اكتب جملتك لو الميكروفون غير متاح</label>'+
+ '<textarea id="f10Spoken" name="spoken" rows="2" maxlength="280" required placeholder="اشتريت حاجات للبيت بـ 120 جنيه امبارح"></textarea>'+
+ '<button class="f10-secondary" type="submit">حلّل الجملة للمراجعة</button></form>'+
+ '<small class="f10-privacy">Flosy لا يخزّن تسجيلات صوتية. محرك التعرف الصوتي قد يحتاج خدمات جهازك.</small></section>'+
+ '<section class="f10-card receipt" aria-labelledby="f10ReceiptTitle">'+ '<div class="f10-cardtitle"><span class="f10-step">02</span>'+
+ '<div><h3 id="f10ReceiptTitle">استخرج بيانات الإيصال</h3><p>صوّر الإيصال بوضوح أو اختار صورة محفوظة</p></div></div>'+
+ '<div class="f10-camera">'+
+ (nativeOCR?'<button type="button" class="f10-primary" data-repair="native-camera">📷 تصوير بالكاميرا</button>'+
+ '<button type="button" class="f10-secondary" data-repair="native-ocr">اختيار صورة</button>':'')+
+ '<label class="f10-file">اختار صورة إيصال <input id="v4-ocr-file" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" aria-label="صورة إيصال" /></label>'+
+ '<button type="button" class="f10-secondary" data-v4-import="ocr">استخراج النص من الصورة</button></div>'+
+ '<p class="f10-live" id="flosyOcrStatus" role="status" aria-live="polite">JPEG أو PNG أو WebP، بحد أقصى 8 ميجابايت. راجع الإجمالي والتاريخ.</p>'+
+ '<small class="f10-privacy">على Android: OCR محلي للأرقام والنص اللاتيني؛ المتصفح يدعم العربية مع تنزيل نموذج Tesseract.</small></section>'+
+ '</div>'+
+ '<section class="f10-extracted"><div class="f10-section-heading"><div><span class="f10-overline">EXTRACTED TEXT</span>'+
+ '<h3>النص المستخرج من الإيصال</h3><p>تقدر تصححه أو تستخرج المبلغ يدويًا قبل التسجيل.</p></div></div>'+
+ '<form id="flosyRepairOCRForm" class="f10-text-form">'+
+ '<label for="flosyRepairOCRText">النص القابل للتعديل</label>'+
+ '<textarea id="flosyRepairOCRText" name="ocrText" rows="4" maxlength="12000" placeholder="اسم المتجر&#10;Date: 10/11/2026&#10;TOTAL EGP 125.00">'+esc(lastReceiptText)+'</textarea>'+
+ '<div class="f10-tools"><button type="submit" class="f10-primary">استخراج الإجمالي للمراجعة</button>'+
+ '<button type="button" class="f10-secondary" data-repair="copy-ocr">نسخ النص</button>'+
+ '<button type="button" class="f10-secondary" data-repair="export-ocr">تنزيل نص الإيصال</button></div></form>'+
+ '<details class="f10-manual"><summary>لو الإيصال غير واضح — إدخال التاجر والمبلغ يدويًا</summary>'+
+ '<form id="flosyReceiptManualForm" class="f10-mini-form">'+
+ '<label>اسم التاجر<input name="merchant" maxlength="65" placeholder="اسم التاجر" required></label>'+
+ '<label>المبلغ بالجنيه<input type="number" name="amount" min="0.01" max="999999999" step="0.01" required></label>'+
+ '<button class="f10-secondary" type="submit">إرسال للمراجعة</button></form></details>'+
+ '</section>'+
+ '<div class="f10-bottom">تحتاج استيراد SMS أو InstaPay؟ <button type="button" data-repair="open-import">افتح مركز الاستيراد المخصص ←</button></div>'+
+ '</div>';
 }
 function proposeReceipt(text,engine){
  const raw=String(text||"").slice(0,12000).trim();
@@ -166,6 +189,7 @@ document.addEventListener("click",async e=>{
   if(!nativeAction("receipt-ocr","ocr-receipt"))
    C.toast("اختيار الصورة متاح من حقل الصورة في المتصفح.");
  }
+ if(action==="open-import"){C.goto("import");return;}
  if(action==="native-camera"){
   if(!nativeAction("receipt-camera","receipt-camera"))
    C.toast("الكاميرا الأصلية متاحة فقط على Android الجديد؛ يمكنك استخدام كاميرا Chrome.");
