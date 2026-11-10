@@ -21,7 +21,7 @@ function init(){
  const s=S();if(!s.phase1||typeof s.phase1!=="object"){s.phase1={salaryDay:1,buffer:1000,includeSalaryForecast:true,oneOff:[],payments:[]};C.persistInitial()}
  const p=s.phase1;if(!Array.isArray(p.oneOff))p.oneOff=[];if(!Array.isArray(p.payments))p.payments=[];
 }
-function settings(){const p=S().phase1||{};return {salaryDay:Math.max(1,Math.min(28,Math.round(num(p.salaryDay)||1))),buffer:Math.max(0,num(p.buffer)),includeSalaryForecast:p.includeSalaryForecast!==false}}
+function settings(){const p=S().phase1||{};return {salaryDay:Math.max(1,Math.min(28,Math.round(num(p.salaryDay)||1))),buffer:Math.max(0,num(p.buffer)),protectedInsideBank:Math.max(0,num(p.protectedInsideBank)),includeSalaryForecast:p.includeSalaryForecast!==false}}
 function accounts(){try{return global.FLOSY_PRO?.rowsForAccounts?.()||{}}catch{return{}}}
 function freeCash(){
  const ids=new Map((S().accounts||[]).map(x=>[x.id,x]));
@@ -95,10 +95,11 @@ function calculate(today=utc(new Date())){
  const fixedDue=due.filter(x=>catFixed(x.category)).reduce((a,t)=>a+t.amount,0);
  const reservedFixed=Math.max(0,fixedLeft-fixedDue);
  const obligations=due.reduce((a,x)=>a+x.amount,0);
- const final=balance.total-obligations-reservedFixed-variableLeft-p.buffer;
+ const earmarked=Math.min(Math.max(0,balance.total),p.protectedInsideBank);
+ const final=balance.total-earmarked-obligations-reservedFixed-variableLeft-p.buffer;
  const safe=Math.max(0,final);
  return {freeCash:balance.total,components:balance.components,cycle,days:cycle.days,obligations,scheduled:due,
-   fixedRemaining:reservedFixed,variableRemaining:variableLeft,buffer:p.buffer,
+   fixedRemaining:reservedFixed,variableRemaining:variableLeft,buffer:p.buffer,earmarked,
    safe,deficit:Math.max(0,-final),daily:safe/cycle.days};
 }
 function forecast(today=utc(new Date()),days=90){
@@ -107,7 +108,7 @@ function forecast(today=utc(new Date()),days=90){
  const byDate=new Map();
  for(const ev of events){const d=ev.date<=dayISO(today)?dayISO(inc(today,1)):ev.date;byDate.set(d,(byDate.get(d)||0)+ev.amount)}
  // Forecast salary is explicitly a scenario, never actual recorded income.
- let projection=starting.total,results=[{day:0,date:dayISO(today),value:projection}],minValue=projection;
+ let projection=starting.total-Math.min(Math.max(0,starting.total),p.protectedInsideBank),results=[{day:0,date:dayISO(today),value:projection}],minValue=projection;
  for(let n=1;n<=days;n++){
   const d=inc(today,n),dstr=dayISO(d),monthLen=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate();
   const monthDue=events.filter(x=>x.date.startsWith(ym(d))&&catFixed(x.category)).reduce((a,x)=>a+x.amount,0);
@@ -143,7 +144,7 @@ function dashboard(){
  '<div class="f2-kpi"><small>المستحقات القادمة</small><strong>'+money(v.obligations+v.fixedRemaining)+'</strong><em>قائمة الاستحقاقات والميزانية الثابتة</em></div>'+
  '<div class="f2-kpi"><small>عجز احتياطي متوقع</small><strong>'+money(v.deficit)+'</strong><em>تقدير محافظ حسب بياناتك</em></div></div>'+
  '<div class="f2-progress"><i style="width:'+percent+'%"></i></div>'+
- '<p class="f2-small" style="margin:10px 0 0">لا يشمل ثاندر والطوارئ والاحتياطي؛ لا يعد الرصيد المتاح صلاحية للإنفاق الفعلي من البنك. الحساب يتطلب مطابقة الأرصدة وتحديث الفواتير.</p></div>';
+ '<p class="f2-small" style="margin:10px 0 0">لا يشمل ثاندر والطوارئ والاحتياطي، ويطرح أي مبلغ حجزته داخل الفيزا من «إعدادات الحساب». النتيجة تقديرية وتتطلب مطابقة الأرصدة.</p></div>';
 }
 function page(){
  const host=E("phase1Root");if(!host)return;const v=calculate(),f=forecast(),p=settings();
@@ -159,9 +160,10 @@ function page(){
  '<div class="f2-card f2-span-4"><h3>إعدادات الحساب</h3><form id="p1-settings" class="f2-inputs">'+
  '<label>يوم القبض من الشهر (1–28)<input name="salaryDay" type="number" min="1" max="28" value="'+p.salaryDay+'" required></label>'+
  '<label>هامش أمان إضافي (ج.م)<input name="buffer" type="number" min="0" step="1" value="'+p.buffer+'" required></label>'+
+ '<label>مبلغ محجوز داخل الفيزا للطوارئ/الادخار<input name="protectedInsideBank" type="number" min="0" step="1" value="'+p.protectedInsideBank+'" required></label>'+
  '<label class="full">إضافة المرتب المخطط للتوقع<select name="salary"><option value="1" '+(p.includeSalaryForecast?'selected':'')+'>نعم — افتراض فقط</option><option value="0" '+(!p.includeSalaryForecast?'selected':'')+'>لا — توقع متحفظ جدًا</option></select></label>'+
  '<button class="f2-toolbutton primary full" type="submit">حفظ الإعدادات</button></form>'+
- '<p>لتجنب مضاعفة رصيد الطوارئ، لن يحسب Flosy المبالغ المحولة لحساب طوارئ مستقل ضمن النقد المسموح بالصرف.</p></div>'+
+ '<p>لو مبلغ الطوارئ ما زال داخل حساب الفيزا، اكتبه في «محجوز داخل الفيزا». لو حولته بالفعل إلى حساب الطوارئ المنفصل، اجعل هذه القيمة صفرًا حتى لا يُحجز مرتين.</p></div>'+
  '<div class="f2-card f2-span-8"><div class="f2-head"><h3>توقع الرصيد النقدي خلال 90 يومًا</h3><span class="f2-tag">'+(f.salaryIncluded?'يتضمن المرتبات المخططة':'دون المرتبات المستقبلية')+'</span></div>'+
  '<div class="f2-tablewrap"><table class="f2-table"><thead><tr><th>الوقت</th><th>التاريخ</th><th>الرصيد المتوقع</th></tr></thead><tbody>'+
  f.results.map(x=>'<tr><td>'+(!x.day?'اليوم':'بعد '+x.day+' يوم')+'</td><td>'+fmtDate(x.date)+'</td><td style="color:'+(x.value<0?'#db6372':'inherit')+'">'+money(x.value)+'</td></tr>').join("")+'</tbody></table></div>'+
@@ -223,9 +225,9 @@ document.addEventListener("submit",e=>{
  if(!["p1-settings","p1-oneoff","p1-debt"].includes(e.target.id))return;
  e.preventDefault();const f=new FormData(e.target);
  if(e.target.id==="p1-settings"){
-  const day=Number(f.get("salaryDay")),buffer=Number(f.get("buffer"));
-  if(!Number.isInteger(day)||day<1||day>28||!Number.isFinite(buffer)||buffer<0)return C.toast("راجع إعدادات يوم المرتب والهامش");
-  C.mutate(s=>Object.assign(s.phase1,{salaryDay:day,buffer,includeSalaryForecast:f.get("salary")==="1"}));
+  const day=Number(f.get("salaryDay")),buffer=Number(f.get("buffer")),protectedInsideBank=Number(f.get("protectedInsideBank"));
+  if(!Number.isInteger(day)||day<1||day>28||!Number.isFinite(buffer)||buffer<0||!Number.isFinite(protectedInsideBank)||protectedInsideBank<0)return C.toast("راجع إعدادات يوم المرتب والهامش والمبلغ المحجوز");
+  C.mutate(s=>Object.assign(s.phase1,{salaryDay:day,buffer,protectedInsideBank,includeSalaryForecast:f.get("salary")==="1"}));
   C.toast("تم تحديث الحساب المالي");
  }
  if(e.target.id==="p1-oneoff"){
