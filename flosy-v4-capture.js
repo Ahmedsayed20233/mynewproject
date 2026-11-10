@@ -105,9 +105,13 @@ function parseReceipt(text){
    const withCurrency=amountFrom(line);
    if(withCurrency!==null)return withCurrency;
    const afterLabel=line.replace(/^.*?(?:grand\s*total|total|الإجمالي|الاجمالي|إجمالي\s*الفاتورة|المجموع|amount\s*due|المطلوب)\s*[:：\-]?\s*/i,"");
-   const m=afterLabel.match(/(?:EGP|ج\.م|جم|جنيه)?\s*(\d{1,9}(?:[,.]\d{1,3})?)/i);
+   const m=afterLabel.match(/(?:EGP|ج\.م|جم|جنيه)?\s*(\d[\d,.\s]{0,18})/i);
    if(!m)return null;
-   const raw=m[1].replace(",",".");
+   let raw=m[1].replace(/\s/g,"").replace(/[,.]$/,"");
+   const comma=raw.lastIndexOf(","),dot=raw.lastIndexOf(".");
+   if(comma>=0&&dot>=0)raw=comma>dot?raw.replace(/\./g,"").replace(",","."):raw.replace(/,/g,"");
+   else if(comma>=0){const parts=raw.split(",");raw=parts.length===2&&parts[1].length!==3?parts.join("."):parts.join("")}
+   else if(dot>=0){const parts=raw.split(".");if(parts.length===2&&parts[1].length===3)raw=parts.join("")}
    const n=Number(raw);
    return Number.isFinite(n)&&n>0&&n<1e9?n:null;
  };
