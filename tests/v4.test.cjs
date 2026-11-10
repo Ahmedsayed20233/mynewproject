@@ -165,3 +165,17 @@ test("Pearl command center stays in white mode, updates from validated local dat
  assert.ok(index.includes("flosy-v5-pearl.css"));
  assert.ok(index.includes("flosy-v5-command.js"));
 });
+
+test("Calendar export contains explicit due dates, not personal amounts or accounts",()=>{
+ const c=context();
+ c.window.FLOSY_PHASE1={occurrences:()=>[
+  {id:"internet",key:"bill/internet/2026-11",date:"2026-11-20",name:"Internet",amount:1250,paid:false,linked:false},
+  {id:"paid",key:"bill/paid/2026-11",date:"2026-11-22",name:"Secret",amount:9999,paid:true,linked:false}
+ ]};
+ load("flosy-v4-reminders.js",c);
+ const ics=c.window.FLOSY_REMINDERS.calendarText();
+ assert.match(ics,/BEGIN:VCALENDAR/);
+ assert.match(ics,/BEGIN:VEVENT/);
+ assert.match(ics,/DTSTART;VALUE=DATE:20261120/);
+ assert.doesNotMatch(ics,/1250|9999|Secret|Internet/);
+});
