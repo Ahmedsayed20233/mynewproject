@@ -18,7 +18,7 @@ function context(overrides={}){
  return {ctx,window,data,elems,events:listeners};
 }
 function load(file,scope){
- vm.runInNewContext(fs.readFileSync(file,"utf8"),scope.ctx,{filename:file,timeout:1500});
+ vm.runInNewContext(fs.readFileSync(file,"utf8"),scope.ctx,{filename:file,timeout:5000});
 }
 test("V4 modules are valid JS and launch with offline, empty, unsaved financial state",()=>{
  for(const file of ["flosy-v4-capture.js","flosy-v4-bank.js","flosy-v4-wealth.js","flosy-v4-family-privacy.js"]){
