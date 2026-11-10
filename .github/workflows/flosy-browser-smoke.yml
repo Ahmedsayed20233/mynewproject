@@ -1,10 +1,13 @@
 name: Flosy Real Browser Smoke
 on:
   push:
-    branches: [flosy-site, "test/**"]
+    branches: [flosy-site, "test/**", "feature/**"]
     paths:
       - 'tests/browser-smoke.cjs'
       - 'flosy-ai.js'
+      - 'flosy-elevate.js'
+      - 'flosy-elevate.css'
+      - 'finance-pro.js'
       - 'flosy-repair.js'
       - 'flosy-v4-capture.js'
       - 'index.html'
