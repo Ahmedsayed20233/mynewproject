@@ -10,6 +10,7 @@
  const dt=s=>new Date(s+"T12:00:00");
  const start=()=>new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate());
  let preference=localStorage.getItem("flosy_v4_reminders")||"off";
+ // All calendar exports are user-initiated. No server or background access.
  function upcoming(){
   const api=w.FLOSY_PHASE1;if(!api)return[];
   const today=start(),due=new Date(today);due.setDate(due.getDate()+7);
@@ -34,7 +35,8 @@
    (rows||'<p class="v4-fineprint">مفيش فواتير أو أقساط قادمة مسجلة خلال الأسبوع.</p>')+
    '<div class="v4-reminder-footer"><button type="button" class="v4-btn secondary" data-v4-reminders="open">جدول الفواتير والأقساط</button>'+
    '<button type="button" class="v4-btn secondary" data-v4-reminders="toggle">'+
-   (preference==="on"?"إيقاف تنبيهات المتصفح":"تفعيل تنبيهات المتصفح")+'</button></div>'+
+   (preference==="on"?"إيقاف تنبيهات المتصفح":"تفعيل تنبيهات المتصفح")+'</button>'+
+   '<button type="button" class="v4-btn secondary" data-v4-reminders="calendar">تصدير مواعيد 90 يوم للتقويم</button></div>'+
    '<p class="v4-fineprint">التنبيهات تعمل عند فتح فلوسي فقط، وليست إشعارات مضمونة في الخلفية. لا نرسل قيم معاملاتك إلى خادم إشعارات.</p></div>';
  }
  async function toggle(){
@@ -61,11 +63,44 @@
    sessionStorage.setItem(key,"1");
   }catch(e){C.toast("الرسائل الداخلية متاحة، لكن إشعارات النظام غير مدعومة هنا.")}
  }
+ // Standard iCalendar events can notify the user even when the web app is closed,
+ // subject to calendar permissions/settings. No values or account names are exported.
+ function calendarText(){
+  const api=w.FLOSY_PHASE1;if(!api)return"";
+  const today=start(),end=new Date(today);end.setDate(end.getDate()+90);
+  const rows=api.occurrences(today,end).filter(x=>!x.paid&&!x.linked&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)).slice(0,300);
+  const lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Flosy//Egypt Due Dates//AR","CALSCALE:GREGORIAN","METHOD:PUBLISH"];
+  const stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
+  for(const x of rows){
+   const day=x.date.replace(/-/g,"");
+   const uid=encodeURIComponent(x.key).replace(/%/g,"x").slice(0,110);
+   lines.push("BEGIN:VEVENT","UID:"+uid+"@flosy.local","DTSTAMP:"+stamp,
+    "DTSTART;VALUE=DATE:"+day,"SUMMARY:Flosy - Financial due date",
+    "DESCRIPTION:Open Flosy to review a scheduled payment. Nothing is paid automatically.",
+    "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:Flosy - Check upcoming payment",
+    "TRIGGER:-P1D","END:VALARM","END:VEVENT");
+  }
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n")+"\r\n";
+ }
+ function exportCalendar(){
+  const body=calendarText();
+  if(!body)return C.toast("لا توجد استحقاقات قابلة للتصدير");
+  try{
+   const blob=new Blob([body],{type:"text/calendar;charset=utf-8"});
+   const href=URL.createObjectURL(blob),a=document.createElement("a");
+   a.href=href;a.download="Flosy_Due_Dates_90_Days.ics";
+   document.body.appendChild(a);a.click();a.remove();
+   setTimeout(()=>URL.revokeObjectURL(href),3000);
+   C.toast("تم تجهيز ملف تقويم. افتحه في تطبيق التقويم وراجع التنبيهات.");
+  }catch{C.toast("افتح فلوسي من Chrome لتصدير التقويم؛ التنبيهات الداخلية متاحة دائمًا.")}
+ }
  document.addEventListener("click",e=>{
   const b=e.target.closest("[data-v4-reminders]");if(!b)return;
   if(b.dataset.v4Reminders==="open")C.goto("phase1");
   if(b.dataset.v4Reminders==="toggle")toggle();
+  if(b.dataset.v4Reminders==="calendar")exportCalendar();
  });
- w.FLOSY_REMINDERS={render,upcoming,notify};
+ w.FLOSY_REMINDERS={render,upcoming,notify,calendarText};
  render();if(preference==="on")notify();
 })(window);
