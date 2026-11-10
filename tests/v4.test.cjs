@@ -238,7 +238,7 @@ test("Repair UI renders manual OCR review and keeps every expense approval-only"
  assert.match(c.elems.flosyRepairRoot.innerHTML,/data-repair="voice"/);
  assert.equal(c.data.transactions.length,0);
  const r=c.window.FLOSY_REPAIR.proposeReceipt("Cafe Campus\\nTOTAL: EGP 125.00","manual");
- assert.equal(r,true);
+ assert.equal(r,true,c.elems.flosyOcrStatus?.textContent||"Receipt parsing returned false");
  assert.equal(c.data.transactions.length,0,"Extraction must never save expense automatically");
  assert.match(c.elems["v4-capture-review"].innerHTML,/125/);
 });
