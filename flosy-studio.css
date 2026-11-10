@@ -149,3 +149,17 @@ body.u3-launch-open{overflow:hidden}
  border:1px solid #DCE8E5;border-radius:11px;padding:11px 12px;color:#163A42;
  outline:none;line-height:1.65;font-size:12px}
 #txnForm textarea:focus{border-color:#0C8A7C;box-shadow:0 0 0 3px #E6F5F0}
+
+/* Readability refinements from actual 390px Android viewport screenshots. */
+.u3-homehead p{font-size:12px}
+.u3-panelhead b{font-size:15px}
+.u3-panelhead small{font-size:11px}
+.u3-account-name{font-size:12px}
+.u3-account-row strong{font-size:13px}
+.u3-advice p{font-size:12px}
+.u3-link,.u3-inline-action{font-size:12px}
+.u3-launch-option b{font-size:13px}
+.u3-launch-option small{font-size:11px}
+.u3-setting-link b{font-size:12px}
+.u3-setting-link small{font-size:11px}
+#txnForm select option{background:#FFF!important;color:#163A42!important}
