@@ -25,11 +25,11 @@ const alert=(text,kind="info")=>'<div class="f2-'+kind+'">'+esc(text)+'</div>';
 let draft=null,csvDrafts=[],lastBackupList=[],importStatus="",smsCandidates=[];
 function ensure(){
   let s=S();
-  if(!s.next||typeof s.next!=="object")s.next={recurring:[],rules:[],flexBudget:{target:6000,carry:true},savedViews:[],version:2};
+  if(!s.next||typeof s.next!=="object")s.next={recurring:[],rules:[],flexBudget:{target:0,carry:true},savedViews:[],version:2};
   if(!Array.isArray(s.next.recurring))s.next.recurring=[];
   if(!Array.isArray(s.next.rules))s.next.rules=[];
   if(!Array.isArray(s.next.savedViews))s.next.savedViews=[];
-  if(!s.next.flexBudget)s.next.flexBudget={target:6000,carry:true};
+  if(!s.next.flexBudget)s.next.flexBudget={target:0,carry:true};
   C.persistInitial();
 }
 const F=()=>S().next;
@@ -172,30 +172,56 @@ function categoryFromText(raw){
  if(/uber|careem|اوبر|مواصلات/.test(a))return "مواصلات";
  return "مشتريات";
 }
-function parseSMS(raw){
- const normalized=digits(raw).replace(/\u200e|\u200f/g," ");
- if(normalized.length>5000)throw Error("الرسالة طويلة للغاية");
- if(/\bOTP\b|one.time.password|verification\s*code|رمز\s*(?:التحقق|التفعيل)|كود\s*(?:التحقق|التفعيل)/i.test(normalized))
-  throw Error("هذه تبدو رسالة تحقق أو رمز سري؛ لن نعالجها.");
- const expense=/(?:خصم|سحب|شراء|استخدام|عملية شراء|دفع|تم التحويل من|spent|purchase|withdraw|debited|paid|POS)/i.test(normalized);
- const income=/(?:إيداع|ايداع|إضافة|استلام|وصلتك|تم التحويل إلى|credited|received|deposited|salary)/i.test(normalized);
- if(!expense&&!income)throw Error("لم أتعرف على عملية دفع أو إيداع واضحة. يمكن تسجيلها يدويًا.");
+function parseSMS(raw,options={}){
+ const normalized=digits(String(raw||"")).replace(/[\u200e\u200f]/g," ").trim().slice(0,5000);
+ if(normalized.length<6)throw Error("الرسالة قصيرة ولا يمكن تأكيد معاملة منها");
+ if(/\b(?:OTP|PIN|CVV)\b|one.time.password|verification\s*code|security\s*code|رمز.{0,14}(التحقق|التفعيل|سري)|كود.{0,14}(التحقق|التفعيل)|كلمة\s*(?:مرور|السر)/i.test(normalized))
+  throw Error("رسالة تحقق أو رمز سري؛ لن نقرأها أو نحفظها");
+ if(/فشلت|فشل|لم تتم|تم رفض|pending|failed|declined|cancelled|canceled/i.test(normalized))
+  throw Error("هذه رسالة فشل أو عملية لم تكتمل، وليست حركة مالية مؤكدة");
+ const instapay=/insta[\s-]?pay|انستا\s*باي|إنستا\s*باي/i.test(normalized)||options.source==="instapay";
+ const out=/(?:خصم|سحب|شراء|عملية شراء|دفع|تم إرسال|تم ارسال|تم التحويل إلى|تم التحويل الي|تم تحويل.+(?:إلى|الي)|تحويل صادر|تمت عملية تحويل|debited|withdrawn|paid|purchased|spent|sent|transfer to)/i.test(normalized);
+ const inc=/(?:إيداع|ايداع|إضافة|تم إضافة|استلام|تم استلام|وصلتك|وارد|تم التحويل من|تحويل وارد|credited|received|deposited|salary|transfer from)/i.test(normalized);
+ if(out&&inc)throw Error("اتجاه العملية غير واضح (إرسال/استلام). راجعها وأضفها يدويًا");
+ if(!out&&!inc)throw Error("لا توجد عملية خصم أو استلام مؤكدة؛ استخدم الإدخال اليدوي");
+ const pCurrency=/(?:EGP|جنيه(?:ا)?|ج\.?\s*م\.?|L\.?E\.?)/i;
+ // Look for a labeled transaction amount, never remaining balance/fee/reference.
  const patterns=[
-  /(?:بمبلغ|مبلغ|amount|amt|عملية بقيمة|بقيمة)\s*[:\-]?\s*([0-9][0-9,\s.]{0,18})\s*(?:EGP|جنيه|ج\.م|جم|L\.E\.?)/i,
-  /(?:EGP|جنيه|ج\.م|جم|L\.E\.?)\s*[:\-]?\s*([0-9][0-9,\s.]{0,18})/i,
-  /(?:خصم|شراء|دفع|إيداع|ايداع|سحب|debited|credited|paid)\s*[:\-]?\s*([0-9][0-9,.]{0,18})\s*(?:EGP|جنيه|ج\.م|جم|L\.E\.?)/i
+  /(?:بمبلغ|مبلغ|القيمة|قيمة التحويل|amount|amt|تم خصم|تم استلام|تم إرسال|تم ارسال)\s*[:\-]?\s*(?:EGP|جنيه|ج\.?\s*م\.?)?\s*([0-9][0-9,\s.]{0,16})\s*(?:EGP|جنيه|ج\.?\s*م\.?)?/i,
+  /(?:EGP|جنيه|ج\.?\s*م\.?|L\.?E\.?)\s*[:\-]?\s*([0-9][0-9,\s.]{0,16})/i,
+  /([0-9][0-9,\s.]{0,16})\s*(?:EGP|جنيه|ج\.?\s*م\.?|L\.?E\.?)/i
  ];
- const m=patterns.map(p=>normalized.match(p)).find(Boolean);
- if(!m)throw Error("لم أجد مبلغًا واضحًا بالجنيه المصري؛ راجع الرسالة وأدخلها يدويًا.");
- let rawNum=m[1].replace(/\s/g,"");
- if(rawNum.includes(",")&&rawNum.includes("."))rawNum=rawNum.replace(/,/g,"");
- else if((rawNum.match(/,/g)||[]).length===1&&!rawNum.includes(".")){let parts=rawNum.split(",");rawNum=parts[1].length===3?parts.join(""):parts.join(".")}
- else rawNum=rawNum.replace(/,/g,"");
+ let match=null;
+ for(const pattern of patterns){const m=normalized.match(pattern);if(m){match=m;break}}
+ if(!match&&!pCurrency.test(normalized)&&instapay){
+  match=normalized.match(/(?:حوّلت|حولت|تحويل|أرسلت|ارسلت|استلمت|received|sent)\s*(?:مبلغ)?\s*([0-9][0-9,.]{0,13})/i);
+ }
+ if(!match)throw Error("لم أجد مبلغ معاملة واضحًا؛ لا يمكن الاعتماد على الرصيد أو الرسوم بدلًا منه");
+ let rawNum=String(match[1]||"").trim().replace(/\s/g,"").replace(/[,.]$/,"");
+ if(rawNum.includes(",")&&rawNum.includes(".")){
+  rawNum=rawNum.lastIndexOf(",")>rawNum.lastIndexOf(".")?
+    rawNum.replace(/\./g,"").replace(",","."):rawNum.replace(/,/g,"");
+ }else if(rawNum.includes(",")){
+  const a=rawNum.split(",");rawNum=a.length===2&&a[1].length!==3?a.join("."):a.join("");
+ }else if((rawNum.match(/\./g)||[]).length===1&&rawNum.split(".")[1]?.length===3){
+  rawNum=rawNum.replace(".","");
+ }
  const amount=Number(rawNum);
- if(!Number.isFinite(amount)||amount<=0||amount>100000000)throw Error("المبلغ المستخرج غير صالح");
- let ymd=dateISO();const dm=normalized.match(/\b([0-3]?\d)[\/-]([01]?\d)[\/-](20\d{2})\b/);
- if(dm){const d=new Date(+dm[3],+dm[2]-1,+dm[1]);if(d.getFullYear()==+dm[3]&&d.getMonth()==+dm[2]-1&&d.getDate()==+dm[1])ymd=dateISO(d)}
- return {id:uid(),sourceHash:fingerprint(normalized),amount:amount,type:expense?"expense":"income",date:ymd,category:expense?categoryFromText(normalized):"دخل آخر",description:expense?"عملية مالية مستوردة من رسالة — تحتاج مراجعة":"إيداع مستورد من رسالة — يحتاج مراجعة"};
+ if(!Number.isFinite(amount)||amount<=0||amount>100000000)
+  throw Error("المبلغ المستخرج غير صالح");
+ let day=dateISO();
+ if(Number.isFinite(Number(options.date))&&Number(options.date)>0){
+  const dt=new Date(Number(options.date));if(!Number.isNaN(+dt))day=dateISO(dt);
+ }else{
+  const dm=normalized.match(/\b([0-3]?\d)[/.-]([01]?\d)[/.-](20\d{2})\b/);
+  if(dm){const dt=new Date(+dm[3],+dm[2]-1,+dm[1]);if(dt.getFullYear()===+dm[3]&&dt.getMonth()+1===+dm[2]&&dt.getDate()===+dm[1])day=dateISO(dt)}
+ }
+ const ref=normalized.match(/(?:reference|ref(?:erence)?\s*(?:no|number)?|رقم\s*(?:المرجع|العملية|التحويل)|الرقم\s*المرجعي)\s*[:#\-]?\s*([A-Z0-9-]{6,36})/i)?.[1]||"";
+ const type=out?"expense":"income";
+ return {id:uid(),sourceHash:ref?fingerprint("transaction-ref|"+ref.toLowerCase()+"|"+amount+"|"+type):fingerprint(normalized),
+  amount,type,date:day,category:out?categoryFromText(normalized):"دخل آخر",
+  description:(instapay?"InstaPay": "رسالة مالية")+" — "+(out?"تحويل/خصم":"استلام/إيداع")+" للمراجعة",
+  source:instapay?"instapay_reviewed":"sms_reviewed"};
 }
 function duplicate(d){
  return txs().some(t=>t.sourceHash&&t.sourceHash===d.sourceHash)
@@ -346,7 +372,7 @@ function onAction(action){
  if(action==="load-backups")return loadBackups();
  if(action.startsWith("restore:"))return restoreBackup(action.slice(8));
  if(action==="sample-csv"){
-  const sample="date,description,amount,type\n2026-11-09,سوبرماركت,120,expense\n2026-11-10,مرتب,17000,income\n";
+  const sample="date,description,amount,type\n2026-01-01,مثال مصروف,100,expense\n2026-01-02,مثال دخل,200,income\n";
   const blob=new Blob(["\uFEFF"+sample],{type:"text/csv;charset=utf-8"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="flosy-csv-example.csv";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
  }
