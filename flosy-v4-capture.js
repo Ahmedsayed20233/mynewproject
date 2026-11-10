@@ -237,7 +237,13 @@ function receiveNativeVoice(spoken){
  if(typeof spoken!=="string"||spoken.length>320)return;
  const field=el("v4-voice-text")?.elements?.namedItem("spoken");
  if(field)field.value=spoken;
- try{review(parseVoice(spoken),"راجع النص والمبلغ والتاريخ والحساب قبل الحفظ.")}catch(e){C.toast(e.message)}
+ try{
+  review(parseVoice(spoken),"راجع النص والمبلغ والتاريخ والحساب قبل الحفظ.");
+  if(global.FLOSY_REPAIR?.nativeVoiceResult)global.FLOSY_REPAIR.nativeVoiceResult(spoken);
+ }catch(e){
+  if(global.FLOSY_REPAIR?.nativeVoiceError)global.FLOSY_REPAIR.nativeVoiceError(e.message);
+  C.toast(e.message);
+ }
 }
 function handleConfirmation(form){
  if(!pending)return C.toast("لا يوجد تحليل بانتظار الموافقة");
