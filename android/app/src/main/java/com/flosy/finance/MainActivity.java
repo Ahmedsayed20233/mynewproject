@@ -25,11 +25,20 @@ import android.webkit.WebViewClient;
 import android.widget.Toast;
 import android.webkit.ValueCallback;
 import org.json.JSONObject;
+import org.json.JSONArray;
+import android.Manifest;
+import android.app.AlertDialog;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.provider.Telephony;
+import java.util.Locale;
+import java.util.regex.Pattern;
 
 public class MainActivity extends Activity {
     private static final String HOME = "https://ahmedsayed20233.github.io/mynewproject/";
     private static final String HOME_HOST = "ahmedsayed20233.github.io";
     private static final int PICK_FILE = 71;
+    private static final int REQ_READ_SMS = 72;
     private WebView webView;
     private ProgressBar loadingBar;
     private ValueCallback<Uri[]> selectedFiles;
@@ -111,6 +120,13 @@ public class MainActivity extends Activity {
                 Uri uri = request.getUrl();
                 String scheme = uri.getScheme();
                 String host = uri.getHost();
+                if ("flosyapp".equalsIgnoreCase(scheme) && "sms-scan".equalsIgnoreCase(host)) {
+                    if (request.isForMainFrame() && view.getUrl() != null
+                        && view.getUrl().startsWith(HOME)) {
+                        view.post(() -> requestSmsScan());
+                    }
+                    return true;
+                }
                 if ("flosyapp".equalsIgnoreCase(scheme) && "print".equalsIgnoreCase(host)) {
                     if (request.isForMainFrame()) {
                         view.post(() -> printReport());
@@ -140,7 +156,10 @@ public class MainActivity extends Activity {
                 super.onPageFinished(view, url);
                 if (url != null && url.startsWith(HOME)) {
                     pageReady = true;
-                    view.evaluateJavascript("window.FLOSY_NATIVE_ANDROID=true;", null);
+                    view.evaluateJavascript("window.FLOSY_NATIVE_ANDROID=true;"
+                        + "window.FLOSY_NATIVE_SMS_AVAILABLE="
+                        + (BuildConfig.FLAVOR.equals("sms") ? "true" : "false") + ";"
+                        + "if(window.FLOSY_NEXT)window.FLOSY_NEXT.render();", null);
                     deliverPendingSharedMessage();
                 }
             }
@@ -219,6 +238,91 @@ public class MainActivity extends Activity {
         super.onNewIntent(intent);
         setIntent(intent);
         readSharedText(intent);
+    }
+
+
+    // Read only recent, potentially relevant financial SMS after explicit per-use consent.
+    // No background receiver, no bulk upload and no automatic financial record creation.
+    private void requestSmsScan() {
+        if (!BuildConfig.FLAVOR.equals("sms")) {
+            Toast.makeText(this, "توجد ميزة مسح الرسائل فقط في إصدار SMS التجريبي",
+                Toast.LENGTH_LONG).show();
+            return;
+        }
+        new AlertDialog.Builder(this)
+            .setTitle("قراءة الرسائل المالية")
+            .setMessage("سيبحث فلوسي على جهازك عن الرسائل المالية خلال آخر 45 يومًا، "
+               + "بعد موافقتك على صلاحية READ_SMS. سيستبعد رسائل التحقق OTP، "
+               + "ولن يخزن نصوص الرسائل أو يرسلها إلى الخادم. "
+               + "ستختار كل معاملة لمراجعتها قبل تسجيلها. "
+               + "يمكنك سحب الإذن لاحقًا من إعدادات الهاتف.")
+            .setNegativeButton("إلغاء", (d,which)->{})
+            .setPositiveButton("موافق، فحص الآن", (d,which)->{
+                if (checkSelfPermission(Manifest.permission.READ_SMS)
+                     != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(new String[]{Manifest.permission.READ_SMS},REQ_READ_SMS);
+                } else {
+                    scanFinancialSms();
+                }
+            }).show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                           int[] results) {
+        super.onRequestPermissionsResult(requestCode,permissions,results);
+        if (requestCode != REQ_READ_SMS) return;
+        if (results.length>0 && results[0]==PackageManager.PERMISSION_GRANTED) {
+            scanFinancialSms();
+        } else {
+            Toast.makeText(this,"لم يتم منح إذن قراءة SMS. يمكن استخدام مشاركة الرسالة بدلًا منه.",
+                Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void scanFinancialSms() {
+        if (!BuildConfig.FLAVOR.equals("sms")
+            || checkSelfPermission(Manifest.permission.READ_SMS)
+                != PackageManager.PERMISSION_GRANTED
+            || webView == null || !pageReady) return;
+        JSONArray found = new JSONArray();
+        final long earliest = System.currentTimeMillis() - 45L*24*60*60*1000;
+        final Pattern direction = Pattern.compile(
+          "(خصم|سحب|شراء|دفع|إيداع|ايداع|استلام|تم التحويل|paid|purchase|debited|credited|withdraw|received|deposit)",
+          Pattern.CASE_INSENSITIVE|Pattern.UNICODE_CASE);
+        final Pattern currency = Pattern.compile(
+          "(EGP|جنيه|جنيها|ج\\.م|L\\.E\\.|ج\\s*م)",
+          Pattern.CASE_INSENSITIVE|Pattern.UNICODE_CASE);
+        final Pattern otp = Pattern.compile(
+          "(OTP|one.time.password|verification.code|security.code|رمز.{0,12}(التحقق|التفعيل)|كود.{0,12}(التحقق|التفعيل)|رمز.سري)",
+          Pattern.CASE_INSENSITIVE|Pattern.UNICODE_CASE);
+        String[] cols={Telephony.Sms.BODY,Telephony.Sms.DATE};
+        int inspected=0;
+        try(Cursor cursor=getContentResolver().query(Telephony.Sms.Inbox.CONTENT_URI,
+            cols,Telephony.Sms.DATE+" >= ?",new String[]{String.valueOf(earliest)},
+            Telephony.Sms.DATE+" DESC")){
+            if(cursor!=null)while(cursor.moveToNext()&&inspected<350&&found.length()<35){
+                inspected++;
+                String body=cursor.getString(0);
+                long millis=cursor.getLong(1);
+                if(body==null||body.length()>1200||!direction.matcher(body).find()
+                    ||!currency.matcher(body).find()||otp.matcher(body).find()) continue;
+                // Redact long numeric sequences typically used for card/account identifiers.
+                String sanitized=body.replaceAll("(?<!\\d)(?:\\d[ -]?){12,19}(?!\\d)","[رقم مخفي]");
+                JSONObject item=new JSONObject();
+                item.put("date",millis);
+                item.put("text",sanitized);
+                found.put(item);
+            }
+        }catch(Exception ex){
+            Toast.makeText(this,"تعذر قراءة الرسائل. راجع إذن SMS.",Toast.LENGTH_LONG).show();
+            return;
+        }
+        final String json=found.toString();
+        webView.evaluateJavascript("if(window.FLOSY_NEXT&&window.FLOSY_NEXT.receiveScannedSMS)"
+           +"window.FLOSY_NEXT.receiveScannedSMS("+json+");",null);
+        Toast.makeText(this,"تم العثور على "+found.length()+" رسالة مالية محتملة للمراجعة.",
+            Toast.LENGTH_LONG).show();
     }
 
     private void printReport() {
