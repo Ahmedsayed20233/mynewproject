@@ -42,6 +42,7 @@ jobs:
           path: |
             tests/_artifacts/elevate-dashboard.png
             tests/_artifacts/elevate-mobile-390px.png
+            tests/_artifacts/flosy-studio-mobile-quick-add.png
           retention-days: 7
           if-no-files-found: error
       - name: Save desktop and mobile design screenshots
