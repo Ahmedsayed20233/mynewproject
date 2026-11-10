@@ -51,31 +51,22 @@ async function startLocal(){
   assert.ok(await page.locator("#flosyRepairRoot .f10-card.receipt").isVisible());
   assert.equal(await page.locator("#flosyRepairRoot #v4-voice-text").count(),1);
   assert.equal(await page.locator("#v4-capture-review").count(),1);
-  // Simulate only the Android bridge events; a real phone's SMS permissions are
-  // verified separately by Android manifest/build checks.
+  // A real Android chooser shares only the user-selected message with Flosy.
+  // The old direct inbox and notification-scan buttons must not appear.
   await page.evaluate(()=>{
-    window.__v10SmsActions=[];
-    window.FLOSY_NATIVE_SMS_AVAILABLE=true;
-    window.FlosyNative={postMessage:m=>window.__v10SmsActions.push(JSON.parse(m))};
+    window.FLOSY_NATIVE_SMS_AVAILABLE=true; // simulate a stale legacy wrapper
     window.FLOSY_NEXT.render();
+    window.FLOSY_BRIDGE.goto("import");
   });
-  await page.evaluate(()=>window.FLOSY_BRIDGE.goto("import"));
-  await page.locator('[data-f2="scan-sms-inbox"]').click();
-  assert.equal(await page.evaluate(()=>window.__v10SmsActions.length),0,"No SMS scan without owner consent");
-  await page.locator("#flosySmsOwnerConsent").check();
-  await page.locator('[data-f2="scan-sms-inbox"]').click();
-  await page.locator('[data-f2="instapay-notifications"]').click();
-  assert.deepEqual(await page.evaluate(()=>window.__v10SmsActions.map(a=>a.action)),
-   ["sms-scan","instapay-notifications"]);
-  const txnCountBefore=await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length);
-  await page.evaluate(()=>window.FLOSY_NEXT.receiveScannedSMS([
-   {source:"instapay",date:Date.now(),text:"InstaPay تم استلام مبلغ 500 EGP من محمد"}
-  ]));
-  await page.locator('[data-f2="sms-select:0"]').click();
-  assert.equal(await page.locator("#f2ReviewForm").count(),1);
-  assert.equal(await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length),txnCountBefore,
-   "InstaPay candidate remains review-only until user confirms");
-  console.log("PASS: neutral setup, reversible privacy, real capture UI, consented SMS/InstaPay preview");
+  assert.equal(await page.locator('[data-f2="scan-sms-inbox"],[data-f2="instapay-notifications"]').count(),0);
+  const beforeShared=await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length);
+  await page.evaluate(()=>window.FLOSY_NEXT.receiveSharedText(
+    "InstaPay تم استلام مبلغ 500 EGP من محمد"));
+  await page.locator('#f2SMSForm button[type="submit"]').click();
+  assert.equal(await page.locator('#f2ReviewForm').count(),1);
+  assert.equal(await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length),beforeShared,
+    "Sharing a message cannot create a transaction without explicit review");
+  console.log("PASS: neutral setup, privacy and permission-light shared-message review");
 
   // 1) Free assistant really allows asking without signing into Supabase.
   await page.evaluate(()=>window.FLOSY_BRIDGE.goto("ai"));
