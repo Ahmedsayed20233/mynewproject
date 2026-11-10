@@ -28,6 +28,9 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import android.Manifest;
 import android.app.AlertDialog;
+import android.hardware.biometrics.BiometricPrompt;
+import android.os.CancellationSignal;
+import android.os.Build;
 import android.content.pm.PackageManager;
 import android.speech.RecognizerIntent;
 import java.util.ArrayList;
@@ -126,6 +129,12 @@ public class MainActivity extends Activity {
                 Uri uri = request.getUrl();
                 String scheme = uri.getScheme();
                 String host = uri.getHost();
+                if ("flosyapp".equalsIgnoreCase(scheme) && "biometric-unlock".equalsIgnoreCase(host)) {
+                    if (request.isForMainFrame() && view.getUrl() != null && view.getUrl().startsWith(HOME)) {
+                        view.post(() -> requestBiometricUnlock());
+                    }
+                    return true;
+                }
                 if ("flosyapp".equalsIgnoreCase(scheme) && "voice-expense".equalsIgnoreCase(host)) {
                     if (request.isForMainFrame() && view.getUrl()!=null && view.getUrl().startsWith(HOME))
                         view.post(() -> startEgyptianVoice());
@@ -171,6 +180,8 @@ public class MainActivity extends Activity {
                         + "window.FLOSY_NATIVE_SMS_AVAILABLE="
                         + (BuildConfig.FLAVOR.equals("sms") ? "true" : "false") + ";"
                         + "window.FLOSY_NATIVE_VOICE_AVAILABLE=true;"
+                        + "window.FLOSY_NATIVE_BIOMETRIC_AVAILABLE="
+                        + (Build.VERSION.SDK_INT >= 28 ? "true" : "false") + ";"
                         + "if(window.FLOSY_NEXT)window.FLOSY_NEXT.render();", null);
                     deliverPendingSharedMessage();
                 }
@@ -213,6 +224,45 @@ public class MainActivity extends Activity {
             webView.restoreState(savedInstanceState);
         } else {
             webView.loadUrl(HOME);
+        }
+    }
+
+    // Optional Android biometric re-authentication to reveal visually masked balances.
+    // Does NOT encrypt on-device data or replace Supabase authentication.
+    private void requestBiometricUnlock() {
+        if (Build.VERSION.SDK_INT < 28 || !pageReady || webView == null) {
+            Toast.makeText(this, "المصادقة بالبصمة غير متاحة على هذا الجهاز",
+                Toast.LENGTH_LONG).show();
+            return;
+        }
+        try {
+            BiometricPrompt prompt = new BiometricPrompt.Builder(this)
+                .setTitle("إظهار الأرصدة في فلوسي")
+                .setSubtitle("استخدم بصمة أو وجهًا مسجلًا على هاتفك")
+                .setNegativeButton("إلغاء",getMainExecutor(),(dialog,which)->{})
+                .build();
+            prompt.authenticate(new CancellationSignal(),getMainExecutor(),
+                new BiometricPrompt.AuthenticationCallback() {
+                    @Override
+                    public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
+                        super.onAuthenticationSucceeded(result);
+                        if(webView!=null && pageReady)
+                            webView.evaluateJavascript(
+                                "if(window.FLOSY_V4_FAMILY&&window.FLOSY_V4_FAMILY.biometricUnlocked)"
+                               +"window.FLOSY_V4_FAMILY.biometricUnlocked();",null);
+                    }
+                    @Override
+                    public void onAuthenticationError(int code,CharSequence message) {
+                        super.onAuthenticationError(code,message);
+                        if(code!=BiometricPrompt.BIOMETRIC_ERROR_USER_CANCELED
+                            && code!=BiometricPrompt.BIOMETRIC_ERROR_NEGATIVE_BUTTON)
+                            Toast.makeText(MainActivity.this,
+                                "تعذر التحقق من البصمة: "+message,Toast.LENGTH_SHORT).show();
+                    }
+                });
+        } catch (Exception ex) {
+            Toast.makeText(this,"تعذر تشغيل التحقق البيومتري على الجهاز",
+                Toast.LENGTH_LONG).show();
         }
     }
 
