@@ -118,7 +118,7 @@ function translate(rows,opts,accountId){
  if(d<0||((debit<0||credit<0)&&amount<0))throw Error("حدد عمود التاريخ وعمود المبلغ أو الخصم والإضافة");
  if(!(debit>=0&&credit>=0)&&((direction<0&&!["income","expense"].includes(positiveMeans))||(direction>=0&&positiveMeans!=="explicit")))throw Error("حدد طريقة تفسير إشارة المبلغ أو اختر وجود عمود مستقل لنوع المعاملة.");
  const ids=new Set((C.getState().transactions||[]).map(x=>x.sourceHash).filter(Boolean));
- const duplicates=new Set(),occurrence=new Map(),out=[];
+ const duplicates=new Set(),occurrence=new Map(),refSeen=new Map(),out=[];
  for(const [i,r] of rows.entries()){
   if(r.every(x=>!String(x).trim()))continue;
   try{
@@ -145,9 +145,19 @@ function translate(rows,opts,accountId){
     // same-day purchases when the bank did not provide one.
     const bankRef=reference>=0?String(r[reference]||"").trim().toLowerCase():"";
     const seq=(occurrence.get(basis)||0)+1;occurrence.set(basis,seq);
-    const stable=bankRef?"ref|"+accountId+"|"+bankRef:"position|"+basis+"|"+seq;
+    const refKey=accountId+"|"+date+"|"+bankRef;
+    if(bankRef){
+      const priorBasis=refSeen.get(refKey);
+      if(priorBasis&&priorBasis!==basis)throw Error("نفس مرجع البنك له معاملات متعارضة؛ راجع الكشف الأصلي");
+      refSeen.set(refKey,basis);
+    }
+    const stable=bankRef?"ref|"+refKey:"position|"+basis+"|"+seq;
     const fp="bank4-"+fhash(stable)+"-"+fhash(stable.split("").reverse().join(""));
-    if(ids.has(fp)||duplicates.has(fp))continue;duplicates.add(fp);
+    const legacyFp="bank4-"+fhash(basis);
+    // Importers before Pearl used only the day/amount/description fingerprint.
+    // Keep a legacy match for the first occurrence to avoid importing it twice.
+    if(ids.has(fp)||duplicates.has(fp)||(seq===1&&ids.has(legacyFp)))continue;
+    duplicates.add(fp);
     out.push({id:crypto.randomUUID?crypto.randomUUID():"bank"+Date.now()+i,date,type,
       amount:value,description,accountId,sourceHash:fp,category:type==="income"?"دخل آخر":(global.FLOSY_CAPTURE?.cat(description)||"مشتريات"),
       source:"bank_csv_reviewed",createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
