@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#081526">
 <title>فلوسي — إدارة مالية شخصية</title><meta name="description" content="لوحة تحكم عربية ذكية لإدارة الدخل والمصروفات والأهداف المالية">
-<link rel="stylesheet" href="finance-pro.css?v=130"><link rel="stylesheet" href="flosy-next.css?v=200"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="finance-pro.css?v=130"><link rel="stylesheet" href="flosy-next.css?v=201"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -346,7 +346,7 @@ function updateNetworkBanner(){$('netBanner').hidden=navigator.onLine}
 window.addEventListener('online',updateNetworkBanner);window.addEventListener('offline',updateNetworkBanner);updateNetworkBanner();
 function openModal(type='expense'){$('modalback').classList.add('open');$('txnForm').reset();$('formType').value=type;$('txnForm').elements.date.value=new Date().toLocaleDateString('en-CA');categoryOptions();$('txnForm').elements.amount.focus()}
 function closeModal(){$('modalback').classList.remove('open')}
-document.addEventListener('click',e=>{const nav=e.target.closest('[data-page]');if(nav)goto(nav.dataset.page);const go=e.target.closest('[data-go]');if(go)goto(go.dataset.go);const quick=e.target.closest('[data-quick]');if(quick)openModal(quick.dataset.quick);const del=e.target.closest('[data-delete]');if(del&&confirm('هل تريد حذف هذه المعاملة؟')){state.transactions=state.transactions.filter(t=>t.id!==del.dataset.delete);state.deletedIds.push('transactions/'+del.dataset.delete);save();toast('تم حذف المعاملة');syncIfReady()}});$('addBtn').onclick=()=>openModal();$('closeModal').onclick=$('cancelModal').onclick=closeModal;$('modalback').onclick=e=>{if(e.target===$('modalback'))closeModal()};$('formType').onchange=categoryOptions;$('formCategory').onchange=subcategoryOptions;$('searchTxn').oninput=render;$('typeTxn').onchange=render;$('monthChip').onclick=()=>{const m=prompt('اختر الشهر بصيغة YYYY-MM',selectedMonth);if(m&&/^\d{4}-(0[1-9]|1[0-2])$/.test(m)){selectedMonth=m;render()}};$('storageChip').onclick=()=>goto('settings');$('themeBtn').onclick=()=>{document.body.classList.toggle('light');localStorage.setItem('flosy_theme',document.body.classList.contains('light')?'light':'dark')};if(localStorage.getItem('flosy_theme')==='light')document.body.classList.add('light');
+document.addEventListener('click',e=>{const nav=e.target.closest('[data-page]');if(nav)goto(nav.dataset.page);const go=e.target.closest('[data-go]');if(go)goto(go.dataset.go);const quick=e.target.closest('[data-quick]');if(quick)openModal(quick.dataset.quick);const del=e.target.closest('[data-delete]');if(del&&confirm('هل تريد حذف هذه المعاملة؟')){state.transactions=state.transactions.filter(t=>t.id!==del.dataset.delete);state.deletedIds.push('transactions/'+del.dataset.delete);save();toast('تم حذف المعاملة');syncIfReady()}});$('addBtn').onclick=()=>openModal();$('closeModal').onclick=$('cancelModal').onclick=closeModal;$('modalback').onclick=e=>{if(e.target===$('modalback'))closeModal()};$('formType').onchange=categoryOptions;$('formCategory').onchange=subcategoryOptions;$('searchTxn').oninput=render;$('typeTxn').onchange=render;$('monthChip').onclick=()=>{const m=prompt('اختر الشهر بصيغة YYYY-MM',selectedMonth);if(m&&/^\d{4}-(0[1-9]|1[0-2])$/.test(m)){selectedMonth=m;render()}};$('storageChip').onclick=()=>goto('settings');$('themeBtn').onclick=()=>{document.body.classList.toggle('light');localStorage.setItem('flosy_theme',document.body.classList.contains('light')?'light':'dark')};if(localStorage.getItem('flosy_theme')!=='dark')document.body.classList.add('light');
 $('txnForm').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target),v=Number(f.get('amount'));if(!Number.isFinite(v)||v<=0)return toast('أدخل مبلغًا صحيحًا');
 const from=String(f.get('accountId')||''),to=String(f.get('targetAccountId')||''),typ=String(f.get('type'));
 if(!state.accounts.some(x=>x.id===from))return toast('اختر حسابًا صحيحًا');
@@ -629,5 +629,5 @@ window.FLOSY_BRIDGE={
 try{let s=JSON.parse(sessionStorage.getItem('flosy_session'));if(s&&s.refresh_token)session=s}catch{}categoryOptions();render();if(session)sync();})();
 </script>
 <script src="finance-pro.js?v=131"></script>
-<script src="flosy-next.js?v=200"></script>
+<script src="flosy-next.js?v=201"></script>
 </body></html>
