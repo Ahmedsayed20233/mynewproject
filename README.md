@@ -145,3 +145,39 @@ Its source is maintained in \`supabase/functions/flosy-ai/index.ts\`.
 No OpenAI secret appears in the GitHub Pages code or APK. The chatbot is **not** your ChatGPT conversation account and has no access to ChatGPT history, bank accounts, full SMS inbox, or Thndr. It receives a short, user-approved prompt and optionally a high-level summary from already-synced Supabase data; it never receives raw SMS or account credentials. Until an owner configures \`OPENAI_API_KEY\`, it deliberately returns a visible configuration error instead of a simulated AI response.
 
 **Test and privacy notes:** Automatic SMS scanning is restricted and not assured to work on all Android devices. SMS filtering is heuristic; a message can be falsely categorized or omitted. Never auto-create transactions from scan results. Avoid entering verification codes or full financial credentials. Before replacing the old APK, sync successfully and export JSON; standard and SMS APKs have **separate on-device storage**, though they can sign in to the same Supabase cloud account.
+
+
+## Flosy Phase 1 implementation — 10 Nov 2026
+
+Status: **beta web release** deployed to GitHub Pages. Android APK uses the live web page, but **no new native APK package** is necessary for this set of web/database changes. Full on-device test not completed.
+
+### Database integrity and recovery
+- Supabase flosy_state_v3: independent, RLS-owner-scoped account record, revision counter, JSONB full financial payload.
+- flosy_cas_save_v3(expected_revision,payload): atomic compare-and-swap. Rejects a stale writer. Every successful commit adds a history snapshot to the append-only flosy_backups table in the same Postgres transaction.
+- Existing flosy_data remains unchanged, and its starting contents were copied without replacing to v3. A pre_phase1_20261110 backup was recorded first.
+- The app keeps a local last-successful checkpoint and indicates sync status; network errors leave unsynced records on-device.
+- Fresh-device login adopts the existing cloud ledger, while unsynced local and remote records union-merge by ID. Switching accounts preserves a separate local backup.
+- The Recovery Center and signed-in JSON import use revision CAS instead of the old blind REST upsert.
+- Flosy AI now reads the v3 ledger for optional user-consented aggregate summaries.
+
+### Safe to Spend and 90-day forecast
+- Dashboard and the الآمن للصرف والتوقعات page show cash balances, excluding emergency, reserve and Thndr investment accounts.
+- Safe discretionary cash = eligible cash minus unpaid scheduled commitments, remaining fixed-budget requirement, remaining living budget and a user-defined safety buffer.
+- Scheduled commitments come from existing recurring bills, debt installments and newly entered one-time expenses.
+- A salary-date setting changes the daily Safe to Spend calculation. Forecast salary is an optional *assumption*, not a confirmed income.
+- Debts cap the forecast installments at the unpaid principal. Marking bills paid does not transfer money or record an expense.
+- 90-day forecast: checkpoints at day 7/14/30/60/90; evenly distributed budget estimates, not guaranteed bank balances.
+
+### Verified tests
+- tests/phase1.test.cjs: 12 Node tests including first-device login, concurrent sync merge, offline failure safety, debt caps and budget constraints.
+- Database rollback tests: old revision rejected; correct revision atomically saved with backup; unrelated user cannot read or update the ledger.
+- Original live account data remained unchanged after the rollback tests.
+
+### Remaining limitations
+- GitHub Pages requires internet to start; background offline page loading on a freshly restarted APK is not yet verified.
+- Android native device QA, destructive restore drills and multi-phone authentication tests still need manual acceptance testing.
+- Supabase history is not independent offsite disaster recovery; export a JSON copy before uninstalling the APK.
+- The existing Supabase Auth security advisor still warns that leaked-password protection is disabled.
+- SMS permission beta and AI API activation remain separate development tracks; do not confuse them with this financial-data phase.
+
+**Live website**: https://ahmedsayed20233.github.io/mynewproject/
