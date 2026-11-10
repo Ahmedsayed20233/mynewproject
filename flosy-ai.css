@@ -1,0 +1,18 @@
+
+.flosy-ai-shell{max-width:940px;margin:0 auto}
+.flosy-ai-ribbon{display:flex;justify-content:space-between;align-items:center;gap:15px;padding-bottom:14px;border-bottom:1px solid var(--outline)}
+.flosy-ai-ribbon strong{font-size:15px;display:block}.flosy-ai-ribbon small{color:var(--muted);font-size:10px}
+.flosy-ai-promptrow{display:flex;flex-wrap:wrap;gap:8px;padding:15px 0}
+.flosy-ai-messages{min-height:250px;max-height:min(55vh,570px);overflow:auto;overscroll-behavior:contain;border-radius:15px;background:var(--panel2);border:1px solid var(--outline);padding:16px;display:flex;flex-direction:column;gap:12px}
+.flosy-ai-bubble{max-width:88%;padding:14px 16px;border-radius:15px;line-height:1.85;font-size:12px;overflow-wrap:anywhere}
+.flosy-ai-bubble.assistant{align-self:flex-start;background:var(--panel);border:1px solid var(--outline)}
+.flosy-ai-bubble.user{align-self:flex-end;background:#d8f8ea;color:#184638}
+.flosy-ai-speaker{font-size:10px;font-weight:900;margin-bottom:7px;opacity:.75}
+.flosy-ai-loading{color:var(--muted);font-size:12px}
+.flosy-ai-composer{margin-top:14px}.flosy-ai-composer textarea{width:100%;background:var(--bg);border:1px solid var(--outline);border-radius:13px;color:var(--text);font:inherit;padding:13px;resize:vertical;min-height:90px}
+.flosy-ai-bottom{display:flex;gap:16px;justify-content:space-between;align-items:center;margin-top:9px}
+.flosy-ai-consent{display:flex;align-items:center;gap:8px;line-height:1.7;font-size:11px;color:var(--muted)}
+.flosy-ai-consent input{accent-color:#0ba889;min-width:17px;min-height:17px}
+.flosy-ai-bottom button{min-width:110px}
+.flosy-ai-bottom button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:680px){.flosy-ai-messages{min-height:220px;max-height:48vh;padding:10px}.flosy-ai-bubble{max-width:95%}.flosy-ai-bottom{flex-direction:column;align-items:stretch}.flosy-ai-ribbon{align-items:flex-start;flex-direction:column}.flosy-ai-bottom button{min-height:44px}}
