@@ -1,7 +1,7 @@
 name: Flosy Quality Gates — Financial Safety + V4
 on:
   push:
-    branches: [flosy-site, "fix/**"]
+    branches: [flosy-site, "fix/**", "feature/**"]
     paths:
       - 'index.html'
       - 'flosy-sync-v3.js'
@@ -9,6 +9,8 @@ on:
       - 'flosy-next.js'
       - 'flosy-v4-*.js'
       - 'flosy-v4-white.css'
+      - 'flosy-v5-pearl.css'
+      - 'flosy-v5-command.js'
       - 'service-worker.js'
       - 'tests/v4.test.cjs'
       - 'tests/offline-cache.test.cjs'
@@ -39,6 +41,7 @@ jobs:
           node --check flosy-v4-wealth.js
           node --check flosy-v4-family-privacy.js
           node --check flosy-v4-reminders.js
+          node --check flosy-v5-command.js
           node --check service-worker.js
       - name: Run financial safety regression suite
         run: node --test tests/phase1.test.cjs tests/v4.test.cjs tests/offline-cache.test.cjs
