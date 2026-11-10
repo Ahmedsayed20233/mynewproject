@@ -289,6 +289,7 @@ function renderBackups(){
  '</div>';
 }
 function render(){
+ if(!S().next)ensure();
  try{renderHome();renderSmart();renderRecurring();renderRules();renderImport();renderBackups()}
  catch(err){console.error("Flosy Next render:",err)}
 }
