@@ -141,3 +141,11 @@ body.u3-launch-open{overflow:hidden}
 @media(max-width:350px){.u3-account-row strong{font-size:10px}.u3-head-actions{flex-direction:column}.u3-head-actions .u3-button{width:100%}}
 @media(prefers-reduced-motion:reduce){.u3-button{transition:none}}
 @media print{#flosyStudioLauncherHost,.u3-customization,.u3-head-actions,.u3-setting-grid{display:none!important}.u3-panel{box-shadow:none}}
+
+/* Extra metadata on canonical expense/income/transfer entries. */
+.u3-transaction-note{display:block;font-style:normal;font-size:10px;line-height:1.7;color:#819A9B;
+ margin-top:4px;white-space:normal;overflow-wrap:anywhere}
+#txnForm textarea{display:block;width:100%;min-height:72px;resize:vertical;background:#FFF;
+ border:1px solid #DCE8E5;border-radius:11px;padding:11px 12px;color:#163A42;
+ outline:none;line-height:1.65;font-size:12px}
+#txnForm textarea:focus{border-color:#0C8A7C;box-shadow:0 0 0 3px #E6F5F0}
