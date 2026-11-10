@@ -7,6 +7,9 @@ dependencies {
     implementation 'com.google.mlkit:text-recognition:16.0.1'
     implementation 'androidx.core:core:1.15.0'
     implementation 'androidx.webkit:webkit:1.13.0'
+    // AndroidX transitive dependencies need aligned Kotlin JDK bridges (avoid duplicate classes).
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'
 }
 
 
