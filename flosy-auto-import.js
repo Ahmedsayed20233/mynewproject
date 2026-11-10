@@ -59,7 +59,7 @@ function nativeStatus(s){
 function nativeQueue(items){
  const safe=Array.isArray(items)?items.slice(0,60)
    .filter(x=>x&&typeof x.text==="string"&&x.text.length<=650&&
-     (x.source==="sms"||x.source==="instapay")&&Number.isFinite(Number(x.date))):[];
+     (x.source==="sms"||x.source==="instapay"||x.source==="bank_notification")&&Number.isFinite(Number(x.date))):[];
  count=safe.length;message=safe.length?
   "تم تحميل "+safe.length+" معاملة محتملة. راجع كل واحدة قبل الحفظ.":
   "لا توجد معاملات مالية معلقة في قائمة المراجعة.";
