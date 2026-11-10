@@ -265,8 +265,8 @@ document.addEventListener("submit",e=>{
 document.addEventListener("click",e=>{
  const b=e.target.closest("[data-v4-import]");if(!b)return;
  const action=b.dataset.v4Import;
- if(action==="voice")startVoice();
- if(action==="ocr")scanReceipt();
+ if(action==="voice")(global.FLOSY_REPAIR?.startVoice||startVoice)();
+ if(action==="ocr")(global.FLOSY_REPAIR?.scanReceipt||scanReceipt)();
  if(action==="bank")C.goto("v4-bank");
  if(action==="discard"){pending=null;notification="ألغيت العملية دون حفظ.";renderReview()}
 });
