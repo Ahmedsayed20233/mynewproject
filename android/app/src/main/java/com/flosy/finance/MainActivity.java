@@ -466,6 +466,53 @@ public class MainActivity extends Activity {
 
     // Android's installed speech service handles microphone consent and Egyptian Arabic recognition.
     // Open a user-controlled, read-only image picker. Never scan the gallery silently.
+    private void cleanupPhoto(){
+        if(photoFile!=null){
+            try{photoFile.delete();}catch(Exception ignored){}
+            photoFile=null;
+            photoUri=null;
+        }
+    }
+
+    // Launch the system camera only after a deliberate user tap. A temp file in app cache
+    // is shared through FileProvider and deleted after OCR. No public gallery entry.
+    private void captureReceiptPhoto(){
+        cleanupPhoto();
+        try {
+            File folder=new File(getCacheDir(),"receipts");
+            if(!folder.exists() && !folder.mkdirs())throw new IllegalStateException("cache unavailable");
+            photoFile=File.createTempFile("receipt_",".jpg",folder);
+            photoUri=FileProvider.getUriForFile(this,getPackageName()+".files",photoFile);
+            Intent intent=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT,photoUri);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            intent.setClipData(ClipData.newUri(getContentResolver(),"flosy-receipt",photoUri));
+            startActivityForResult(intent,REQ_CAMERA);
+        } catch(Exception ex){
+            cleanupPhoto();
+            Toast.makeText(this,"لا يوجد تطبيق كاميرا متاح. اختر صورة من المعرض بدلًا منها.",
+                Toast.LENGTH_LONG).show();
+        }
+    }
+
+    // Explicit user export to a document the user chooses; Android WebView blob downloads
+    // are not reliable. OCR text stays local and is never sent to an external server.
+    private void exportReceiptText(String text){
+        if(text==null||text.isEmpty()||text.length()>12000)return;
+        pendingReceiptExport=text;
+        try{
+            Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("text/plain");
+            intent.putExtra(Intent.EXTRA_TITLE,"Flosy_Receipt_"+
+                new java.text.SimpleDateFormat("yyyyMMdd_HHmm",Locale.US).format(new java.util.Date())+".txt");
+            startActivityForResult(intent,REQ_SAVE_RECEIPT);
+        }catch(Exception ex){
+            pendingReceiptExport=null;
+            Toast.makeText(this,"تعذر فتح حفظ الملف. جرّب التصدير عبر Chrome.",Toast.LENGTH_LONG).show();
+        }
+    }
+
     private void pickNativeReceipt() {
         try {
             Intent intent=new Intent(Intent.ACTION_GET_CONTENT);
@@ -507,8 +554,9 @@ public class MainActivity extends Activity {
                 .addOnFailureListener(ex -> Toast.makeText(this,
                     "فشل OCR المحلي؛ استخدم المسح من المتصفح أو إدخال نص الإيصال.",
                     Toast.LENGTH_LONG).show())
-                .addOnCompleteListener(task -> engine.close());
+                .addOnCompleteListener(task -> {engine.close();cleanupPhoto();});
         }catch(Exception ex){
+            cleanupPhoto();
             Toast.makeText(this,"تعذرت قراءة الصورة. تأكد أنها صورة إيصال أصغر من 8MB.",
                 Toast.LENGTH_LONG).show();
         }
