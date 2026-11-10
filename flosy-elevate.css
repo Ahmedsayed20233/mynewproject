@@ -1,0 +1,179 @@
+/* FLOSY ELEVATE | Original Egypt-first design system — light mode only.
+   Visual references informed information hierarchy; no copied third-party artwork. */
+:root,html,body,body.dark,body.light{
+ color-scheme:light!important;
+ --bg:#F6F8FA!important;--panel:#FFFFFF!important;--panel2:#F0F7F6!important;
+ --outline:#DBE7E7!important;--text:#19313D!important;--muted:#66808C!important;
+ --teal:#07877B!important;--blue:#467589!important;--gold:#CCA071!important;
+ --red:#B74C58!important;
+}
+html{background:#F6F8FA!important;scroll-behavior:smooth}
+body{background:#F6F8FA!important;color:#19313D!important;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font-family:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+ outline:3px solid #6EBEB1!important;outline-offset:2px
+}
+.u-eyebrow{display:block;color:#087D74;font-size:10px;letter-spacing:1.1px;font-weight:900;text-transform:uppercase;margin:0 0 6px}
+.u-section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:18px 0 14px;direction:rtl}
+.u-section-head h2{color:#1B3A43;font-size:clamp(20px,2.2vw,25px);font-weight:900;margin:0 0 5px;letter-spacing:-.45px;line-height:1.5}
+.u-section-head p{margin:0;font-size:11px;line-height:1.8;color:#6B858D}
+.u-button{border:1px solid #D6E8E3;background:#FFF;color:#087D74;cursor:pointer;border-radius:12px;min-height:43px;padding:10px 15px;font-size:11px;font-weight:900;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background .12s,transform .12s}
+.u-button:hover{background:#F1FAF6;transform:translateY(-1px)}
+.u-button.solid{background:#087F73;color:#FFF;border-color:#087F73}
+.u-button.solid:hover{background:#066F67}
+.u-button.ghost{background:#F6FBF9}
+.u-button.subtle{background:#F7F9FA;color:#5C7580;border-color:#EBEFF1}
+.u-button.small{padding:7px 11px;min-height:36px;font-size:10px}
+.u-button:disabled{opacity:.45;cursor:not-allowed}
+.u-link{border:0;background:transparent;color:#0A8178;cursor:pointer;font-size:11px;font-weight:900;padding:8px}
+.u-snapshot-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:0 0 13px}
+.u-snapshot{min-height:128px;padding:20px 21px;border-radius:19px;border:1px solid #DFEAEA;display:flex;flex-direction:column;justify-content:center;gap:9px;box-shadow:0 5px 20px #163E3F07}
+.u-snapshot.mint{background:linear-gradient(125deg,#EDF9F5,#FFF);border-color:#D5E9E3}
+.u-snapshot.snow{background:#FFF}
+.u-snapshot.cream{background:linear-gradient(125deg,#FFF,#FBF6EE);border-color:#EDE4D6}
+.u-stat-caption{font-size:11px;font-weight:800;color:#607A83}
+.u-snapshot>strong{color:#0B746D;font-size:clamp(17px,2.3vw,26px);font-weight:900;line-height:1.5}
+.u-snapshot.cream>strong{color:#3B5960}
+.u-truncate{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.u-stat-foot{font-size:10px;color:#708993;line-height:1.7}
+.u-focus-grid,.u-budget-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:16px}
+.u-panel{border-radius:19px;border:1px solid #DFE8E7;background:#FFF;padding:20px;box-shadow:0 5px 24px #163E3F07;min-width:0;direction:rtl}
+.u-feature-panel{background:linear-gradient(125deg,#FFF,#F7FCFA);border-color:#D7E8E3}
+.u-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:15px}
+.u-panel-head small{display:block;color:#8A9FA3;font-size:9px;letter-spacing:.5px;font-weight:800;margin-bottom:6px}
+.u-panel-head h3{margin:0;color:#24434B;font-size:15px;font-weight:900;line-height:1.5}
+.u-focus-list{display:flex;flex-direction:column}
+.u-focus-action{width:100%;border:0;background:transparent;padding:12px 1px;border-bottom:1px solid #EEF1F0;display:flex;align-items:center;text-align:right;gap:11px;cursor:pointer;color:#26434E}
+.u-focus-action:last-child{border-bottom:0}
+.u-focus-action:hover{background:#F6FBF9}
+.u-focus-action>span:nth-child(2){flex:1;min-width:0}
+.u-focus-action b{display:block;font-size:12px;font-weight:900;line-height:1.5}
+.u-focus-action small{display:block;color:#779098;font-size:10px;line-height:1.7;margin-top:3px}
+.u-focus-action>span:last-child{font-size:22px;color:#6A9490}
+.u-step-symbol,.u-icon-box,.u-circle-symbol{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:13px;background:#ECF8F4;color:#0F8678;font-size:18px;font-weight:800}
+.u-mini-suggestion,.u-budget-suggestion{display:flex;align-items:center;gap:11px;border-bottom:1px solid #EDF1EF;padding:11px 0;min-width:0}
+.u-mini-suggestion:last-of-type,.u-budget-suggestion:last-of-type{border-bottom:0}
+.u-mini-suggestion>span:nth-child(2),.u-suggestion-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.u-mini-suggestion b,.u-suggestion-copy strong{font-size:12px;color:#28454F;font-weight:900}
+.u-mini-suggestion small,.u-suggestion-copy small{font-size:10px;color:#8499A0;line-height:1.6}
+.u-suggestion-copy>b{font-size:13px;color:#087F75;font-weight:900}
+.u-micro-button{border:1px solid #B6DCD3;border-radius:10px;background:#EAF7F2;color:#087B6F;padding:9px 12px;min-height:39px;cursor:pointer;font-size:11px;font-weight:900}
+.u-micro-button:hover{background:#D9F0E9}
+.u-fine,.u-disclaimer{font-size:10px;line-height:1.9;color:#718A92;margin:11px 0 0}
+.u-disclaimer{border-right:3px solid #D0E5DC;padding:3px 11px}
+.u-subtle{font-size:10px;color:#82979D;white-space:nowrap}
+.u-activity-panel{padding:17px}
+.u-period-tabs,.u-wealth-tabs{display:flex;align-items:center;gap:3px;border:1px solid #DCE9E6;background:#F4F8F7;padding:4px;border-radius:13px;max-width:430px}
+.u-period-tabs button,.u-wealth-tabs button{flex:1;background:transparent;border:0;padding:11px 14px;min-height:40px;color:#5C7680;font-size:11px;font-weight:800;cursor:pointer;border-radius:10px}
+.u-period-tabs button.active,.u-wealth-tabs button.active{background:#FFF;color:#0B7C72;box-shadow:0 2px 9px #0F4F3B12}
+.u-date-switch{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 1px 15px;max-width:430px}
+.u-date-switch strong{font-size:13px;color:#2C4B55;text-align:center}
+.u-date-switch button{width:38px;height:38px;border:1px solid #D5E5E1;background:#FFF;color:#0A7F74;border-radius:12px;cursor:pointer;font-size:23px}
+.u-activity-totals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:4px 0 17px}
+.u-activity-totals>div{background:#F4F8F8;border:1px solid #E3ECEB;border-radius:12px;min-height:78px;padding:14px 13px;display:flex;flex-direction:column;justify-content:center;gap:7px}
+.u-activity-totals>div:first-child{background:#F0FAF5}
+.u-activity-totals>div:nth-child(2){background:#FFF5F5}
+.u-activity-totals span{font-size:10px;color:#6B838C;font-weight:700}
+.u-activity-totals b{font-size:clamp(12px,1.6vw,16px);color:#2E5662;font-weight:900;word-break:break-word}
+.u-positive{color:#118B75!important}
+.u-negative{color:#B8525D!important}
+.u-filter-row{display:grid;grid-template-columns:minmax(160px,1.5fr) minmax(115px,.8fr) minmax(130px,1fr);gap:10px;margin-bottom:16px}
+.u-filter-row label{display:flex;flex-direction:column;gap:7px;font-size:11px;color:#5C7680;font-weight:800}
+.u-filter-row input,.u-filter-row select,.u-inline-edit input{border:1px solid #D5E3E4;border-radius:11px;background:#FFF;color:#1D3D48;padding:11px 12px;height:43px;width:100%;min-width:0;font-size:12px}
+.u-filter-row input::placeholder{color:#97ABB0}
+.u-list-header{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:4px 2px 10px}
+.u-list-header h3{margin:0;font-size:14px;color:#2B4D56}
+.u-list-header span{font-size:10px;color:#82989E}
+.u-day-heading{padding:13px 12px 9px;margin:6px -4px 0;color:#607B84;font-size:11px;font-weight:900;background:#F6F9F9;border-radius:8px}
+.u-transaction{display:flex;align-items:center;gap:12px;padding:12px 5px;border-bottom:1px solid #EFF3F2;min-height:73px}
+.u-transaction:last-child{border:0}
+.u-txn-icon{display:grid;place-items:center;width:41px;height:41px;border-radius:13px;background:#EEF6F8;color:#357688;font-size:18px;flex:none}
+.u-txn-icon.income{background:#E8F7F0;color:#12886F}
+.u-txn-icon.expense{background:#FFF1F0;color:#BA5660}
+.u-txn-info{min-width:0;flex:1}
+.u-txn-info b{display:block;line-height:1.5;font-size:12px;color:#294550;overflow-wrap:anywhere}
+.u-txn-info small{display:block;font-size:10px;color:#8799A0;margin-top:4px;line-height:1.5}
+.u-txn-value{font-size:12px;font-weight:900;white-space:nowrap;color:#427488;direction:ltr;text-align:left}
+.u-txn-value.income{color:#178E73}.u-txn-value.expense{color:#B04F5C}
+.u-empty{padding:25px 16px;text-align:center;background:#F7FAF9;border:1px dashed #DFE7E6;border-radius:13px;color:#5D7A84;font-size:12px}
+.u-empty b{display:block;color:#365B63;font-size:13px}
+.u-empty p{margin:9px 0;line-height:1.8}
+.u-budget-suggestion{gap:12px}
+.u-circle-symbol{background:#EFF4FA;color:#38738A}
+.u-inline-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.u-budget-active{border-bottom:1px solid #EEF2F1;padding:12px 0}
+.u-budget-active:last-child{border-bottom:0}
+.u-budget-top{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#315260}
+.u-budget-top strong{font-size:12px}.u-budget-top span{font-size:11px;color:#72888F}
+.u-budget-active>small{font-size:10px;color:#748A91;display:block;margin:7px 0}
+.u-meter{height:8px;background:#E8F0EF;border-radius:10px;overflow:hidden;margin-top:10px}
+.u-meter>i{display:block;height:100%;background:#16A68A;border-radius:10px;max-width:100%}
+.u-meter>i.over{background:#CA6A66}
+.u-budget-active form{display:flex;gap:9px;align-items:flex-end;margin-top:10px;flex-wrap:wrap}
+.u-inline-edit{display:flex;flex-direction:column;gap:6px;color:#708991;font-size:10px;font-weight:800;flex:1;min-width:120px}
+.u-inline-edit input{height:36px;padding:8px 10px}
+.u-wealth-panel{padding:22px}
+.u-networth-value{display:flex;flex-direction:column;gap:8px}
+.u-networth-value span{color:#789096;font-size:11px;font-weight:800}
+.u-networth-value strong{color:#143F44;font-size:clamp(27px,4vw,43px);font-weight:900;line-height:1.35}
+.u-networth-value small{color:#81989C;font-size:10px;line-height:1.8}
+.u-wealth-tabs{margin:18px 0 11px}
+.u-trend-shell{background:#FBFCFC;border:1px solid #EBF0EE;border-radius:13px;padding:14px;min-height:155px}
+.u-trend-chart{width:100%;max-height:230px;display:block}
+.u-trend-chart text{font-size:11px;fill:#81999D}
+.u-wealth-summary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.u-wealth-summary>div{padding:15px;border-radius:11px;background:#F6F9F8;display:flex;flex-direction:column;gap:8px}
+.u-wealth-summary span{color:#788D94;font-size:10px}
+.u-wealth-summary b{color:#274954;font-size:13px;word-break:break-word}
+#flosyElevateDashboard,#flosyElevateTransactions,#flosyElevateBudgets,#flosyElevateWealth{direction:rtl}
+/* Progressive disclosure keeps the mobile dashboard purposeful instead of a
+   five-thousand-pixel wall of duplicated metrics; every previous panel is preserved. */
+#page-dashboard>.u-deep-dive{margin:17px 0 18px;direction:rtl;border:1px solid #DCE8E4;border-radius:16px;background:#FFF;overflow:hidden;box-shadow:0 7px 25px #10484B08}
+#page-dashboard>.u-deep-dive>summary{list-style:none;display:flex;align-items:center;gap:11px;cursor:pointer;min-height:57px;padding:13px 17px;font-size:12px;color:#26555C;font-weight:900;background:linear-gradient(110deg,#FFF,#F5FBF8)}
+#page-dashboard>.u-deep-dive>summary::-webkit-details-marker{display:none}
+#page-dashboard>.u-deep-dive>summary>span{display:inline-grid;place-items:center;flex:none;border-radius:11px;width:33px;height:33px;background:#E9F7F1;color:#078378;font-size:17px}
+#page-dashboard>.u-deep-dive>summary>small{color:#087C71;font-size:10px;font-weight:800;margin-right:auto}
+#page-dashboard>.u-deep-dive[open]>summary{border-bottom:1px solid #E3ECE8}
+#page-dashboard>.u-deep-dive[open]{padding-bottom:15px}
+#page-dashboard>.u-deep-dive[open]>div{margin:13px 14px}
+@media(max-width:640px){#page-dashboard>.u-deep-dive{border-radius:14px}#page-dashboard>.u-deep-dive>summary{padding:12px 13px;font-size:11px}#page-dashboard>.u-deep-dive[open]>div{margin:11px 9px}}
+
+#page-transactions>details.u-legacy-table{margin-top:17px;border:1px solid #E3EBE9;border-radius:13px;padding:12px;background:#FFF}
+#page-transactions>details.u-legacy-table>summary{cursor:pointer;font-size:12px;color:#56817B;font-weight:800}
+#page-transactions>details.u-legacy-table>.card{box-shadow:none!important;border:0!important;margin-top:10px;padding:0}
+@media (max-width:950px){.u-focus-grid,.u-budget-grid{grid-template-columns:1fr}.u-snapshot-grid{gap:9px}.u-snapshot{padding:17px 15px}}
+@media (max-width:640px){
+ .u-section-head{align-items:flex-start;margin:13px 0 11px;gap:10px;flex-wrap:wrap}
+ .u-section-head .u-button{min-height:39px}
+ .u-snapshot-grid{grid-template-columns:1fr 1fr;gap:9px}
+ .u-snapshot:last-child{grid-column:1/-1}
+ .u-snapshot{min-height:116px;padding:15px 14px;border-radius:14px}
+ .u-snapshot>strong{font-size:18px}
+ .u-snapshot.cream{min-height:95px}
+ .u-panel{padding:15px;border-radius:15px}
+ .u-focus-action{padding:11px 1px}
+ .u-activity-panel{padding:13px}
+ .u-activity-totals{gap:6px}
+ .u-activity-totals>div{min-height:75px;padding:10px 8px}
+ .u-activity-totals b{font-size:11px}
+ .u-filter-row{grid-template-columns:1fr 1fr}
+ .u-filter-row label:first-child{grid-column:1/-1}
+ .u-transaction{gap:8px;padding:11px 1px}
+ .u-txn-icon{width:35px;height:35px;border-radius:11px}
+ .u-txn-value{font-size:10px;white-space:normal;text-align:left;max-width:106px}
+ .u-wealth-summary{grid-template-columns:1fr 1fr}
+ .u-budget-suggestion{flex-wrap:wrap}
+ .u-budget-suggestion .u-inline-actions{margin-right:auto}
+ .u-period-tabs,.u-wealth-tabs{width:100%;max-width:none}
+}
+@media(prefers-reduced-motion:reduce){.u-button{transition:none}.u-button:hover{transform:none}}
+@media print{.u-button,.u-micro-button,.u-period-tabs,.u-wealth-tabs,.u-date-switch{display:none!important}.u-panel,.u-snapshot{box-shadow:none!important}}
+
+/* CSS-only progressive disclosure keeps source page DOM unchanged and intact. */
+#page-dashboard.u-advanced-hidden #flosyNextHome,
+#page-dashboard.u-advanced-hidden #phase1Home,
+#page-dashboard.u-advanced-hidden #wealthHighlights,
+#page-dashboard.u-advanced-hidden > .grid,
+#page-dashboard.u-advanced-hidden > .card{display:none!important}
+#page-dashboard .u-advanced-toggle{width:100%;margin:13px 0 16px;min-height:52px;background:linear-gradient(110deg,#FFF,#F2F9F6)!important;border:1px solid #D5E9E1!important;color:#096E68!important;box-shadow:0 5px 20px #10473E07;font-size:12px}
+#page-dashboard .u-advanced-toggle:hover{background:#EAF7F1!important}

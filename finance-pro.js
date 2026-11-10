@@ -469,6 +469,6 @@
     }
   });
   init();
-  window.FLOSY_PRO={render:render,updateTxnAccounts:updateTxnAccounts,reportSection:reportSection};
+  window.FLOSY_PRO={render:render,updateTxnAccounts:updateTxnAccounts,reportSection:reportSection,metrics:metrics,rowsForAccounts:rowsForAccounts};
   C.render();
 })();
