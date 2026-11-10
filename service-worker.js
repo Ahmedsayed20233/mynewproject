@@ -1,12 +1,12 @@
 /* Flosy v4 offline application shell. NO database/API responses are cached. */
-const VERSION="flosy-white-v4-20261110-4";
+const VERSION="flosy-pearl-v5-20261110-1";
 const SHELL=[
  "./","./index.html","./manifest.webmanifest","./icon.svg",
  "./finance-pro.js?v=131","./finance-pro.css?v=130",
  "./flosy-next.css?v=202","./flosy-next.js?v=202","./flosy-ai.css?v=210","./flosy-ai.js?v=210",
  "./flosy-phase1.js?v=311","./flosy-sync-v3.js?v=302",
- "./flosy-v4-white.css?v=401","./flosy-v4-capture.js?v=400","./flosy-v4-bank.js?v=400",
- "./flosy-v4-wealth.js?v=400","./flosy-v4-family-privacy.js?v=402","./flosy-v4-reminders.js?v=401","./flosy-v4-sw-register.js?v=401"
+ "./flosy-v4-white.css?v=401","./flosy-v5-pearl.css?v=500","./flosy-v4-capture.js?v=500","./flosy-v4-bank.js?v=500",
+ "./flosy-v4-wealth.js?v=400","./flosy-v4-family-privacy.js?v=402","./flosy-v4-reminders.js?v=401","./flosy-v4-sw-register.js?v=401","./flosy-v5-command.js?v=500"
 ];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(VERSION).then(async cache=>{
