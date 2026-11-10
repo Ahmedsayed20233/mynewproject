@@ -55,6 +55,7 @@ import android.content.res.AssetFileDescriptor;
 import java.util.ArrayList;
 import android.database.Cursor;
 import android.provider.Telephony;
+import android.provider.Settings;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -143,6 +144,8 @@ public class MainActivity extends Activity {
                             if("voice".equals(action))startEgyptianVoice();
                             else if("receipt-ocr".equals(action))pickNativeReceipt();
                             else if("receipt-camera".equals(action))captureReceiptPhoto();
+                            else if("sms-scan".equals(action))requestSmsScan();
+                            else if("instapay-notifications".equals(action))requestInstaPayNotificationScan();
                             else if("receipt-export".equals(action)){
                                 String receipt=msg.optString("text","");
                                 if(!receipt.isEmpty() && receipt.length()<=12000)
@@ -380,6 +383,46 @@ public class MainActivity extends Activity {
     }
 
 
+    // Active InstaPay alerts only; NO background notification logging.
+    // User must explicitly allow system Notification Access for SMS Beta and tap
+    // the import button every time. Android controls revocation.
+    private void requestInstaPayNotificationScan(){
+        if(!BuildConfig.FLAVOR.equals("sms")){
+            Toast.makeText(this,"هذه الميزة اختيارية في نسخة SMS Beta فقط",Toast.LENGTH_LONG).show();
+            return;
+        }
+        new AlertDialog.Builder(this)
+            .setTitle("فحص إشعارات InstaPay بإذنك")
+            .setMessage("سيقرأ Flosy فقط إشعارات InstaPay النشطة حاليًا عند الضغط، وليس تاريخ الإشعارات أو إشعارات التطبيقات الأخرى. "+
+                "لن يخزن الإشعارات أو يحفظ معاملة قبل موافقتك. "+
+                "يمنح Android صلاحية إشعارات واسعة؛ تقدر تلغيها في أي وقت من إعدادات الهاتف.")
+            .setNegativeButton("إلغاء",(d,which)->{})
+            .setPositiveButton("موافق، فحص الآن",(d,which)->{
+                if(!InstaPayNotificationReader.isReady()){
+                    new AlertDialog.Builder(this)
+                        .setTitle("إذن Notification Access غير مفعّل")
+                        .setMessage("افتح إعدادات Android وفعّل Flosy SMS Beta فقط إذا كنت توافق، ثم ارجع واضغط زر الفحص مرة أخرى.")
+                        .setNegativeButton("لاحقًا",(dialog,index)->{})
+                        .setPositiveButton("فتح إعدادات Android",(dialog,index)->{
+                            try{startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));}
+                            catch(Exception ex){Toast.makeText(this,"تعذر فتح إعدادات الإشعارات",Toast.LENGTH_LONG).show();}
+                        }).show();
+                    return;
+                }
+                JSONArray items=InstaPayNotificationReader.reviewCurrent();
+                sendReviewCandidates(items);
+                Toast.makeText(this,"تم فحص إشعارات InstaPay الحالية: "+items.length()+" للمراجعة",
+                    Toast.LENGTH_LONG).show();
+            }).show();
+    }
+
+    private void sendReviewCandidates(JSONArray items){
+        if(webView==null||!pageReady||webView.getUrl()==null||!webView.getUrl().startsWith(HOME))return;
+        webView.evaluateJavascript(
+            "if(window.FLOSY_NEXT&&window.FLOSY_NEXT.receiveScannedSMS)"+
+            "window.FLOSY_NEXT.receiveScannedSMS("+items.toString()+");",null);
+    }
+
     // Read only recent, potentially relevant financial SMS after explicit per-use consent.
     // No background receiver, no bulk upload and no automatic financial record creation.
     private void requestSmsScan() {
@@ -433,7 +476,7 @@ public class MainActivity extends Activity {
         JSONArray found = new JSONArray();
         final long earliest = System.currentTimeMillis() - 45L*24*60*60*1000;
         final Pattern direction = Pattern.compile(
-          "(خصم|سحب|شراء|دفع|إيداع|ايداع|استلام|تم التحويل|paid|purchase|debited|credited|withdraw|received|deposit)",
+          "(خصم|سحب|شراء|دفع|إيداع|ايداع|استلام|تم التحويل|تم إرسال|تم ارسال|حوالة|paid|purchase|debited|credited|withdraw|received|deposit|sent|transfer)",
           Pattern.CASE_INSENSITIVE|Pattern.UNICODE_CASE);
         final Pattern currency = Pattern.compile(
           "(EGP|جنيه|جنيها|ج\\.م|L\\.E\\.|ج\\s*م)",
@@ -456,6 +499,7 @@ public class MainActivity extends Activity {
                 String sanitized=body.replaceAll("(?<!\\d)(?:\\d[ -]?){12,19}(?!\\d)","[رقم مخفي]");
                 JSONObject item=new JSONObject();
                 item.put("date",millis);
+                item.put("source","sms");
                 item.put("text",sanitized);
                 found.put(item);
             }
@@ -464,8 +508,7 @@ public class MainActivity extends Activity {
             return;
         }
         final String json=found.toString();
-        webView.evaluateJavascript("if(window.FLOSY_NEXT&&window.FLOSY_NEXT.receiveScannedSMS)"
-           +"window.FLOSY_NEXT.receiveScannedSMS("+json+");",null);
+        sendReviewCandidates(found);
         Toast.makeText(this,"تم العثور على "+found.length()+" رسالة مالية محتملة للمراجعة.",
             Toast.LENGTH_LONG).show();
     }
