@@ -22,7 +22,7 @@ const catOpts=()=>expenseCats.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</opt
 const select=(id,label,options)=>'<label>'+esc(label)+'<select name="'+id+'">'+options+'</select></label>';
 const input=(id,label,type="text",extra="")=>'<label>'+esc(label)+'<input name="'+id+'" type="'+type+'" '+extra+' required></label>';
 const alert=(text,kind="info")=>'<div class="f2-'+kind+'">'+esc(text)+'</div>';
-let draft=null,csvDrafts=[],lastBackupList=[],importStatus="";
+let draft=null,csvDrafts=[],lastBackupList=[],importStatus="",smsCandidates=[];
 function ensure(){
   let s=S();
   if(!s.next||typeof s.next!=="object")s.next={recurring:[],rules:[],flexBudget:{target:6000,carry:true},savedViews:[],version:2};
@@ -221,7 +221,14 @@ function renderImport(){
  '<form id="f2SMSForm" class="f2-inputs">'+
  '<label class="full">الصق رسالة مالية واحدة هنا<textarea name="message" id="f2SMSText" placeholder="مثال توضيحي: تم خصم مبلغ 125 EGP من حسابك مقابل شراء."></textarea></label>'+
  '<button type="submit" class="f2-toolbutton primary full">تحليل الرسالة محليًا</button></form>'+
- '<div class="f2-privacy">يمكنك أيضًا الضغط «مشاركة» من تطبيق الرسائل واختيار Flosy في APK. لا يطلب Flosy صلاحية قراءة جميع SMS، ولا يعالج رموز التحقق OTP، ولا يخزن نص الرسالة الخام.</div>',"6")+
+ '<div class="f2-privacy">يمكنك أيضًا الضغط «مشاركة» من تطبيق الرسائل واختيار Flosy في APK. فحص الرسائل المباشر متاح فقط بإذن صريح في إصدار SMS التجريبي، ولا يتم حفظ أي رسالة حتى توافق على معاملتها.</div>',"6")+
+ (window.FLOSY_NATIVE_SMS_AVAILABLE?
+ card('<div class="f2-head"><h3>قراءة SMS المالية من الهاتف</h3><span class="f2-tag">إذن اختياري</span></div>'+
+ '<p>افحص الرسائل المالية الحديثة محليًا بعد منح إذن READ_SMS، ثم اختر رسالة محددة لعرض بياناتها وتأكيد المعاملة.</p>'+
+ '<div class="f2-btnrow">'+smBtn("scan-sms-inbox","فحص رسائل SMS الحديثة","primary")+' '+smBtn("clear-sms-inbox","مسح نتائج الفحص من الشاشة")+'</div>'+
+ '<div class="f2-privacy">يبحث الإصدار التجريبي في آخر 45 يومًا عن رسائل مالية محتملة، ويستبعد OTP. لا توجد قراءة في الخلفية، ولا رفع للنص الأصلي إلى Supabase أو OpenAI. يمكنك إلغاء الإذن من إعدادات Android.</div>'+
+ (smsCandidates.length?'<div class="f2-info">'+smsCandidates.length+' رسائل محتملة. راجع كل واحدة قبل تسجيلها.</div>'+
+ smsCandidates.map((m,i)=>'<div class="f2-list-item"><div><strong>رسالة مالية محتملة • '+esc(new Date(m.date).toLocaleDateString("ar-EG"))+'</strong><small>'+esc(m.text.slice(0,100))+'</small></div>'+smBtn("sms-select:"+i,"مراجعة")+'</div>').join(""):'<div class="f2-empty">مافيش نتائج فحص معروضة حتى الآن.</div>'),"12"):"") +
  card('<h3>استيراد كشف معاملات CSV</h3><p>لملف صادر بنفسك من البنك أو المحفظة. صيغة أعمدة مدعومة: <code>date,description,amount,type</code> مع <code>type</code> يساوي expense أو income. تُراجع العمليات قبل تسجيلها.</p>'+
  '<div class="f2-inputs"><label>ملف CSV<input type="file" accept=".csv,text/csv" id="f2CSVFile"></label>'+
  '<label>الحساب المرتبط بالمعاملات<select id="f2CSVAccount">'+aList()+'</select></label></div>'+
@@ -298,6 +305,23 @@ function addRecord(obj){
 }
 function onAction(action){
  if(action==="go-import")return C.goto("import");
+ if(action==="scan-sms-inbox"){
+   if(!window.FLOSY_NATIVE_SMS_AVAILABLE){C.toast("الميزة غير متاحة في إصدار الويب أو APK القياسي");return}
+   window.location.href="flosyapp://sms-scan";return;
+ }
+ if(action==="clear-sms-inbox"){smsCandidates=[];draft=null;importStatus="تم مسح نتائج الفحص من الذاكرة.";renderImport();return}
+ if(action.startsWith("sms-select:")){
+  const n=Number(action.slice(11));const row=smsCandidates[n];
+  if(!row){C.toast("لم يتم العثور على الرسالة");return}
+  try{
+    let parsed=parseSMS(row.text);
+    if(duplicate(parsed))throw Error("المعاملة تبدو مسجلة بالفعل");
+    draft=parsed;csvDrafts=[];
+    importStatus="راجع بيانات الرسالة بعناية: المبلغ والحساب والتاريخ والفئة. النص الخام لا يُحفظ.";
+    renderImport();
+  }catch(e){C.toast(e.message)}
+  return;
+ }
  if(action==="go-recurring")return C.goto("recurring");
  if(action==="go-recovery")return C.goto("recovery");
  if(action==="cancel-draft"){draft=null;importStatus="تم تجاهل الرسالة ولم يُحفظ شيء";return renderImport()}
@@ -364,6 +388,12 @@ async function restoreBackup(id){
   await loadBackups();
  }catch(e){C.toast("تعذر الاسترجاع: "+e.message)}
 }
+function receiveScannedSMS(items){
+ smsCandidates=Array.isArray(items)?items.slice(0,35).filter(x=>x&&typeof x.text==="string"&&x.text.length<=1200&&Number.isFinite(Number(x.date))):[];
+ draft=null;csvDrafts=[];
+ importStatus="تم الفحص محليًا. اختر رسالة لمراجعة المبلغ والحساب والتصنيف؛ لم تُسجل أي معاملة.";
+ C.goto("import");renderImport();
+}
 function receiveSharedText(message){
  if(typeof message!=="string")return;
  if(message.length>5000){C.toast("الرسالة كبيرة جدًا");return}
@@ -420,6 +450,6 @@ document.addEventListener("change",async e=>{
  }catch(err){csvDrafts=[];C.toast("تعذر استيراد CSV: "+err.message)}
 });
 ensure();
-window.FLOSY_NEXT={render,receiveSharedText,parseSMS,parseCSVTransactions,rolloverBudget,recurringDue};
+window.FLOSY_NEXT={render,receiveSharedText,receiveScannedSMS,parseSMS,parseCSVTransactions,rolloverBudget,recurringDue};
 render();
 })();
