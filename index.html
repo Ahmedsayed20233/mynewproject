@@ -365,7 +365,22 @@ const subcategory=typ==='expense'&&expenseSubcategories[String(f.get('category')
 if(typ==='expense'&&expenseSubcategories[String(f.get('category'))]&&!subcategory)return toast('اختر نوع المصروف من القائمة الفرعية');
 state.transactions.push({id:uid(),type:typ,category:String(f.get('category')),subcategory,accountId:from,targetAccountId:typ==='transfer'?to:null,
 amount:v,date:String(f.get('date')),description:String(f.get('description')).trim(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});save();closeModal();toast('تم حفظ المعاملة بنجاح');syncIfReady()};$('settingsForm').onsubmit=e=>{e.preventDefault();let f=new FormData(e.target);for(let k of Object.keys(def)){let val=Number(f.get(k));if(!Number.isFinite(val)||val<0)return toast('راجع القيم المدخلة');state.settings[k]=val}save();toast('تم حفظ إعداداتك');syncIfReady()};
-function download(name,text,type){let a=document.createElement('a'),u=URL.createObjectURL(new Blob([text],{type}));a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}$('exportJSON').onclick=()=>download('flosy-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify({app:'flosy',version:2,exportedAt:new Date().toISOString(),...state},null,2),'application/json');$('exportCSV').onclick=()=>{const rows=[['التاريخ','النوع','الفئة الرئيسية','الفئة الفرعية','الوصف','المبلغ'],...state.transactions.map(t=>[t.date,t.type,t.category,t.subcategory||'',t.description,t.amount])];download('flosy-transactions.csv','\ufeff'+rows.map(row=>row.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(',')).join('\r\n'),'text/csv;charset=utf-8')};$('importJSON').onclick=()=>$('importFile').click();$('importFile').onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());if(!d.settings||!Array.isArray(d.transactions))throw Error('ملف غير صالح');if(!confirm('سيتم استبدال البيانات المحلية بالنسخة المستوردة. هل توافق؟'))return;state=normalizeData(d);state.transactions=state.transactions.filter(x=>x&&x.id&&['expense','income','transfer'].includes(x.type)&&Number.isFinite(Number(x.amount)));save();toast('تم استيراد البيانات')}catch(err){toast('تعذر استيراد الملف: '+err.message)}e.target.value=''};
+function download(name,text,type){let a=document.createElement('a'),u=URL.createObjectURL(new Blob([text],{type}));a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}$('exportJSON').onclick=()=>download('flosy-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify({app:'flosy',version:2,exportedAt:new Date().toISOString(),...state},null,2),'application/json');$('exportCSV').onclick=()=>{const rows=[['التاريخ','النوع','الفئة الرئيسية','الفئة الفرعية','الوصف','المبلغ'],...state.transactions.map(t=>[t.date,t.type,t.category,t.subcategory||'',t.description,t.amount])];download('flosy-transactions.csv','\ufeff'+rows.map(row=>row.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(',')).join('\r\n'),'text/csv;charset=utf-8')};$('importJSON').onclick=()=>$('importFile').click();$('importFile').onchange=async e=>{
+ try{
+  const d=JSON.parse(await e.target.files[0].text());
+  if(!d.settings||!Array.isArray(d.transactions))throw Error('ملف JSON غير صالح');
+  if(!confirm('هل تريد استبدال بياناتك بنسخة JSON المختارة؟ ستحفظ نسخة استرجاع قبل التغيير.'))return;
+  if(session){
+    if(!window.FLOSY_SYNC_V3)throw Error('محرك المزامنة الآمن غير متاح');
+    await window.FLOSY_SYNC_V3.restorePayload(d);
+    toast('تم استرجاع النسخة سحابيًا برقم إصدار جديد؛ راجع المعاملات والأرصدة.');
+  }else{
+    state=normalizeData(d);save();
+    toast('تم الاستيراد محليًا فقط. سجّل الدخول وراجع المزامنة للحفظ السحابي.');
+  }
+ }catch(err){toast('تعذر الاستيراد بأمان: '+err.message)}
+ e.target.value='';
+};
 
 // Comprehensive period reporting: all amounts below are based on the user's recorded transactions.
 function reportISO(d){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
