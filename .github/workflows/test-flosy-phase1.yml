@@ -1,4 +1,4 @@
-name: Flosy Phase 1 Quality Gates
+name: Flosy Quality Gates — Financial Safety + V4
 on:
   push:
     branches: [flosy-site]
@@ -7,6 +7,10 @@ on:
       - 'flosy-sync-v3.js'
       - 'flosy-phase1.js'
       - 'flosy-next.js'
+      - 'flosy-v4-*.js'
+      - 'flosy-v4-white.css'
+      - 'service-worker.js'
+      - 'tests/v4.test.cjs'
       - 'tests/phase1.test.cjs'
       - '.github/workflows/test-flosy-phase1.yml'
   workflow_dispatch:
@@ -27,5 +31,10 @@ jobs:
           node --check flosy-phase1.js
           node --check flosy-next.js
           node --check flosy-ai.js
+          node --check flosy-v4-capture.js
+          node --check flosy-v4-bank.js
+          node --check flosy-v4-wealth.js
+          node --check flosy-v4-family-privacy.js
+          node --check service-worker.js
       - name: Run financial safety regression suite
-        run: node --test tests/phase1.test.cjs
+        run: node --test tests/phase1.test.cjs tests/v4.test.cjs
