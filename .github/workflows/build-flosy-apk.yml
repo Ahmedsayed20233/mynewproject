@@ -50,12 +50,16 @@ jobs:
           grep -q "RECORD_AUDIO" android/app/src/main/AndroidManifest.xml
           grep -q "ACTION_IMAGE_CAPTURE" android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -q "ACTION_CREATE_DOCUMENT" android/app/src/main/java/com/flosy/finance/MainActivity.java
-          grep -q 'android.permission.READ_SMS' android/app/src/sms/AndroidManifest.xml
-          if grep -q 'android.permission.READ_SMS' android/app/src/main/AndroidManifest.xml; then
-            echo "READ_SMS must not appear in Standard APK source"; exit 1
+          # No banking/notification high-risk permission may be requested by either variant.
+          if grep -Eq '(READ_SMS|RECEIVE_SMS|SEND_SMS|BIND_NOTIFICATION_LISTENER_SERVICE|AccessibilityService)' \
+              android/app/src/main/AndroidManifest.xml android/app/src/sms/AndroidManifest.xml; then
+            echo "Blocked: restricted SMS/notification permission in Android manifest"; exit 1
           fi
-          grep -q 'BIND_NOTIFICATION_LISTENER_SERVICE' android/app/src/sms/AndroidManifest.xml
-          grep -q 'com.egyptianbanks.instapay' android/app/src/main/java/com/flosy/finance/InstaPayNotificationReader.java
+          if grep -Eq 'Telephony.Sms|Manifest.permission.READ_SMS|InstaPayNotificationReader' \
+              android/app/src/main/java/com/flosy/finance/MainActivity.java; then
+            echo "Blocked: retired broad SMS/notification scanner still referenced"; exit 1
+          fi
+          grep -q 'android.intent.action.SEND' android/app/src/main/AndroidManifest.xml
 
       - name: Compile both Android versions
         run: |
@@ -69,17 +73,21 @@ jobs:
           test -s "$STANDARD"
           test -s "$SMS"
           mkdir -p dist
-          cp "$STANDARD" dist/Flosy-Android-Standard-v2.6.0.apk
-          cp "$SMS" dist/Flosy-Android-SMS-Beta-v2.6.0.apk
+          cp "$STANDARD" dist/Flosy-Android-Standard-v2.7.0.apk
+          cp "$SMS" dist/Flosy-Android-Safe-Import-v2.7.0.apk
           for APK in "$STANDARD" "$SMS"; do
             "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | head -8
+            "$ANDROID_HOME/build-tools/35.0.0/aapt" dump permissions "$APK" | tee /tmp/flosy-permissions.txt
+            if grep -Eq 'android.permission.(READ_SMS|RECEIVE_SMS|SEND_SMS|BIND_NOTIFICATION_LISTENER_SERVICE|BIND_ACCESSIBILITY_SERVICE)' /tmp/flosy-permissions.txt; then
+              echo "Unsafe declared permission found in $APK"; exit 1
+            fi
           done
           ls -lh dist/*.apk
 
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Flosy-Android-2.6-APK
+          name: Flosy-Android-2.7-Safe-APK
           path: dist/*.apk
           retention-days: 30
           if-no-files-found: error
@@ -89,13 +97,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="flosy-android-v2.6.0"
+          TAG="flosy-android-v2.7.0"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.apk --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$TAG" dist/*.apk \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --title "فلوسي Pearl Android v2.6.0 — Voice and Receipt OCR" \
-              --notes "White-only Android design with native Egyptian speech capture and optional biometric balance reveal on Android 9+. Two beta builds: Standard (manual SMS sharing without READ_SMS) and SMS Beta (user opt-in READ_SMS for selected financial messages). Android sideloaded SMS APK may be blocked by Play Protect. Do not bypass device security. Flosy AI backend requires a separately configured OPENAI_API_KEY secret in Supabase. Neither build stores OpenAI keys. Both use the live website and existing Supabase sign-in."
+              --title "فلوسي Android v2.7.0 — Safe SMS/Instapay Import" \
+              --notes "Security release: both Android APKs do not request READ_SMS, RECEIVE_SMS or Notification Access. Import individual financial SMS or InstaPay messages only by sharing/copying the selected message and reviewing each draft. Protected SMS inbox scanning and notification listening are discontinued. Play Protect remains enabled; a valid APK does not guarantee protection checks will approve installation. Preserve your encrypted backup before replacing older builds. This GitHub release is debug-signed for limited testing, not a Play Store-approved production package."
           fi
