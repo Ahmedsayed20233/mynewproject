@@ -256,7 +256,7 @@ function renderImport(){
  '<span class="f2-tag">لا حفظ تلقائي</span></div>'+
  '<p>يتم استخراج هذه الرسائل محليًا من مصادر سمحت بها؛ اختر كل معاملة وراجع المبلغ والحساب والاتجاه.</p>'+
  smsCandidates.map((m,i)=>'<div class="f2-list-item"><div><strong>'+
- (m.source==="instapay"?"إشعار InstaPay":"رسالة بنك")+" · "+
+ (m.source==="instapay"?"إشعار InstaPay":m.source==="bank_notification"?"إشعار بنك":"رسالة بنك")+" · "+
  esc(new Date(m.date).toLocaleDateString("ar-EG"))+'</strong><small>'+
  esc(m.text.slice(0,105))+'</small></div>'+smBtn("sms-select:"+i,"مراجعة")+'</div>').join(""),"12"):"")+
  card('<h3>استيراد كشف معاملات CSV</h3><p>لملف صادر بنفسك من البنك أو المحفظة. صيغة أعمدة مدعومة: <code>date,description,amount,type</code> مع <code>type</code> يساوي expense أو income. تُراجع العمليات قبل تسجيلها.</p>'+
@@ -417,9 +417,9 @@ async function restoreBackup(id){
 }
 function receiveScannedSMS(items){
  smsCandidates=Array.isArray(items)?items.slice(0,60).filter(x=>x&&typeof x.text==="string"&&x.text.length<=1200&&
- Number.isFinite(Number(x.date))&&(x.source==="instapay"||x.source===undefined||x.source==="sms"))
+ Number.isFinite(Number(x.date))&&(x.source==="instapay"||x.source==="bank_notification"||x.source===undefined||x.source==="sms"))
  .map(x=>({id:/^[0-9a-f]{32}$/.test(String(x.id||""))?x.id:"",
- date:Number(x.date),source:x.source==="instapay"?"instapay":"sms",text:x.text.slice(0,1200)})):[];
+ date:Number(x.date),source:x.source==="instapay"?"instapay":x.source==="bank_notification"?"bank_notification":"sms",text:x.text.slice(0,1200)})):[];
  draft=null;csvDrafts=[];
  importStatus=smsCandidates.length?"تم العثور على "+smsCandidates.length+" رسائل/إشعارات. اختر المعاملة لمراجعتها؛ لم يُحفظ شيء.":"لم نعثر على رسائل أو إشعارات مكتملة ومتاحة الآن. يمكنك مشاركة رسالة من التطبيق يدويًا.";
  C.goto("import");renderImport();
