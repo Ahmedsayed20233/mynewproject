@@ -67,8 +67,8 @@ function rolloverBudget(){
  let spentThis=txMonth(monthKey(),"expense");
  let carried=0;
  if(prefs.carry){
-  const hist=monthlyHistory(6);
-  hist.slice(0,-1).forEach(m=>{carried+=target-m.expense;carried=Math.min(target*3,Math.max(-target,carried))});
+  const hist=monthlyHistory(6),recorded=hist.slice(0,-1).filter(m=>txs().some(t=>String(t.date).slice(0,7)===m.key));
+  recorded.forEach(m=>{carried+=target-m.expense;carried=Math.min(target*3,Math.max(-target,carried))});
  }
  return {target,carry:carried,available:target+carried,spent:spentThis,remaining:target+carried-spentThis};
 }
@@ -191,7 +191,7 @@ function parseSMS(raw){
  if(!Number.isFinite(amount)||amount<=0||amount>100000000)throw Error("المبلغ المستخرج غير صالح");
  let ymd=dateISO();const dm=normalized.match(/\b([0-3]?\d)[\/-]([01]?\d)[\/-](20\d{2})\b/);
  if(dm){const d=new Date(+dm[3],+dm[2]-1,+dm[1]);if(d.getFullYear()==+dm[3]&&d.getMonth()==+dm[2]-1&&d.getDate()==+dm[1])ymd=dateISO(d)}
- return {id:uid(),sourceHash:fingerprint(normalized),amount:amount,type:expense?"expense":"income",date:ymd,category:categoryFromText(normalized),description:expense?"عملية مالية مستوردة من رسالة — تحتاج مراجعة":"إيداع مستورد من رسالة — يحتاج مراجعة"};
+ return {id:uid(),sourceHash:fingerprint(normalized),amount:amount,type:expense?"expense":"income",date:ymd,category:expense?categoryFromText(normalized):"دخل آخر",description:expense?"عملية مالية مستوردة من رسالة — تحتاج مراجعة":"إيداع مستورد من رسالة — يحتاج مراجعة"};
 }
 function duplicate(d){
  return txs().some(t=>t.sourceHash&&t.sourceHash===d.sourceHash)
@@ -270,8 +270,8 @@ function parseCSVTransactions(txt){
 function renderCSVQueue(){
  return '<div class="f2-info">العمليات الجاهزة للمراجعة: '+csvDrafts.length+'. لا يتم الحفظ قبل التأكيد.</div>'+
  '<div class="f2-tablewrap"><table class="f2-table"><thead><tr><th>التاريخ</th><th>الوصف</th><th>المبلغ</th><th>النوع</th></tr></thead><tbody>'+
- csvDrafts.slice(0,15).map(x=>'<tr><td>'+esc(x.date)+'</td><td>'+esc(x.description)+'</td><td>'+money(x.amount)+'</td><td>'+esc(x.type==="expense"?"مصروف":"دخل")+'</td></tr>').join("")+
- '</tbody></table></div>'+alert("ستُضاف العمليات غير المكررة فقط. راجع أول 15 صفًا في المعاينة وباقي الملف قبل الاعتماد عليه.")+
+ csvDrafts.slice(0,500).map(x=>'<tr><td>'+esc(x.date)+'</td><td>'+esc(x.description)+'</td><td>'+money(x.amount)+'</td><td>'+esc(x.type==="expense"?"مصروف":"دخل")+'</td></tr>').join("")+
+ '</tbody></table></div>'+alert("ستُضاف العمليات غير المكررة فقط. راجع جميع صفوف الملف في الجدول قبل الاعتماد عليه.")+
  '<div class="f2-btnrow">'+smBtn("confirm-csv","تأكيد حفظ الدفعة","primary")+' '+smBtn("cancel-csv","إلغاء الاستيراد")+'</div>';
 }
 function renderBackups(){
@@ -299,18 +299,18 @@ function onAction(action){
  if(action==="cancel-csv"){csvDrafts=[];importStatus="تم إلغاء استيراد الملف";return renderImport()}
  if(action==="confirm-csv"){
   if(!csvDrafts.length)return;
-  const nonduplicates=csvDrafts.filter(x=>!duplicate(x)),duplicates=csvDrafts.length-nonduplicates.length;
+  const seen=new Set();const nonduplicates=csvDrafts.filter(x=>{if(duplicate(x)||seen.has(x.sourceHash))return false;seen.add(x.sourceHash);return true}),duplicates=csvDrafts.length-nonduplicates.length;
   if(!confirm("إضافة "+nonduplicates.length+" معاملة إلى حسابك؟ هناك "+duplicates+" مكررة سيتم تجاهلها. لا تُرسل أي معاملة حتى تؤكد."))return;
   if(nonduplicates.length){C.mutate(s=>{for(const x of nonduplicates)s.transactions.push({...x,createdAt:now(),updatedAt:now()})})}
   csvDrafts=[];importStatus="تم تسجيل "+nonduplicates.length+" معاملة؛ تم تجاهل "+duplicates+" مكررات.";renderImport();return;
  }
  if(action.startsWith("delete-recurring:")){
   let id=action.slice(17);if(!confirm("حذف الالتزام من التقويم؟ لن تُحذف معاملات سابقة."))return;
-  C.mutate(s=>s.next.recurring=s.next.recurring.filter(x=>x.id!==id));return;
+  C.mutate(s=>{s.next.recurring=s.next.recurring.filter(x=>x.id!==id);s.deletedIds=s.deletedIds||[];s.deletedIds.push("recurring/"+id)});return;
  }
  if(action.startsWith("delete-rule:")){
   let id=action.slice(12);if(!confirm("حذف قاعدة التصنيف؟"))return;
-  C.mutate(s=>s.next.rules=s.next.rules.filter(x=>x.id!==id));return;
+  C.mutate(s=>{s.next.rules=s.next.rules.filter(x=>x.id!==id);s.deletedIds=s.deletedIds||[];s.deletedIds.push("rules/"+id)});return;
  }
  if(action==="export-json")return $("exportJSON").click();
  if(action==="backup-now")return backupNow();
