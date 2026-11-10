@@ -38,40 +38,44 @@ jobs:
         with:
           gradle-version: '8.11.1'
 
-      - name: Compile installable debug APK
+      - name: Compile both Android versions
         run: |
-          gradle -p android --no-daemon --stacktrace assembleDebug
+          gradle -p android --no-daemon --stacktrace assembleStandardDebug assembleSmsDebug
 
-      - name: Validate and stage APK
+      - name: Validate and stage APKs
         run: |
           set -e
-          APK="android/app/build/outputs/apk/debug/app-debug.apk"
-          test -s "$APK"
+          STANDARD="android/app/build/outputs/apk/standard/debug/app-standard-debug.apk"
+          SMS="android/app/build/outputs/apk/sms/debug/app-sms-debug.apk"
+          test -s "$STANDARD"
+          test -s "$SMS"
           mkdir -p dist
-          cp "$APK" dist/Flosy-Android-v2.0.0.apk
-          ls -lh dist/Flosy-Android-v2.0.0.apk
-          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | head -12
+          cp "$STANDARD" dist/Flosy-Android-Standard-v2.1.0.apk
+          cp "$SMS" dist/Flosy-Android-SMS-Beta-v2.1.0.apk
+          for APK in "$STANDARD" "$SMS"; do
+            "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | head -8
+          done
+          ls -lh dist/*.apk
 
-      - name: Upload APK artifact
+      - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Flosy-Android-APK
-          path: dist/Flosy-Android-v2.0.0.apk
+          name: Flosy-Android-2.1-APK
+          path: dist/*.apk
           retention-days: 30
           if-no-files-found: error
 
-      - name: Publish APK as GitHub Release
+      - name: Publish two APKs as GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="flosy-android-v2.0.0"
-          APK="dist/Flosy-Android-v2.0.0.apk"
+          TAG="flosy-android-v2.1.0"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$APK" --repo "$GITHUB_REPOSITORY" --clobber
+            gh release upload "$TAG" dist/*.apk --repo "$GITHUB_REPOSITORY" --clobber
           else
-            gh release create "$TAG" "$APK" \
+            gh release create "$TAG" dist/*.apk \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --title "فلوسي Android v2.0.0 (mobile UX upgrade)" \
-              --notes "Flosy 2 beta. New Monarch-inspired financial home, privacy-first SMS text sharing via Android Sharesheet, recurring bills, categorization rules, CSV review, cloud recovery snapshots, flexible budgeting and cashflow insights. Does not request READ_SMS or perform bank sync or trading. Requires internet. Debug-signed developer test APK, not Google Play production build."
+              --title "فلوسي Android v2.1.0 — AI & SMS" \
+              --notes "Two Android beta builds: Standard (manual sharing only, no sensitive SMS permission) and SMS Beta (user-opt-in READ_SMS for recent financial messages). Android sideloaded SMS APK may be blocked by Play Protect. Do not bypass device security. Flosy AI backend requires a separately configured OPENAI_API_KEY secret in Supabase. Neither build stores OpenAI keys. Both use the live website and existing Supabase sign-in."
           fi
