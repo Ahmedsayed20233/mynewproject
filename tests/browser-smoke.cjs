@@ -85,9 +85,9 @@ async function startLocal(){
     window.FLOSY_BRIDGE.mutate(s=>s.transactions.push(...rows));
   });
   await page.evaluate(()=>window.FLOSY_BRIDGE.goto("budget"));
-  assert.equal(await page.locator('button[data-u-accept="طعام ومشروبات"]').count(),1,
+  assert.equal(await page.locator('#flosyElevateBudgets button[data-u-accept="طعام ومشروبات"]').count(),1,
    "Budget suggestion should appear after 3 completed months");
-  await page.locator('button[data-u-accept="طعام ومشروبات"]').click();
+  await page.locator('#flosyElevateBudgets button[data-u-accept="طعام ومشروبات"]').click();
   const activeBudget=await page.evaluate(()=>
    window.FLOSY_BRIDGE.getState().elevate?.categoryBudgets?.["طعام ومشروبات"]?.amount);
   assert.equal(activeBudget,200,"Suggested category budget must be explicit and conservative");
