@@ -35,6 +35,7 @@ function render(){
  '<button type="button" class="v5-action primary" data-v5-go="v4-capture">＋ سجل مصروف</button>'+
  '<button type="button" class="v5-action" data-v5-go="phase1">راجع خطتك</button>'+
  '<button type="button" class="v5-action" data-v5-go="v4-bank">استيراد كشف بنك</button>'+
+ '<button type="button" class="v5-action" id="flosyPrivacyQuickToggle" data-v4-private="toggle" aria-pressed="'+(document.body.classList.contains("v4-private")?"true":"false")+'">'+(document.body.classList.contains("v4-private")?"◉ إظهار الأرقام":"◌ إخفاء الأرقام")+'</button>'+
  '</div></div>'+
  '<div class="v5-command-aside">'+
  '<div class="v5-trust '+dot+'"><span class="v5-status-dot"></span><div><b>'+indicator+'</b>'+
