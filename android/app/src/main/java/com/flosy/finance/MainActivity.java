@@ -88,6 +88,8 @@ public class MainActivity extends Activity {
         settings.setSupportZoom(false);
         settings.setTextZoom(100);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        // Keep the native WebView canvas white, including startup before CSS loads.
+        webView.setBackgroundColor(Color.WHITE);
 
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
