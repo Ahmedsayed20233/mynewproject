@@ -11,6 +11,7 @@ on:
       - 'flosy-v4-white.css'
       - 'flosy-v5-pearl.css'
       - 'flosy-v5-command.js'
+      - 'flosy-v5-private-backup.js'
       - 'service-worker.js'
       - 'tests/v4.test.cjs'
       - 'tests/offline-cache.test.cjs'
@@ -42,6 +43,7 @@ jobs:
           node --check flosy-v4-family-privacy.js
           node --check flosy-v4-reminders.js
           node --check flosy-v5-command.js
+          node --check flosy-v5-private-backup.js
           node --check service-worker.js
       - name: Run financial safety regression suite
         run: node --test tests/phase1.test.cjs tests/v4.test.cjs tests/offline-cache.test.cjs
