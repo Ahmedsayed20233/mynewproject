@@ -62,10 +62,11 @@ function combine(server,local,base=null){
  const rp=isObject(r.phase1)?r.phase1:{},lp=isObject(l.phase1)?l.phase1:{},bp=isObject(b.phase1)?b.phase1:{};
  result.phase1={...clone(rp)};
  for(const k of new Set([...Object.keys(rp),...Object.keys(lp)])){
-  if(k==="oneOff")continue;
+  if(k==="oneOff"||k==="payments")continue;
   result.phase1[k]=scalar(rp[k],lp[k],bp[k]);
  }
  result.phase1.oneOff=listMerge(rp.oneOff,lp.oneOff,"oneOff",deletes);
+ result.phase1.payments=listMerge(rp.payments,lp.payments,"payments",deletes);
  // Don't merge prices by replacing the entire object.
  result.prices={...r.prices};
  for(const [code,price] of Object.entries(l.prices||{})){
