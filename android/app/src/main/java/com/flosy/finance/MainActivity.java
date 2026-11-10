@@ -24,6 +24,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 import android.webkit.ValueCallback;
+import org.json.JSONObject;
 
 public class MainActivity extends Activity {
     private static final String HOME = "https://ahmedsayed20233.github.io/mynewproject/";
@@ -33,6 +34,7 @@ public class MainActivity extends Activity {
     private ProgressBar loadingBar;
     private ValueCallback<Uri[]> selectedFiles;
     private long lastBackPressTime = 0L;
+    private String pendingSharedMessage = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -54,6 +56,7 @@ public class MainActivity extends Activity {
         root.addView(loadingBar, loadingParams);
         setContentView(root);
         WebView.setWebContentsDebuggingEnabled(false);
+        readSharedText(getIntent());
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
@@ -130,6 +133,7 @@ public class MainActivity extends Activity {
                 super.onPageFinished(view, url);
                 if (url != null && url.startsWith(HOME)) {
                     view.evaluateJavascript("window.FLOSY_NATIVE_ANDROID=true;", null);
+                    deliverPendingSharedMessage();
                 }
             }
 
@@ -171,6 +175,42 @@ public class MainActivity extends Activity {
         } else {
             webView.loadUrl(HOME);
         }
+    }
+
+    // Opt-in Android Sharesheet import: only text that the user explicitly shares.
+    // Never request READ_SMS or read the user's messages database.
+    private void readSharedText(Intent intent) {
+        if (intent == null || !Intent.ACTION_SEND.equals(intent.getAction())) return;
+        if (intent.getType() == null || !intent.getType().startsWith("text/plain")) return;
+        CharSequence shared = intent.getCharSequenceExtra(Intent.EXTRA_TEXT);
+        if (shared != null) {
+            String candidate = shared.toString();
+            if (candidate.length() > 0 && candidate.length() <= 5000) {
+                pendingSharedMessage = candidate;
+                deliverPendingSharedMessage();
+            } else {
+                Toast.makeText(this,"الرسالة المشتركة طويلة أو فارغة", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private void deliverPendingSharedMessage() {
+        if (webView == null || pendingSharedMessage == null) return;
+        String safeJson = JSONObject.quote(pendingSharedMessage);
+        String script = "if (window.FLOSY_NEXT && window.FLOSY_NEXT.receiveSharedText) {"
+                + "window.FLOSY_NEXT.receiveSharedText(" + safeJson + ");"
+                + "} else { throw new Error('Flosy importer not loaded'); }";
+        webView.evaluateJavascript(script, result -> {
+            // A shared text remains in memory only until it is handed to the website.
+            pendingSharedMessage = null;
+        });
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        readSharedText(intent);
     }
 
     private void printReport() {
