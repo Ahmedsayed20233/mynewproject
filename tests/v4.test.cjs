@@ -103,3 +103,15 @@ test("Biometric privacy reveal is explicitly delegated to native Android when av
  assert.match(js,/flosyapp:\/\/biometric-unlock/);
  assert.match(js,/biometricUnlocked/);
 });
+
+
+test("Offline service worker precaches every local script and stylesheet referenced by the active website",()=>{
+ const html=fs.readFileSync("index.html","utf8");
+ const sw=fs.readFileSync("service-worker.js","utf8");
+ const files=[
+  ...Array.from(html.matchAll(/<script src="([^"]+)"/g),m=>m[1]),
+  ...Array.from(html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g),m=>m[1])
+ ].filter(x=>!/^https?:/i.test(x));
+ assert.ok(files.length>=10,"Expected a full offline app shell");
+ for(const file of files) assert.ok(sw.includes("./"+file),"Not precached: "+file);
+});
