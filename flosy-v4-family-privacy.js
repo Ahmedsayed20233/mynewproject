@@ -80,7 +80,7 @@ function renderPrivacy(){
  root.innerHTML='<div class="v4-hero"><div class="v4-eyebrow">FLOSY · PRIVACY CONTROL</div><h2>خصوصيتك ونسخك أمانة</h2><p>إخفاء المبالغ، نسخ خارجية، تتبع الأجهزة التي سجلتها، والتحكم بجلسات تسجيل الدخول.</p></div>'+
  '<div class="v4-bento">'+
  card("إخفاء الأرقام الحساسة",'<div class="v4-note">يمكنك إخفاء المبالغ من الواجهة على الجهاز الحالي. الإخفاء البصري لا يشفّر البيانات المحلية.</div>'+
- '<button type="button" class="v4-btn" data-v4-private="toggle">'+(hid?"إظهار الأرصدة":"إخفاء الأرصدة")+'</button>'+
+ '<button type="button" class="v4-btn" data-v4-private="toggle">'+(hid?(w.FLOSY_NATIVE_BIOMETRIC_AVAILABLE?"إظهار بالبصمة / الوجه":"إظهار الأرصدة"):"إخفاء الأرصدة")+'</button>'+
  '<p>يفعّل Flosy الإخفاء تلقائيًا عند إبعاد التطبيق إلى الخلفية، ويظل مخفيًا حتى تسمح بإظهاره.</p>')+
  card("النسخ والاسترجاع",'<div class="v4-chips">'+
  '<button class="v4-btn" data-v4-private="export" type="button">تصدير JSON</button>'+
@@ -176,7 +176,14 @@ document.addEventListener("click",async e=>{
  if(!p)return;
  const act=p.dataset.v4Private;
  try{
-  if(act==="toggle"){const x=localStorage.getItem("flosy_v4_hide_balances")==="1";privateVisibility(!x);renderPrivacy();return}
+  if(act==="toggle"){
+   const hidden=localStorage.getItem("flosy_v4_hide_balances")==="1";
+   if(hidden&&w.FLOSY_NATIVE_BIOMETRIC_AVAILABLE){
+     w.location.href="flosyapp://biometric-unlock";
+     return;
+   }
+   privateVisibility(!hidden);renderPrivacy();return
+  }
   if(act==="export"){const b=E("exportJSON");if(b)b.click();return}
   if(act==="recovery")return C.goto("recovery");
   if(act==="register")return registerDevice();
@@ -202,6 +209,13 @@ document.addEventListener("visibilitychange",()=>{
 });
 function render(){renderFamily();renderPrivacy()}
 privateVisibility(localStorage.getItem("flosy_v4_hide_balances")==="1");
-w.FLOSY_V4_FAMILY={render,fetchFamilies,renderPrivacy};
+w.FLOSY_V4_FAMILY={
+ render,fetchFamilies,renderPrivacy,
+ biometricUnlocked:()=>{
+  // Called after the native platform BiometricPrompt succeeds. Visual reveal only.
+  privateVisibility(false);renderPrivacy();
+  C.toast("تم التحقق من البصمة وعرض الأرصدة");
+ }
+};
 render();
 })(window);
