@@ -113,6 +113,7 @@ function saveBase(uid,rev,data){
  localStorage.setItem(PREFIX+uid,JSON.stringify(cp));
  checkpoint=cp;
  localStorage.setItem(OWNER_KEY,uid);
+ localStorage.setItem("flosy_last_sync_"+uid,cp.syncedAt);
  localStorage.removeItem(UNSYNC_KEY);
 }
 function acceptRemote(data){
