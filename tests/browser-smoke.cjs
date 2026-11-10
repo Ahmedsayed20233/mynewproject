@@ -148,6 +148,36 @@ async function startLocal(){
   assert.equal(await page.locator("#formType").inputValue(),"transfer");
   await page.locator("#cancelModal").click();
   assert.equal(await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length),beforeStudio);
+  // Save one synthetic income with optional time/note via the existing canonical form.
+  await page.locator("#flosyStudioHome [data-u3-launch]").click();
+  await page.locator('#flosyStudioLauncher [data-u3-option="income"]').click();
+  await page.locator('#txnForm input[name="amount"]').fill("817.50");
+  await page.locator('#txnForm input[name="description"]').fill("STUDIO_TEST_INCOME");
+  await page.locator('#txnForm input[name="time"]').fill("12:34");
+  await page.locator('#txnForm textarea[name="note"]').fill("Studio test note");
+  await page.locator('#txnForm button[type="submit"]').click();
+  const recordedByStudio=await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions
+   .filter(t=>t.description==="STUDIO_TEST_INCOME"));
+  assert.equal(recordedByStudio.length,1,"Quick-add income must be saved only once");
+  assert.equal(recordedByStudio[0].amount,817.50);
+  assert.equal(recordedByStudio[0].time,"12:34");
+  assert.equal(recordedByStudio[0].note,"Studio test note");
+  await page.evaluate(()=>window.FLOSY_BRIDGE.goto("transactions"));
+  const seenNote=await page.locator('#flosyElevateTxRows .u3-transaction-note').allTextContents();
+  assert.ok(seenNote.some(x=>x.includes("Studio test note")));
+  // Reopening the same details should detect possible duplicates instead of silent double-logging.
+  await page.evaluate(()=>window.FLOSY_BRIDGE.goto("dashboard"));
+  await page.locator("#flosyStudioHome [data-u3-launch]").click();
+  await page.locator('#flosyStudioLauncher [data-u3-option="income"]').click();
+  await page.locator('#txnForm input[name="amount"]').fill("817.50");
+  await page.locator('#txnForm input[name="description"]').fill("STUDIO_TEST_INCOME");
+  let warning=false;
+  page.once("dialog",async dialog=>{warning=true;await dialog.dismiss()});
+  await page.locator('#txnForm button[type="submit"]').click();
+  assert.equal(warning,true,"A duplicate manual entry requires explicit review");
+  assert.equal(await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions
+   .filter(t=>t.description==="STUDIO_TEST_INCOME").length),1);
+  await page.locator("#cancelModal").click();
   await page.evaluate(()=>window.FLOSY_BRIDGE.goto("settings"));
   assert.ok(await page.locator("#flosyStudioSettings .u3-setting-link").count()>=4);
   await page.evaluate(()=>window.FLOSY_BRIDGE.goto("dashboard"));
