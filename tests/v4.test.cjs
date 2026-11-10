@@ -179,3 +179,24 @@ test("Calendar export contains explicit due dates, not personal amounts or accou
  assert.match(ics,/DTSTART;VALUE=DATE:20261120/);
  assert.doesNotMatch(ics,/1250|9999|Secret|Internet/);
 });
+
+
+test("Encrypted off-device backup round-trips and rejects a wrong password without mutation",async()=>{
+ const c=context();
+ c.ctx.crypto=require("node:crypto").webcrypto;
+ c.ctx.TextEncoder=TextEncoder;c.ctx.TextDecoder=TextDecoder;
+ c.ctx.atob=atob;c.ctx.btoa=btoa;
+ load("flosy-v5-private-backup.js",c);
+ const app=c.window.FLOSY_V5_BACKUP;
+ const original={accounts:[{id:"bank",opening:1000}],transactions:[{id:"t1",type:"expense",amount:77}],settings:{salary:17000}};
+ const encrypted=await app.seal(original,"very-long-private-phrase","the-user");
+ assert.equal(encrypted.format,"flosy-aesgcm-v1");
+ assert.equal(encrypted.cipher,"AES-256-GCM");
+ assert.equal(encrypted.iterations,250000);
+ assert.equal(JSON.stringify(encrypted).includes('"salary":17000'),false,"No readable financial amounts in backup");
+ const restored=await app.unseal(encrypted,"very-long-private-phrase");
+ assert.equal(restored.ownerId,"the-user");
+ assert.deepEqual(restored.payload,original);
+ await assert.rejects(app.unseal(encrypted,"incorrect-password"),/كلمة المرور/);
+ assert.equal(c.data.transactions.length,0,"Unit test never changes active finance state");
+});
