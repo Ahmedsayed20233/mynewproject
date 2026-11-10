@@ -1,0 +1,40 @@
+name: Flosy Real Browser Smoke
+on:
+  push:
+    branches: [flosy-site, "test/**"]
+    paths:
+      - 'tests/browser-smoke.cjs'
+      - 'flosy-ai.js'
+      - 'flosy-repair.js'
+      - 'flosy-v4-capture.js'
+      - 'index.html'
+      - '.github/workflows/flosy-browser-smoke.yml'
+  pull_request:
+    branches: [flosy-site]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    name: Test live Flosy DOM in Chromium
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright runner and Chromium
+        run: |
+          npm install --no-save playwright@1.58.0
+          npx playwright install --with-deps chromium
+      - name: Exercise voice, receipt and free AI UX
+        run: node tests/browser-smoke.cjs
+      - name: Save failure screenshot
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flosy-browser-failure
+          path: tests/_artifacts/*
+          if-no-files-found: ignore
