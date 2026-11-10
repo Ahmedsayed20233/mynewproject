@@ -514,3 +514,20 @@ test("Capture has one clear voice/receipt studio, review-only and a dedicated im
  assert.match(html,/flosy-capture-v10\.css\?v=1001/);
  assert.ok(html.indexOf('id="flosyRepairRoot"')<html.indexOf('id="v4-capture"></div>'));
 });
+
+
+test("The protected SMS inbox UI is retired; one message can be pasted and reviewed",()=>{
+ const next=fs.readFileSync("flosy-next.js","utf8");
+ assert.doesNotMatch(next,/data-f2="scan-sms-inbox"|smBtn\("scan-sms-inbox"/);
+ assert.doesNotMatch(next,/smBtn\("instapay-notifications"/);
+ assert.match(next,/receiveSharedText/);
+ assert.match(next,/استيراد رسالة SMS أو InstaPay بأمان/);
+ const index=fs.readFileSync("index.html","utf8");
+ const sw=fs.readFileSync("service-worker.js","utf8");
+ assert.ok(index.includes("flosy-next.js?v=2701"));
+ assert.ok(sw.includes("flosy-next.js?v=2701"));
+ const ctx=context();load("flosy-next.js",ctx);
+ const tx=ctx.window.FLOSY_NEXT.parseSMS("InstaPay تم استلام مبلغ 500 EGP من محمد");
+ assert.equal(tx.amount,500);
+ assert.equal(ctx.data.transactions.length,0);
+});
