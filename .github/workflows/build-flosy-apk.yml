@@ -1,7 +1,7 @@
 name: Build Flosy Android APK
 on:
   push:
-    branches: [flosy-android]
+    branches: [flosy-android, "fix/**"]
     paths:
       - 'android/**'
       - '.github/workflows/build-flosy-apk.yml'
@@ -79,7 +79,7 @@ jobs:
           if-no-files-found: error
 
       - name: Publish two APKs as GitHub Release
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/flosy-android' && github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
