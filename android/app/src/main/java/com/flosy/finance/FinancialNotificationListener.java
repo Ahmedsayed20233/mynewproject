@@ -12,6 +12,21 @@ import android.service.notification.StatusBarNotification;
  * No background network requests, screenshots, accessibility, or raw-data logs.
  */
 public final class FinancialNotificationListener extends NotificationListenerService {
+    @Override public void onListenerConnected(){
+        super.onListenerConnected();
+        if(!FinancialAutoImport.enabled(this))return;
+        try{
+            StatusBarNotification[] active=getActiveNotifications();
+            if(active!=null){
+                int inspected=0;
+                for(StatusBarNotification item:active){
+                    if(++inspected>80)break;
+                    onNotificationPosted(item);
+                }
+            }
+        }catch(SecurityException ignored){}
+    }
+
     @Override public void onNotificationPosted(StatusBarNotification sbn){
         if(sbn==null||!FinancialAutoImport.enabled(this))return;
         String packageName=sbn.getPackageName();
