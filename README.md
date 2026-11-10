@@ -181,3 +181,39 @@ Status: **beta web release** deployed to GitHub Pages. Android APK uses the live
 - SMS permission beta and AI API activation remain separate development tracks; do not confuse them with this financial-data phase.
 
 **Live website**: https://ahmedsayed20233.github.io/mynewproject/
+
+
+## Flosy 4 White Edition — Egyptian-market competitive release (2026-11-10)
+
+**Live web:** https://ahmedsayed20233.github.io/mynewproject/
+**Android:** GitHub release flosy-android-v2.2.0, Standard and SMS Beta versions.
+**Design:** White-mode-only, ivory canvas, ocean teal buttons, muted navy text, gentle peach accent. Responsive desktop/mobile grid and revised bottom taskbar.
+
+| Priority | Capability actually implemented | Important limitations |
+|---|---|---|
+| P0 | Revision-safe Supabase sync, local pending records, snapshots, recovery, JSON export, service-worker offline shell | Offline operation depends on the app having been opened and cached; sync and restore need real-phone testing |
+| P0 | Safe to Spend daily with salary date, cash segregation and earmarked Visa balance | Depends on accurate user-recorded balances and obligations |
+| P0 | Egyptian financial SMS review, optional Android SMS Beta, bank CSV column mapping, duplicate checks | Parsers are heuristic; manual confirmation required; no official bank integration |
+| P1 | Egyptian Arabic voice expense parsing, native Android speech capture and browser Web Speech | Availability and transcription accuracy depend on phone/service/language |
+| P1 | Recurring bills, installment schedule, one-off commitments, due-date tracker, voluntary foreground notifications | No guaranteed system notifications when the app is closed; no autopay |
+| P1 | Egyptian assets: gold, currencies, certificates, gam'eya, property, debt and manually entered Thndr holdings | No live Thndr/bank/FX/gold feeds; valuations manually entered |
+| P1 | Job-loss/inflation/medical expense crisis simulator | Illustrative scenario, not a prediction |
+| P1 | 7/14/30/60/90-day cash-flow outlook | Forecast uses salary and expense assumptions, not actual future debits |
+| P2 | RLS-protected family budgets with owner/member/viewer roles, expiring one-time codes | Only shared **household entries**, not personal full ledger access; users must test with second account |
+| P2 | On-device receipt OCR using lazy-loaded Tesseract.js and Arabic/English language packs | Requires network for OCR library; local OCR only; confirm totals and merchant |
+| P2 | OpenAI-backed Flosy financial coach, server-only API key, opt-in aggregate summary, atomic usage quota | Requires the project's own paid OPENAI_API_KEY; cannot work by borrowing ChatGPT Plus account |
+| P2 | Privacy center: mask balances, per-device list, session logout, JSON export, authenticated data deletion; Android optional biometric unlock on API 28+ | Masking/biometric reveal are **visual-only controls**, not at-rest encryption |
+
+### Native installation safety
+- **Standard** Android APK does **not** request READ_SMS. Sharing selected finance messages works without that permission.
+- **SMS Beta** is a separate Android application ID; READ_SMS is requested after explicit permission and consent. Google Play policy exception approval is needed before normal store distribution. Do not disable Play Protect to sideload it.
+- Before uninstalling an old APK or switching between flavors, sign in, confirm the cloud indicator says synchronized, and save an off-device JSON export. Android uninstalls typically clear WebView local storage.
+- Debug-signed APKs are test builds, not production Play Store packages. An installed beta may require uninstalling if a future debug signing key changes.
+
+### Technical QA evidence
+- Automated GitHub Actions: Node test suites for v3 cloud synchronization/conflicts, financial math, SMS/csv parsing, OCR extraction proposal, wealth scenarios, white-only design, and due-date reminders.
+- Supabase transactional RLS test: simulated owner can create and invite to a household; unrelated user cannot read the household or member list. The test transaction was rolled back.
+- Android GitHub Action builds both Standard/SMS flavors for v2.2.0 successfully. Actual biometric hardware, SMS access, file chooser, voice transcription and OCR need QA on a physical Android phone.
+- Data retention warning: a cloud snapshot in the **same** Supabase project is not an independent off-site disaster recovery backup.
+- Remaining security advisor findings include disabled leaked-password protection in Supabase Auth and warnings around intentionally restricted SECURITY DEFINER routines; review all privileged RPCs before public rollout.
+- The AI provider key is never embedded in public GitHub Pages or the APK. Do not put it in GitHub, screenshots, or chat messages.
