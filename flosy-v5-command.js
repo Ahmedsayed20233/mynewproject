@@ -21,6 +21,8 @@ function render(){
  const dot=actuallySynced?"ok":!online?"warn":"attention";
  const upcoming=reminders.filter(x=>x.days<=7&&!x.paid&&!x.linked);
  const urgent=upcoming.filter(x=>x.days<=2);
+ const dueSummary=upcoming.length===0?"لا توجد استحقاقات قريبة مسجلة":
+    upcoming.length===1?"هناك استحقاق واحد خلال أسبوع":"هناك "+upcoming.length+" استحقاقات خلال أسبوع";
  const days=safe?.days||"—";
  root.innerHTML='<section class="v5-command" aria-label="ملخص فلوسي اليوم">'+
  '<div class="v5-command-main"><div class="v5-overline"><span class="v5-spark">✳</span> FLOSY PEARL <span class="v5-locality">مصمم لمصاريف الحياة في مصر</span></div>'+
@@ -37,7 +39,7 @@ function render(){
  '<div class="v5-command-aside">'+
  '<div class="v5-trust '+dot+'"><span class="v5-status-dot"></span><div><b>'+indicator+'</b>'+
  '<small>'+(actuallySynced?"قبل حذف التطبيق راجع الاسترجاع أيضًا":"صدّر JSON قبل حذف التطبيق، وسجّل الدخول ثم تأكد من حالة المزامنة")+'</small></div></div>'+
- '<div class="v5-aside-tile"><div><small>التزامات عاجلة</small><b>'+urgent.length+'</b></div><p>'+(upcoming.length?"هناك "+upcoming.length+" استحقاقات خلال أسبوع":"لا توجد استحقاقات قريبة مسجلة")+'</p>'+
+ '<div class="v5-aside-tile"><div><small>التزامات عاجلة</small><b>'+urgent.length+'</b></div><p>'+dueSummary+'</p>'+
  '<button type="button" data-v5-go="phase1">اعرض المواعيد ←</button></div>'+
  '<div class="v5-aside-tile pale"><div><small>حماية البيانات</small><b>نسخ واسترجاع</b></div><p>لا تعتبر المزامنة ضمانًا إلا بعد التحقق من جهاز جديد.</p>'+
  '<button type="button" data-v5-go="v4-privacy">مركز الخصوصية ←</button></div>'+
