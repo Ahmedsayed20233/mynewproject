@@ -120,3 +120,28 @@ P0: real-device and two-device synchronization tests, backups/restore and failur
 P1: bank-specific CSV templates, more robust consent-driven statement import, reconciliation and categorization.
 P2: detailed rollover per category, cash-flow forecasts, automatic recurring detection.
 P3: optional opt-in AI insights, secure family permissions, payment support, authorized bank/broker APIs, after legal/security due diligence.
+
+
+## Flosy Android 2.1.0: opt-in SMS and ChatGPT-powered assistant
+
+This release offers **two APK variants**:
+- **Standard** (\`com.flosy.finance\`): no READ_SMS permission. User can explicitly share a single banking message to Flosy through Android's Share menu. Recommended for ordinary testing.
+- **SMS Beta** (\`com.flosy.finance.sms\`): a *separate install* that requests READ_SMS permission **only after a user taps the Scan button and confirms a prominent disclosure**. The scan is limited to the most recent 45 days, a maximum of 350 inspected messages and 35 possible financial matches. OTP-like messages are filtered, long identifier numbers are redacted, and results remain only in the app view until the user explicitly selects and approves a transaction. No background receiver, no automatic uploading of raw SMS, no Android SMS write/send capabilities. Permission can be revoked in Android Settings.
+
+**IMPORTANT:** Apps installed by sideloading that request READ_SMS may be blocked by Google Play Protect. Do not disable or bypass device protections. To distribute through Google Play, obtain policy approval for the allowed SMS-based money-management use case and provide the necessary disclosure, privacy policy, and permission declaration. Source: https://support.google.com/googleplay/android-developer/answer/10208820
+
+### Flosy AI setup
+A Supabase Edge Function named \`flosy-ai\` is deployed at \`https://vzuitcaarklesgehznha.supabase.co/functions/v1/flosy-ai\`.
+Its source is maintained in \`supabase/functions/flosy-ai/index.ts\`.
+
+1. Create an OpenAI API project and API key at https://platform.openai.com/api-keys. This is **separate** from ChatGPT Plus or Pro and incurs API costs.
+2. Visit the Supabase project's **Edge Functions → Secrets** and add:
+   - Name: \`OPENAI_API_KEY\`
+   - Value: your OpenAI API project key (paste **only** in the Supabase Secrets dashboard, never in GitHub or chat).
+   - Optional: \`OPENAI_MODEL\` = \`gpt-6-luna\` (cost-conscious; default).
+3. Log in to Flosy, choose **Flosy AI**, and send a short question. Include the financial aggregate only if you consent by checking the box.
+4. The backend verifies the user's Supabase login even though the function is configured with \`verify_jwt=false\`; then it enforces an approx. 15 requests/day/user limit using the private \`flosy_ai_usage\` database table. The upstream OpenAI request uses \`store:false\`.
+
+No OpenAI secret appears in the GitHub Pages code or APK. The chatbot is **not** your ChatGPT conversation account and has no access to ChatGPT history, bank accounts, full SMS inbox, or Thndr. It receives a short, user-approved prompt and optionally a high-level summary from already-synced Supabase data; it never receives raw SMS or account credentials. Until an owner configures \`OPENAI_API_KEY\`, it deliberately returns a visible configuration error instead of a simulated AI response.
+
+**Test and privacy notes:** Automatic SMS scanning is restricted and not assured to work on all Android devices. SMS filtering is heuristic; a message can be falsely categorized or omitted. Never auto-create transactions from scan results. Avoid entering verification codes or full financial credentials. Before replacing the old APK, sync successfully and export JSON; standard and SMS APKs have **separate on-device storage**, though they can sign in to the same Supabase cloud account.
