@@ -196,7 +196,7 @@ test("Encrypted off-device backup round-trips and rejects a wrong password witho
  assert.equal(JSON.stringify(encrypted).includes('"salary":17000'),false,"No readable financial amounts in backup");
  const restored=await app.unseal(encrypted,"very-long-private-phrase");
  assert.equal(restored.ownerId,"the-user");
- assert.deepEqual(restored.payload,original);
+ assert.equal(JSON.stringify(restored.payload),JSON.stringify(original));
  await assert.rejects(app.unseal(encrypted,"incorrect-password"),/كلمة المرور/);
  assert.equal(c.data.transactions.length,0,"Unit test never changes active finance state");
 });
