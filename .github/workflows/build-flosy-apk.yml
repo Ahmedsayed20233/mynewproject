@@ -51,7 +51,8 @@ jobs:
           grep -q "ACTION_IMAGE_CAPTURE" android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -q "ACTION_CREATE_DOCUMENT" android/app/src/main/java/com/flosy/finance/MainActivity.java
           # No banking/notification high-risk permission may be requested by either variant.
-          if grep -Eq '(READ_SMS|RECEIVE_SMS|SEND_SMS|BIND_NOTIFICATION_LISTENER_SERVICE|AccessibilityService)' \
+          # Scan actual XML attributes, not explanatory comments mentioning old permissions.
+          if grep -Eq '<uses-permission[^>]*android\.permission\.(READ_SMS|RECEIVE_SMS|SEND_SMS)|android:permission="android\.permission\.(BIND_NOTIFICATION_LISTENER_SERVICE|BIND_ACCESSIBILITY_SERVICE)"' \
               android/app/src/main/AndroidManifest.xml android/app/src/sms/AndroidManifest.xml; then
             echo "Blocked: restricted SMS/notification permission in Android manifest"; exit 1
           fi
