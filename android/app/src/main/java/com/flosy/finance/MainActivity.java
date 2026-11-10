@@ -254,8 +254,7 @@ public class MainActivity extends Activity {
                     @Override
                     public void onAuthenticationError(int code,CharSequence message) {
                         super.onAuthenticationError(code,message);
-                        if(code!=BiometricPrompt.BIOMETRIC_ERROR_USER_CANCELED
-                            && code!=BiometricPrompt.BIOMETRIC_ERROR_NEGATIVE_BUTTON)
+                        if(code!=BiometricPrompt.BIOMETRIC_ERROR_USER_CANCELED)
                             Toast.makeText(MainActivity.this,
                                 "تعذر التحقق من البصمة: "+message,Toast.LENGTH_SHORT).show();
                     }
