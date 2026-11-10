@@ -44,6 +44,8 @@ jobs:
         run: |
           grep -q "Theme.Material.Light.NoActionBar" android/app/src/main/AndroidManifest.xml
           grep -q "webView.setBackgroundColor(Color.WHITE)" android/app/src/main/java/com/flosy/finance/MainActivity.java
+          grep -q "FLOSY_NATIVE_OCR_AVAILABLE=true" android/app/src/main/java/com/flosy/finance/MainActivity.java
+          grep -q "setAllowContentAccess(true)" android/app/src/main/java/com/flosy/finance/MainActivity.java
 
       - name: Compile both Android versions
         run: |
@@ -57,8 +59,8 @@ jobs:
           test -s "$STANDARD"
           test -s "$SMS"
           mkdir -p dist
-          cp "$STANDARD" dist/Flosy-Android-Standard-v2.3.0.apk
-          cp "$SMS" dist/Flosy-Android-SMS-Beta-v2.3.0.apk
+          cp "$STANDARD" dist/Flosy-Android-Standard-v2.4.0.apk
+          cp "$SMS" dist/Flosy-Android-SMS-Beta-v2.4.0.apk
           for APK in "$STANDARD" "$SMS"; do
             "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | head -8
           done
@@ -67,7 +69,7 @@ jobs:
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Flosy-Android-2.3-APK
+          name: Flosy-Android-2.4-APK
           path: dist/*.apk
           retention-days: 30
           if-no-files-found: error
@@ -77,13 +79,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="flosy-android-v2.3.0"
+          TAG="flosy-android-v2.4.0"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.apk --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$TAG" dist/*.apk \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --title "فلوسي Pearl Android v2.3.0 — White Mode Only" \
+              --title "فلوسي Pearl Android v2.4.0 — Voice and Receipt OCR" \
               --notes "White-only Android design with native Egyptian speech capture and optional biometric balance reveal on Android 9+. Two beta builds: Standard (manual SMS sharing without READ_SMS) and SMS Beta (user opt-in READ_SMS for selected financial messages). Android sideloaded SMS APK may be blocked by Play Protect. Do not bypass device security. Flosy AI backend requires a separately configured OPENAI_API_KEY secret in Supabase. Neither build stores OpenAI keys. Both use the live website and existing Supabase sign-in."
           fi
