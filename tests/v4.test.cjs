@@ -467,6 +467,7 @@ test("InstaPay sent and received alerts parse with correct direction, even with 
  const a=context();load("flosy-next.js",a);
  const received=a.window.FLOSY_NEXT.parseSMS("InstaPay: تم استلام مبلغ ١٬٢٥٠٫٥٠ جنيه من حساب آخر");
  // Decimal punctuation varies by bank; use a standard example when importer requires EGP grammar.
+ assert.equal(received.amount,1250.5);
  const expense=a.window.FLOSY_NEXT.parseSMS("InstaPay تم إرسال مبلغ 250.00 EGP إلى أحمد");
  const income=a.window.FLOSY_NEXT.parseSMS("InstaPay تم استلام مبلغ 750 EGP من محمد");
  assert.equal(expense.type,"expense");assert.equal(expense.amount,250);
