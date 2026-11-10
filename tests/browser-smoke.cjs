@@ -121,6 +121,38 @@ async function startLocal(){
   await toggle.click();
   assert.equal(await toggle.getAttribute("aria-expanded"),"false");
 
+  // 6) Studio quick-add uses canonical transaction modal, not a second ledger.
+  await page.evaluate(()=>window.FLOSY_BRIDGE.goto("dashboard"));
+  await page.waitForFunction(()=>!!window.FLOSY_STUDIO);
+  assert.ok(await page.locator("#flosyStudioHome .u3-account-row").count()>0);
+  const beforeStudio=await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length);
+  await page.locator("#flosyStudioHome [data-u3-customize]").click();
+  assert.equal(await page.locator("#flosyStudioCustomization").isVisible(),true);
+  await page.locator('input[data-u3-visible="flow"]').check();
+  const visibility=await page.evaluate(()=>window.FLOSY_STUDIO.preferences().visible.flow);
+  assert.equal(visibility,true,"New income/expense widget preference should persist in financial backup");
+  assert.equal(await page.locator('#flosyStudioHome [data-u3-widget="flow"]').count(),1);
+  // Configuring UI cannot alter financial balances, even if cloud state is synced.
+  assert.equal(await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length),beforeStudio);
+  await page.locator('[data-u3-customize-close]').click();
+  await page.locator('#flosyStudioHome [data-u3-launch]').click();
+  assert.equal(await page.locator('#flosyStudioLauncher').isVisible(),true);
+  assert.equal(await page.locator('#flosyStudioLauncher [role="dialog"]').getAttribute("aria-modal"),"true");
+  await page.locator('#flosyStudioLauncher [data-u3-option="expense"]').click();
+  assert.equal(await page.locator("#modalback").evaluate(el=>el.classList.contains("open")),true);
+  assert.equal(await page.locator("#formType").inputValue(),"expense");
+  await page.locator("#closeModal").click();
+  assert.equal(await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length),beforeStudio);
+  await page.locator("#flosyStudioHome [data-u3-launch]").click();
+  await page.locator('#flosyStudioLauncher [data-u3-option="transfer"]').click();
+  assert.equal(await page.locator("#formType").inputValue(),"transfer");
+  await page.locator("#cancelModal").click();
+  assert.equal(await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length),beforeStudio);
+  await page.evaluate(()=>window.FLOSY_BRIDGE.goto("settings"));
+  assert.ok(await page.locator("#flosyStudioSettings .u3-setting-link").count()>=4);
+  await page.evaluate(()=>window.FLOSY_BRIDGE.goto("dashboard"));
+  console.log("PASS: Studio widget controls, account balance preview, and canonical quick-add sheet");
+
   fs.mkdirSync("tests/_artifacts",{recursive:true});
   await page.screenshot({path:"tests/_artifacts/elevate-dashboard.png",fullPage:true});
   // Mobile RTL smoke test: all new cards must fit a 390px Android viewport.
@@ -134,6 +166,16 @@ async function startLocal(){
   assert.ok(mobile.length>0);
   assert.ok(mobile.every(x=>x.left>=-2&&x.right<=392),
    "Reference-inspired mobile cards should remain within 390px viewport: "+JSON.stringify(mobile));
+  const studioMobile=await page.evaluate(()=>[...document.querySelectorAll(
+    "#flosyStudioHome .u3-panel,#flosyStudioHome .u3-homehead")]
+    .map(x=>({left:x.getBoundingClientRect().left,right:x.getBoundingClientRect().right})));
+  assert.ok(studioMobile.length>0 && studioMobile.every(x=>x.left>=-2&&x.right<=392),
+    "Studio mobile white cards overflow: "+JSON.stringify(studioMobile));
+  await page.locator("#dockAdd").click();
+  assert.equal(await page.locator("#flosyStudioLauncher").isVisible(),true);
+  await page.locator("#flosyStudioLauncher [data-u3-close]").click();
+  assert.equal(await page.locator("#flosyStudioLauncher").isVisible(),false);
+
   await page.screenshot({path:"tests/_artifacts/elevate-mobile-390px.png",fullPage:true});
   console.log("PASS: historical budgets, transaction explorer, real wealth journal and premium dashboard");
 
