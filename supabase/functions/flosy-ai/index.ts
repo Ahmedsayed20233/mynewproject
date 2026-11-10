@@ -41,8 +41,13 @@ function totals(obj:any){
 }
 Deno.serve(async req=>{
  if(req.method==="OPTIONS")return new Response(null,{status:204,headers:cors()});
- if(req.method!=="POST")return json({error:"method_not_allowed"},405);
  let origin=req.headers.get("origin");if(origin&&origin!==allowed)return json({error:"forbidden_origin"},403);
+ // No usage billed or financial information exposed by this read-only status check.
+ // Never return API keys, secrets, account data, or personal user identifiers.
+ if(req.method==="GET"&&new URL(req.url).searchParams.get("health")==="1")
+  return json({status:"ok",ai_ready:!!env("OPENAI_API_KEY"),requires_login:true,
+   model:env("OPENAI_MODEL")||"gpt-5.4-mini"});
+ if(req.method!=="POST")return json({error:"method_not_allowed"},405);
  let openaiKey=env("OPENAI_API_KEY");
  if(!openaiKey)return json({error:"configuration_required",message:"Set OPENAI_API_KEY in Supabase Edge Function Secrets."},503);
  let token=(req.headers.get("authorization")||"").replace(/^Bearer /i,"");
@@ -89,7 +94,7 @@ Deno.serve(async req=>{
  let result:Response;
  try{result=await fetch("https://api.openai.com/v1/responses",{method:"POST",
   headers:{Authorization:"Bearer "+openaiKey,"Content-Type":"application/json"},
-  body:JSON.stringify({model:env("OPENAI_MODEL")||"gpt-6-luna",instructions,input:messages,max_output_tokens:650,store:false})})}
+  body:JSON.stringify({model:env("OPENAI_MODEL")||"gpt-5.4-mini",instructions,input:messages,max_output_tokens:1150,store:false})})}
  catch{return json({error:"openai_network_error"},502)}
  if(!result.ok)return json({error:"openai_error",message:"OpenAI returned HTTP "+result.status},502);
  let output:any;
