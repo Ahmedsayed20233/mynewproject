@@ -324,7 +324,7 @@ test("Flosy AI defaults to free mode, API stays optional and offline shell is ve
  assert.match(ai,/answerFree/);
  assert.match(ai,/OpenAI API/);
  assert.ok(sw.includes("flosy-ai.js?v=700"));
- assert.ok(sw.includes("flosy-repair.js?v=700"));
+ assert.ok(sw.includes("flosy-repair.js?v=1001"));
 });
 
 
@@ -454,9 +454,9 @@ test("Studio quick launcher is an enhancement over the existing canonical transa
  assert.match(html,/id="flosyStudioHome"/);
  assert.match(html,/id="flosyStudioSettings"/);
  assert.match(html,/flosy-studio.js\?v=901/);
- assert.match(html,/flosy-studio.css\?v=901/);
+ assert.match(html,/flosy-studio.css\?v=1001/);
  assert.match(sw,/flosy-studio.js\?v=901/);
- assert.match(sw,/flosy-studio.css\?v=901/);
+ assert.match(sw,/flosy-studio.css\?v=1001/);
  const css=fs.readFileSync("flosy-studio.css","utf8");
  assert.match(css,/color-scheme:light!important/);
  assert.match(css,/u3-launcher-backdrop/);
