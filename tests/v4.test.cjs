@@ -223,3 +223,10 @@ test("Conflicting amounts sharing the same bank reference require review, never 
   ["2026-11-10","Cafe","250","ref-55"]
  ],options,"bank"),/مرجع البنك/);
 });
+
+test("Even the first unstyled HTML shell defaults to light; no dark startup flash",()=>{
+ const html=fs.readFileSync("index.html","utf8");
+ assert.match(html,/:root\{color-scheme:light;/);
+ assert.doesNotMatch(html,/--bg:#081422|background:linear-gradient\(180deg,#0b1c30/);
+ assert.match(html,/<body class="light">/);
+});
