@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#081526">
 <title>فلوسي — إدارة مالية شخصية</title><meta name="description" content="لوحة تحكم عربية ذكية لإدارة الدخل والمصروفات والأهداف المالية">
-<link rel="stylesheet" href="finance-pro.css?v=130"><link rel="stylesheet" href="flosy-next.css?v=201"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="finance-pro.css?v=130"><link rel="stylesheet" href="flosy-next.css?v=202"><link rel="stylesheet" href="flosy-ai.css?v=210"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -160,6 +160,7 @@
 <button data-page="recurring"><span class="ico">◷</span><span class="label">الفواتير المتكررة</span></button>
 <button data-page="rules"><span class="ico">☷</span><span class="label">قواعد التصنيف</span></button>
 <button data-page="import"><span class="ico">↧</span><span class="label">رسائل البنك وCSV</span></button>
+<button data-page="ai"><span class="ico">✳</span><span class="label">مساعد Flosy AI</span></button>
 <button data-page="recovery"><span class="ico">♢</span><span class="label">حماية بياناتي</span></button>
 <button data-page="reports"><span class="ico">▥</span><span class="label">التقارير</span></button>
 <button data-page="settings" title="الإعدادات والمزامنة" aria-label="الإعدادات والمزامنة"><span class="ico">⚙</span><span class="label">الإعدادات والمزامنة</span></button>
@@ -191,6 +192,7 @@
 <section class="page" id="page-rules"><div id="f2-rules"></div></section>
 <section class="page" id="page-import"><div id="f2-import"></div></section>
 <section class="page" id="page-recovery"><div id="f2-backups"></div></section>
+<section class="page" id="page-ai"><div id="flosyAiRoot"></div></section>
 <section class="page" id="page-reports"><div class="grid reportgrid"><div class="card"><div class="sectiontitle"><h3>الدخل والمصروفات في آخر 6 أشهر</h3><span>بالجنيه المصري</span></div><div class="chart" id="sixChart"></div></div><div class="card"><div class="sectiontitle"><h3>استنتاجات الميزانية</h3><span>حسب البيانات المسجلة</span></div><div id="insights" class="callout"></div></div></div><div class="card" style="margin-top:15px"><h3>مؤشرات الأداء</h3><div id="kpiReport" class="grid kpis"></div></div><div class="card report-builder" style="margin-top:15px">
 <div class="sectiontitle"><h3>تقرير مالي تفصيلي للطباعة PDF</h3><span>أسبوع • 1–24 شهرًا • فترة مخصصة</span></div>
 <div class="report-tools">
@@ -229,6 +231,7 @@
 <button data-go="smart" type="button"><span>✦</span><strong>الرؤى</strong><small>ميزانية مرنة</small></button>
 <button data-go="recurring" type="button"><span>◷</span><strong>الفواتير</strong><small>المواعيد الدورية</small></button>
 <button data-go="import" type="button"><span>↧</span><strong>رسائل البنك</strong><small>استيراد ومراجعة</small></button>
+<button data-go="ai" type="button"><span>✳</span><strong>Flosy AI</strong><small>مساعد مالي ذكي</small></button>
 <button data-go="recovery" type="button"><span>♢</span><strong>النسخ الآمنة</strong><small>استرجاع البيانات</small></button>
 </div>
 <div class="more-sync"><div><b id="moreSyncTitle">💾 حفظ محلي</b><small id="moreSyncHint">سجّل دخولك من الإعدادات للمزامنة السحابية</small></div><button type="button" id="moreSyncBtn">مزامنة</button></div>
@@ -304,8 +307,8 @@ $('storageChip').textContent=session?(lastSync?'☁ آخر مزامنة':'☁ ح
 $('saveStatusCard').innerHTML='<h3>💾 حالة حفظ بياناتك</h3><p class="callout"><strong>الحفظ على الجهاز: مفعّل تلقائيًا.</strong> يتم حفظ كل معاملة وإعداد على هذا الجهاز داخل التطبيق أو المتصفح. لا تحذف التطبيق قبل التأكد من المزامنة أو تنزيل نسخة احتياطية.</p><p><strong>المزامنة السحابية:</strong> '+(session?'تم تسجيل الدخول إلى '+safe(session.user?.email||'حسابك'):'غير مفعّلة بعد — سجّل الدخول أسفل الصفحة')+'</p><p class="muted">آخر مزامنة ناجحة: '+safe(syncLabel)+'</p><div class="buttonbar"><button class="btn" type="button" id="saveStatusSyncButton">☁ مزامنة الآن</button><button class="btn" type="button" id="saveStatusExportButton">⬇ نسخة احتياطية JSON</button></div>';
 $('saveStatusSyncButton').onclick=()=>{if(!session){toast('سجّل الدخول لتفعيل المزامنة السحابية');return}sync()};
 $('saveStatusExportButton').onclick=()=>$('exportJSON').click();
-if(page==='reports')renderDetailedReportPreview();if(window.FLOSY_PRO)window.FLOSY_PRO.render();if(window.FLOSY_NEXT)window.FLOSY_NEXT.render();}
-function goto(p){page=p;setMobileMore(false);document.querySelectorAll('.page').forEach(e=>e.classList.toggle('active',e.id==='page-'+p));document.querySelectorAll('[data-page]').forEach(e=>e.classList.toggle('active',e.dataset.page===p));$('dockMoreButton').classList.toggle('active',['budget','goals','settings','wealth','portfolio','plan','risk','smart','recurring','rules','import','recovery'].includes(p));const titles={dashboard:'مرحبًا بك في فلوسي 👋',transactions:'معاملاتك المالية',budget:'الميزانية الشهرية',goals:'أهدافك المالية',reports:'تقارير وتحليلات',wealth:'كل أموالي وصافي الثروة',portfolio:'استثماراتي على ثاندر',plan:'الخطة المالية لمدة 24 شهرًا',risk:'الحماية من الأزمات',smart:'مركز الرؤى المالية',recurring:'الالتزامات المتكررة',rules:'قواعد التصنيف',import:'استيراد رسائل البنك',recovery:'حماية بياناتك',settings:'الإعدادات والخصوصية'};$('pageTitle').textContent=titles[p];render();window.scrollTo({top:0,behavior:'smooth'})}
+if(page==='reports')renderDetailedReportPreview();if(window.FLOSY_PRO)window.FLOSY_PRO.render();if(window.FLOSY_NEXT)window.FLOSY_NEXT.render();if(window.FLOSY_AI)window.FLOSY_AI.render();}
+function goto(p){page=p;setMobileMore(false);document.querySelectorAll('.page').forEach(e=>e.classList.toggle('active',e.id==='page-'+p));document.querySelectorAll('[data-page]').forEach(e=>e.classList.toggle('active',e.dataset.page===p));$('dockMoreButton').classList.toggle('active',['budget','goals','settings','wealth','portfolio','plan','risk','smart','recurring','rules','import','recovery','ai'].includes(p));const titles={dashboard:'مرحبًا بك في فلوسي 👋',transactions:'معاملاتك المالية',budget:'الميزانية الشهرية',goals:'أهدافك المالية',reports:'تقارير وتحليلات',wealth:'كل أموالي وصافي الثروة',portfolio:'استثماراتي على ثاندر',plan:'الخطة المالية لمدة 24 شهرًا',risk:'الحماية من الأزمات',smart:'مركز الرؤى المالية',recurring:'الالتزامات المتكررة',rules:'قواعد التصنيف',import:'استيراد رسائل البنك',recovery:'حماية بياناتك',ai:'مساعد فلوسي الذكي',settings:'الإعدادات والخصوصية'};$('pageTitle').textContent=titles[p];render();window.scrollTo({top:0,behavior:'smooth'})}
 
 function setMobileMore(open){
  const shade=$('mobileMoreShade');
@@ -314,7 +317,7 @@ function setMobileMore(open){
  shade.classList.toggle('open',active);
  shade.setAttribute('aria-hidden',String(!active));
  $('dockMoreButton').setAttribute('aria-expanded',String(active));
- $('dockMoreButton').classList.toggle('active',active||['budget','goals','settings','wealth','portfolio','plan','risk','smart','recurring','rules','import','recovery'].includes(page));
+ $('dockMoreButton').classList.toggle('active',active||['budget','goals','settings','wealth','portfolio','plan','risk','smart','recurring','rules','import','recovery','ai'].includes(page));
  if(active){updateMobileSync();} 
 }
 function updateMobileSync(){
@@ -629,5 +632,6 @@ window.FLOSY_BRIDGE={
 try{let s=JSON.parse(sessionStorage.getItem('flosy_session'));if(s&&s.refresh_token)session=s}catch{}categoryOptions();render();if(session)sync();})();
 </script>
 <script src="finance-pro.js?v=131"></script>
-<script src="flosy-next.js?v=201"></script>
+<script src="flosy-next.js?v=202"></script>
+<script src="flosy-ai.js?v=210"></script>
 </body></html>
