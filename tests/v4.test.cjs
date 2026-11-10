@@ -524,8 +524,8 @@ test("The protected SMS inbox UI is retired; one message can be pasted and revie
  assert.match(next,/استيراد رسالة SMS أو InstaPay بأمان/);
  const index=fs.readFileSync("index.html","utf8");
  const sw=fs.readFileSync("service-worker.js","utf8");
- assert.ok(index.includes("flosy-next.js?v=2801"));
- assert.ok(sw.includes("flosy-next.js?v=2801"));
+ assert.ok(index.includes("flosy-next.js?v=2901"));
+ assert.ok(sw.includes("flosy-next.js?v=2901"));
  const ctx=context();load("flosy-next.js",ctx);
  const tx=ctx.window.FLOSY_NEXT.parseSMS("InstaPay تم استلام مبلغ 500 EGP من محمد");
  assert.equal(tx.amount,500);
@@ -556,4 +556,46 @@ test("Automatically captured SMS remains a review candidate, never a ledger entr
  assert.equal(c.data.transactions.length,0);
  const parsed=c.window.FLOSY_NEXT.parseSMS("تم خصم مبلغ 120 جنيه مقابل شراء.");
  assert.equal(parsed.amount,120);assert.equal(parsed.type,"expense");
+});
+
+
+test("Free Automate relay stays invisible on Web and Safe APK without native flag",()=>{
+ const c=context();load("flosy-automate-relay.js",c);
+ assert.equal(c.elems.flosyAutomateRelayRoot.innerHTML,"");
+ assert.equal(c.data.transactions.length,0);
+ const src=fs.readFileSync("flosy-automate-relay.js","utf8");
+ assert.match(src,/FLOSY_NATIVE_RELAY_AVAILABLE===true/);
+ assert.match(src,/relay-pair/);assert.match(src,/relay-stop/);
+ assert.match(src,/relay-dismiss/);assert.match(src,/relay-configure/);
+ assert.match(src,/temporaryToken/);
+ assert.doesNotMatch(src,/localStorage\.setItem\s*\(\s*["']token/);
+});
+test("Automate relay passes authenticated native request and never auto-saves detected SMS",()=>{
+ const c=context(),posted=[];
+ c.window.FLOSY_NATIVE_RELAY_AVAILABLE=true;
+ c.window.FlosyNative={postMessage:raw=>posted.push(JSON.parse(raw))};
+ load("flosy-next.js",c);
+ load("flosy-automate-relay.js",c);
+ c.window.FLOSY_AUTOMATE_RELAY.nativeStatus({
+  paired:true,senders:"CIB",apps:"",pending:1,packageName:"com.flosy.finance"
+ });
+ assert.match(c.elems.flosyAutomateRelayRoot.innerHTML,/com\.flosy\.finance\.AutoRelayReceiver/);
+ assert.match(c.elems.flosyAutomateRelayRoot.innerHTML,/CIB/);
+ c.window.FLOSY_AUTOMATE_RELAY.nativePending({items:[{
+  id:"ab".repeat(16),source:"sms",date:Date.now(),
+  text:"تم خصم مبلغ 250 EGP مقابل شراء"
+ }]});
+ assert.equal(c.data.transactions.length,0);
+ assert.equal(c.window.FLOSY_AUTOMATE_RELAY.ack("ab".repeat(16)),true);
+ assert.equal(posted[0].action,"relay-dismiss");
+ assert.equal(c.window.FLOSY_AUTOMATE_RELAY.ack("INVALID"),false);
+});
+test("Automate web component and cache have matching version without SMS permissions",()=>{
+ const index=fs.readFileSync("index.html","utf8");
+ const sw=fs.readFileSync("service-worker.js","utf8");
+ assert.match(index,/flosy-automate-relay\.js\?v=2901/);
+ assert.match(index,/flosy-automate-relay\.css\?v=2901/);
+ assert.match(sw,/flosy-automate-relay\.js\?v=2901/);
+ assert.match(sw,/flosy-automate-relay\.css\?v=2901/);
+ assert.match(index,/id="flosyAutomateRelayRoot"/);
 });
