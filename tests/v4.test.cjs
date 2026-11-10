@@ -326,3 +326,79 @@ test("Flosy AI defaults to free mode, API stays optional and offline shell is ve
  assert.ok(sw.includes("flosy-ai.js?v=700"));
  assert.ok(sw.includes("flosy-repair.js?v=700"));
 });
+
+
+test("Reference-inspired budget suggestions require repeated expense history, never transfers",()=>{
+ const c=context();
+ const today=new Date();
+ const mk=offset=>{
+  const d=new Date(today.getFullYear(),today.getMonth()+offset,4,12);
+  return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),"04"].join("-");
+ };
+ for(let m=-3;m<=-1;m++){
+  c.data.transactions.push({id:"food-"+m,date:mk(m),type:"expense",category:"طعام ومشروبات",amount:150});
+  c.data.transactions.push({id:"transfer-"+m,date:mk(m),type:"transfer",category:"الاستثمار",amount:9000});
+ }
+ load("flosy-elevate.js",c);
+ const q=c.window.FLOSY_ELEVATE.suggestions();
+ assert.equal(q.length,1);
+ assert.equal(q[0].category,"طعام ومشروبات");
+ assert.equal(q[0].target,200);
+ assert.ok(q[0].average<200,"Transfers cannot inflate suggested expense budgets");
+ const prior=c.data.transactions.length;
+ assert.equal(c.window.FLOSY_ELEVATE.acceptBudget("طعام ومشروبات"),true);
+ assert.equal(c.data.elevate.categoryBudgets["طعام ومشروبات"].amount,200);
+ assert.equal(c.data.transactions.length,prior,"Accept budget cannot post or edit bank transactions");
+ assert.equal(c.window.FLOSY_ELEVATE.acceptBudget("Imaginary category"),false);
+});
+test("Budget recommendations do not guess from one incomplete historical month",()=>{
+ const c=context(),now=new Date(),prev=new Date(now.getFullYear(),now.getMonth()-1,3);
+ c.data.transactions.push({id:"x",type:"expense",amount:800,category:"تعليم",
+  date:[prev.getFullYear(),String(prev.getMonth()+1).padStart(2,"0"),"03"].join("-")});
+ load("flosy-elevate.js",c);
+ assert.equal(c.window.FLOSY_ELEVATE.suggestions().length,0);
+});
+test("Period explorer uses inclusive real local day/week/month/year boundaries",()=>{
+ const c=context();load("flosy-elevate.js",c);
+ const f=c.window.FLOSY_ELEVATE.rangeFor,d=new Date(2026,10,10,12);
+ assert.equal(f("day",d).start,"2026-11-10");
+ assert.equal(f("week",d).start,"2026-11-09");
+ assert.equal(f("week",d).end,"2026-11-15");
+ assert.equal(f("month",d).end,"2026-11-30");
+ assert.equal(f("year",d).start,"2026-01-01");
+ assert.equal(f("year",d).end,"2026-12-31");
+});
+test("Transaction explorer never counts transfers as expenses and escapes user descriptions",()=>{
+ const c=context(),today=new Date(),day=[today.getFullYear(),String(today.getMonth()+1).padStart(2,"0"),"03"].join("-");
+ c.data.transactions.push({id:"a",type:"income",date:day,amount:2000,category:"دخل"});
+ c.data.transactions.push({id:"b",type:"expense",date:day,amount:140,category:"طعام ومشروبات",
+  description:"<img src=x onerror=alert(1)>"});
+ c.data.transactions.push({id:"c",type:"transfer",date:day,amount:9000,category:"الاستثمار"});
+ load("flosy-elevate.js",c);
+ const m=c.window.FLOSY_ELEVATE.monthSummary();
+ assert.equal(m.income,2000);assert.equal(m.expense,140);assert.equal(m.transfer,9000);
+ assert.equal(c.window.FLOSY_ELEVATE.periodRows().rows.length,3);
+ assert.doesNotMatch(c.elems.flosyElevateTxRows.innerHTML,/<img src=x/);
+ assert.match(c.elems.flosyElevateTxRows.innerHTML,/&lt;img/);
+});
+test("Wealth widgets expose actual account metrics and only show manually saved historical snapshots",()=>{
+ const c=context();
+ c.window.FLOSY_PRO.metrics=()=>({net:7500,cash:5000,other:1000,debt:500,portfolio:{market:2000}});
+ load("flosy-elevate.js",c);
+ assert.equal(c.window.FLOSY_ELEVATE.currentWealth().net,7500);
+ assert.equal(c.window.FLOSY_ELEVATE.wealthSnapshots().length,0);
+ assert.match(c.elems.flosyElevateWealth.innerHTML,/لقطتين حقيقيتين/);
+ const actual=fs.readFileSync("finance-pro.js","utf8");
+ assert.match(actual,/metrics:metrics,rowsForAccounts:rowsForAccounts/);
+});
+test("Reference UI assets appear across all target pages, and precache on offline shell",()=>{
+ const html=fs.readFileSync("index.html","utf8"),sw=fs.readFileSync("service-worker.js","utf8");
+ const css=fs.readFileSync("flosy-elevate.css","utf8");
+ for(const name of ["flosyElevateDashboard","flosyElevateTransactions","flosyElevateBudgets","flosyElevateWealth"])
+  assert.ok(html.includes('id="'+name+'"'),"Missing page root "+name);
+ for(const name of ["flosy-elevate.js?v=801","flosy-elevate.css?v=801"]){
+  assert.ok(html.includes(name));assert.ok(sw.includes(name));
+ }
+ assert.match(css,/color-scheme:light!important/);
+ assert.match(css,/u-activity-totals/);
+});
