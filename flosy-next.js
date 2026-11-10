@@ -160,7 +160,7 @@ function renderRules(){
  card('<div class="f2-head"><h3>القواعد الحالية</h3><small>'+F().rules.length+' قاعدة</small></div>'+
  (F().rules.length?F().rules.map(r=>'<div class="f2-list-item"><div><strong>لو الوصف يحتوي: '+esc(r.term)+'</strong><small>تصنيف → '+esc(r.category)+'</small></div>'+smBtn("delete-rule:"+r.id,"حذف")+'</div>').join(""):'<div class="f2-empty">مفيش قواعد لسه.</div>'),"8")+'</div>';
 }
-function digits(s){return String(s).replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776))}
+function digits(s){return String(s).replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).replace(/٬/g,",").replace(/٫/g,".")}
 function fingerprint(raw){let h=2166136261,s=raw.trim().replace(/\s+/g," ").toLowerCase();for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(16)}
 function categoryFromText(raw){
  const a=raw.toLowerCase();
