@@ -42,6 +42,13 @@ function proposeReceipt(text,engine){
  }
 }
 function receiveNativeReceipt(text){return proposeReceipt(text,"Android ML Kit (Latin/EGP)")}
+function nativeVoiceError(message){
+ status("flosyVoiceStatus",String(message||"تعذر التعرف الصوتي")+". يمكنك كتابة المصروف بدلًا من ذلك.");
+}
+function nativeVoiceResult(text){
+ status("flosyVoiceStatus",text?"تم التقاط الصوت. راجع العملية في الأسفل قبل الحفظ.":"لم يتم التقاط نص واضح.");
+}
+
 async function loadOCR(){
  if(w.Tesseract)return w.Tesseract;
  const current=document.querySelector('script[data-flosy-ocr-lib]');
@@ -124,6 +131,6 @@ document.addEventListener("click",async e=>{
   catch{C.toast("حدد النص وانسخه يدويًا")}
  }
 });
-w.FLOSY_REPAIR={render,scanReceipt,startVoice,receiveNativeReceipt,proposeReceipt};
+w.FLOSY_REPAIR={render,scanReceipt,startVoice,receiveNativeReceipt,proposeReceipt,nativeVoiceError,nativeVoiceResult};
 render();
 })(window);
