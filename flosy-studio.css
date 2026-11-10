@@ -1,0 +1,143 @@
+/* Flosy Studio — original Egypt-first visual language inspired by modern finance usability.
+   White only, no competitor logos or artwork. Good contrast, 44px mobile touch targets. */
+:root,html,body,body.dark,body.light{
+ color-scheme:light!important;
+ --u3-ink:#16343B;--u3-muted:#69838A;--u3-primary:#087E74;
+ --u3-cream:#FBF7EE;--u3-mint:#F0FAF7;--u3-blue:#F0F7FB;
+ --u3-border:#DFEAE7;
+}
+#flosyStudioHome{margin:0 0 20px}
+.u3-home{direction:rtl}
+.u3-homehead{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:21px 0 15px}
+.u3-homehead h2{font-size:clamp(18px,2.3vw,24px);font-weight:900;color:var(--u3-ink);margin:3px 0 6px;letter-spacing:-.35px;line-height:1.5}
+.u3-homehead p{font-size:11px;line-height:1.8;color:var(--u3-muted);margin:0}
+.u3-eyebrow{font-size:10px;font-weight:900;color:#0A8276;letter-spacing:1px}
+.u3-head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.u3-button{min-height:43px;padding:10px 15px;border-radius:12px;font-size:11px;line-height:1.4;font-weight:900;cursor:pointer;transition:background-color .15s,transform .15s}
+.u3-button.primary{background:#0B8275;color:#FFF;border:1px solid #0B8275}
+.u3-button.primary:hover{background:#086B63}
+.u3-button.outline{background:#FFF;color:#23665F;border:1px solid #CFE3DD}
+.u3-button.outline:hover{background:#F1FAF6}
+.u3-widgets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.u3-widget{min-width:0}
+.u3-panel{border:1px solid var(--u3-border);border-radius:19px;background:#FFF;box-shadow:0 5px 24px rgba(24,63,65,.045);padding:18px 19px;min-height:100%;direction:rtl}
+.u3-opportunity{background:linear-gradient(120deg,#FFF,#FAFCF8)}
+.u3-panelhead{display:flex;align-items:center;gap:11px;margin-bottom:17px}
+.u3-panelhead>div{flex:1;min-width:0}
+.u3-panelhead b{font-size:14px;font-weight:900;color:#23404A;line-height:1.6;display:block}
+.u3-panelhead small{display:block;color:#7C9298;font-size:10px;line-height:1.8;font-weight:500}
+.u3-icon{display:grid;place-items:center;flex:none;width:43px;height:43px;border-radius:13px;font-size:19px;font-weight:900}
+.u3-icon.mint{background:#E8F6F1;color:#0B8578}
+.u3-icon.peach{background:#FFF3E6;color:#B5834C}
+.u3-icon.blue{background:#EDF5FE;color:#457A9E}
+.u3-icon.lilac{background:#F2EFFB;color:#76649C}
+.u3-link,.u3-inline-action{border:0;background:none;color:#087E74;font-size:11px;cursor:pointer;font-weight:900;white-space:nowrap;text-align:right;min-height:40px;padding:7px}
+.u3-link:hover,.u3-inline-action:hover{text-decoration:underline}
+.u3-account-list{display:flex;flex-direction:column}
+.u3-account-row{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid #EEF2F1;min-width:0}
+.u3-account-row:last-child{border-bottom:0}
+.u3-account-mark{width:30px;height:30px;flex:none;display:grid;place-items:center;border-radius:9px;background:#F0F6F8;color:#478196;font-size:14px}
+.u3-account-name{flex:1;font-size:11px;line-height:1.7;font-weight:800;color:#49656D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.u3-account-row strong{font-size:12px;color:#1D484C;white-space:nowrap}
+.u3-account-foot{margin:8px 0 0;padding-top:11px;border-top:1px dashed #CDE0DB;display:flex;gap:15px;align-items:center;justify-content:space-between}
+.u3-account-foot span{color:#69818A;font-size:10px;font-weight:800}
+.u3-account-foot strong{font-size:13px;color:#0A736C;white-space:nowrap}
+.u3-advice{background:#F6FBF8;border:1px solid #E0EFE9;border-radius:15px;padding:18px;min-height:130px}
+.u3-advice-icon{width:34px;height:34px;border-radius:11px;background:#E3F5E9;color:#0A846D;display:grid;place-items:center;font-size:18px;font-weight:900;margin-bottom:9px}
+.u3-advice strong{font-size:13px;color:#214E4E;line-height:1.6;display:block}
+.u3-advice p{font-size:11px;line-height:1.9;color:#587680;margin:8px 0 0}
+.u3-inline-action{display:block;margin-top:8px;margin-inline-start:auto}
+.u3-flowrow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:12px 0 7px;color:#51717A;font-size:12px;font-weight:800}
+.u3-flowrow strong{color:#1E5255}
+.u3-track{width:100%;height:9px;border-radius:999px;background:#E7EEEF;overflow:hidden}
+.u3-track i{height:100%;border-radius:999px;display:block}
+.u3-track i.u3-income{background:#159776}
+.u3-track i.u3-expense{background:#DD9970}
+.u3-flowfoot{border-top:1px solid #EDF2F1;margin-top:17px;padding-top:12px;display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap;color:#66818B;font-size:11px;line-height:1.8}
+.u3-flowfoot b{color:#0D766B}
+.u3-flowfoot small{font-size:10px;color:#899A9C}
+.u3-guide-list{display:flex;flex-direction:column;gap:3px}
+.u3-guide-row{display:flex;align-items:center;gap:11px;border:0;border-bottom:1px solid #EBF0EF;background:#FFF;color:#3D6870;padding:12px 1px;cursor:pointer;text-align:right;min-height:49px}
+.u3-guide-row:last-child{border-bottom:0}
+.u3-guide-row:hover{background:#F6FAF9}
+.u3-guide-row span:first-child{width:30px;height:30px;display:grid;place-items:center;flex:none;border-radius:10px;background:#E9F5F1;color:#078476;font-weight:900}
+.u3-guide-row b{font-size:11px;font-weight:850;flex:1}
+.u3-guide-row span:last-child{color:#6B8F90;font-size:18px}
+.u3-fine{font-size:10px;color:#718B92;line-height:1.9;margin:8px 0}
+.u3-empty{font-size:12px;line-height:1.9;color:#728A91;background:#F6FAF9;border-radius:13px;padding:20px}
+.u3-customization{border-radius:19px;border:1px solid #D3E8E2;background:#FBFEFC;padding:20px;margin:14px 0;box-shadow:0 9px 24px rgba(15,65,60,.045)}
+.u3-customization[hidden]{display:none!important}
+.u3-custom-head{display:flex;justify-content:space-between;gap:14px}
+.u3-custom-head strong{font-size:14px;color:#1D4C4A}
+.u3-custom-head p{margin:6px 0;font-size:11px;color:#708B91;line-height:1.8}
+.u3-close-tiny{width:32px;height:32px;border:1px solid #DCEAE7;border-radius:9px;background:white;cursor:pointer;font-size:22px;color:#5F7E85}
+.u3-custom-list{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.u3-custom-item{display:flex;gap:12px;align-items:center;justify-content:space-between;background:#FFF;border-radius:12px;border:1px solid #DFEBE8;padding:12px;min-width:0}
+.u3-custom-item label{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer}
+.u3-custom-item label input{width:19px;height:19px;accent-color:#087E74;flex:none}
+.u3-custom-item label span{min-width:0}
+.u3-custom-item b{font-size:11px;font-weight:900;color:#315C60;display:block}
+.u3-custom-item small{font-size:10px;color:#86959A;display:block;margin-top:4px;line-height:1.6}
+.u3-movers{display:flex;gap:5px}
+.u3-movers button{width:29px;height:33px;border:1px solid #D9E9E4;border-radius:8px;background:#F7FBF9;color:#0C7A70;font-weight:900;cursor:pointer}
+.u3-movers button:disabled{cursor:default;opacity:.3}
+.u3-settings{margin:0 0 18px;padding:21px}
+.u3-setting-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.u3-setting-link{display:flex;align-items:center;gap:10px;background:#FCFDFD;border:1px solid #E5EEED;border-radius:13px;padding:12px 14px;cursor:pointer;min-height:72px;min-width:0;text-align:right}
+.u3-setting-link:hover{border-color:#9BCBC0;background:#F6FBF8}
+.u3-setting-link>span:nth-child(2){flex:1;min-width:0}
+.u3-setting-link b{display:block;font-size:11px;color:#345D65;font-weight:900;line-height:1.5}
+.u3-setting-link small{display:block;font-size:10px;color:#8A9BA0;line-height:1.7;margin-top:2px}
+.u3-setting-link>span:last-child{font-size:21px;color:#91A8AD}
+.u3-setting-icon{width:37px;height:37px;border-radius:12px;background:#EEF8F5;color:#0E8A7B;display:grid;place-items:center;font-weight:900;flex:none}
+#flosyStudioLauncher[hidden]{display:none!important}
+.u3-launcher-backdrop{position:fixed;z-index:87;inset:0;background:rgba(16,34,41,.58);display:flex;align-items:center;justify-content:center;padding:15px;direction:rtl;backdrop-filter:blur(4px)}
+.u3-launcher{background:#FFF;max-height:min(90dvh,850px);overflow-y:auto;width:min(440px,100%);border:1px solid #E3EEEA;border-radius:24px;padding:22px 23px;box-shadow:0 25px 85px rgba(6,39,40,.18);outline:none}
+.u3-dragbar{display:none;width:45px;height:5px;border-radius:20px;background:#D6E1E1;margin:0 auto 18px}
+.u3-launcherhead{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.u3-launcherhead h2{font-size:24px;margin:7px 0 6px;color:#1A4348;line-height:1.5;font-weight:900}
+.u3-launcherhead p{font-size:11px;color:#70888F;line-height:1.9;margin:0 0 15px}
+.u3-x{border:1px solid #DDEBE7;border-radius:10px;background:#F8FAF9;color:#33585D;font-size:25px;width:35px;height:35px;cursor:pointer;flex:none}
+.u3-action-menu{display:grid;gap:8px}
+.u3-launch-option{display:flex;align-items:center;gap:12px;min-height:63px;text-align:right;cursor:pointer;background:#FFF;border:1px solid #DFEAE7;border-radius:14px;padding:11px 13px}
+.u3-launch-option:hover{background:#F5FBF8;border-color:#ABD4C8}
+.u3-launch-option>span:nth-child(2){flex:1;min-width:0}
+.u3-launch-option b{display:block;font-size:12px;color:#2F555B;font-weight:900;line-height:1.6}
+.u3-launch-option small{display:block;font-size:10px;color:#84979C;line-height:1.6;margin-top:3px}
+.u3-option-icon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#EAF7F2;color:#0C846E;font-size:22px;font-weight:800;flex:none}
+.u3-option-icon.expense{background:#FFF2E9;color:#C98255}
+.u3-option-icon.income{background:#E9F8EF;color:#12916D}
+.u3-option-icon.transfer{background:#ECF5FD;color:#3B7FA4}
+.u3-option-icon.voice{background:#F2EEFC;color:#7967A7}
+.u3-option-icon.receipt{background:#FFF6EA;color:#B88A54}
+.u3-chevron{font-size:23px;color:#9BAEB0}
+.u3-launcherfoot{font-size:10px;color:#7B9197;line-height:1.9;margin:15px 2px 0;text-align:center}
+body.u3-launch-open{overflow:hidden}
+.u3-home button:focus-visible,.u3-launcher button:focus-visible,.u3-settings button:focus-visible,.u3-customization button:focus-visible{
+ outline:3px solid #67BBAC!important;outline-offset:2px!important
+}
+@media(max-width:850px){
+ .u3-homehead{flex-wrap:wrap}
+ .u3-settings{padding:16px}
+ .u3-panel{padding:16px}
+}
+@media(max-width:650px){
+ .u3-homehead{margin:19px 0 14px}
+ .u3-homehead h2{font-size:21px}
+ .u3-head-actions{width:100%}
+ .u3-head-actions .u3-button{flex:1}
+ .u3-widgets,.u3-custom-list,.u3-setting-grid{grid-template-columns:minmax(0,1fr)}
+ .u3-panel{border-radius:17px}
+ .u3-custom-item{padding:10px}
+ .u3-launcher-backdrop{align-items:flex-end;padding:0}
+ .u3-launcher{width:100%;max-height:calc(90dvh - env(safe-area-inset-bottom,0px));
+  padding:13px 16px calc(16px + env(safe-area-inset-bottom,0px));
+  border-radius:23px 23px 0 0;border-bottom:0}
+ .u3-dragbar{display:block}
+ .u3-launcherhead h2{font-size:21px}
+ .u3-action-menu{gap:8px}
+ .u3-launch-option{min-height:61px}
+}
+@media(max-width:350px){.u3-account-row strong{font-size:10px}.u3-head-actions{flex-direction:column}.u3-head-actions .u3-button{width:100%}}
+@media(prefers-reduced-motion:reduce){.u3-button{transition:none}}
+@media print{#flosyStudioLauncherHost,.u3-customization,.u3-head-actions,.u3-setting-grid{display:none!important}.u3-panel{box-shadow:none}}
