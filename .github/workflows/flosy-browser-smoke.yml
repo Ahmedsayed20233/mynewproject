@@ -34,6 +34,16 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Exercise voice, receipt and free AI UX
         run: node tests/browser-smoke.cjs
+      - name: Save successful desktop/mobile screenshot preview
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flosy-elevate-ui-preview
+          path: |
+            tests/_artifacts/elevate-dashboard.png
+            tests/_artifacts/elevate-mobile-390px.png
+          retention-days: 7
+          if-no-files-found: error
       - name: Save failure screenshot
         if: failure()
         uses: actions/upload-artifact@v4
