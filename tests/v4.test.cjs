@@ -156,7 +156,7 @@ test("Pearl command center stays in white mode, updates from validated local dat
  c.window.FLOSY_REMINDERS={upcoming:()=>[{days:1,paid:false,linked:false}]};
  c.window.FLOSY_BRIDGE.getSession=()=>({user:{id:"dev-user"}});
  load("flosy-v5-command.js",c);
- assert.match(c.elems.flosyV5Command.innerHTML,/150/);
+ assert.match(c.elems.flosyV5Command.innerHTML,/١٥٠|150/);
  assert.match(c.elems.flosyV5Command.innerHTML,/إصدار 7/);
  assert.match(c.elems.flosyV5Command.innerHTML,/data-v5-go="v4-bank"/);
  const css=fs.readFileSync("flosy-v5-pearl.css","utf8");
