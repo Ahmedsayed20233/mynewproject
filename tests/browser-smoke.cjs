@@ -42,8 +42,8 @@ async function startLocal(){
   const before=await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length);
   await page.locator("#flosyRepairOCRText").fill("CAFE CAMPUS\nTOTAL: EGP 125.00");
   await page.locator("#flosyRepairOCRForm button[type=submit]").click();
-  const details=await page.locator("#v4-capture-review").innerText();
-  assert.match(details,/125/,"Expected parsed total review");
+  const parsedAmount=await page.locator('#v4-capture-confirm input[name="amount"]').inputValue();
+  assert.equal(Number(parsedAmount),125,"Expected OCR amount to appear in review input");
   const after=await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length);
   assert.equal(after,before,"Receipt OCR text cannot create an unapproved transaction");
 
