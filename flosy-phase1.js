@@ -50,6 +50,7 @@ function occurrences(start,end){
  const s=S(),rows=[],recurring=s.next?.recurring||[],debts=s.liabilities||[],oneOff=s.phase1?.oneOff||[];
  const minMonth=new Date(Date.UTC(start.getUTCFullYear(),start.getUTCMonth(),1));
  const endMonth=new Date(Date.UTC(end.getUTCFullYear(),end.getUTCMonth(),1));
+ const scheduledDebt=new Map();
  for(let d=minMonth;d<=endMonth;d=monthDay(d.getUTCFullYear(),d.getUTCMonth()+1,1)){
   for(const x of recurring){
    if(!x?.id||num(x.amount)<=0)continue;
@@ -63,14 +64,18 @@ function occurrences(start,end){
    if(!x?.id||payment<=0||balance<=0||!x.dueDay)continue;
    let due=monthDay(d.getUTCFullYear(),d.getUTCMonth(),x.dueDay),date=dayISO(due),key="debt/"+x.id+"/"+ym(due);
    if(due>end)continue;if(due<start&&ym(due)!==ym(start))continue;
-   rows.push({key,source:"debt",id:x.id,name:x.name||"قسط",amount:Math.min(balance,payment),category:"أقساط",date,paid:hasPayment(key),linked:existingExpenseFor({key})});
+   const remaining=Math.max(0,balance-(scheduledDebt.get(x.id)||0));
+   const dueAmount=Math.min(remaining,payment);
+   if(dueAmount<=0)continue;
+   scheduledDebt.set(x.id,(scheduledDebt.get(x.id)||0)+dueAmount);
+   rows.push({key,source:"debt",id:x.id,name:x.name||"قسط",amount:dueAmount,category:"أقساط",date,paid:hasPayment(key),linked:existingExpenseFor({key})});
   }
  }
  for(const x of oneOff){
   if(!x?.id||!fromISO(x.dueDate)||num(x.amount)<=0)continue;
   const date=x.dueDate,key="oneoff/"+x.id;
   if(date>dayISO(end))continue;
-  if(date<dayISO(start)&&ym(fromISO(date))!==ym(start))continue;
+  // Include unpaid older one-off commitments: past-due money still needs covering.
   rows.push({key,source:"oneoff",id:x.id,name:x.name||"مصاريف قادمة",amount:num(x.amount),category:x.category||"معيشة أخرى",date,paid:hasPayment(key),linked:existingExpenseFor({key})});
  }
  return rows.sort((a,b)=>a.date.localeCompare(b.date)||a.key.localeCompare(b.key));
@@ -97,7 +102,7 @@ function calculate(today=utc(new Date())){
    safe,deficit:Math.max(0,-final),daily:safe/cycle.days};
 }
 function forecast(today=utc(new Date()),days=90){
- const s=S().settings||{},p=settings(),starting=freeCash(),cycle=salaryCycle(today,p);
+ const s=S().settings||{},p=settings(),starting=freeCash();
  const end=inc(today,days),events=unpaid(occurrences(today,end));
  const byDate=new Map();
  for(const ev of events){const d=ev.date<=dayISO(today)?dayISO(inc(today,1)):ev.date;byDate.set(d,(byDate.get(d)||0)+ev.amount)}
@@ -106,8 +111,14 @@ function forecast(today=utc(new Date()),days=90){
  for(let n=1;n<=days;n++){
   const d=inc(today,n),dstr=dayISO(d),monthLen=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate();
   const monthDue=events.filter(x=>x.date.startsWith(ym(d))&&catFixed(x.category)).reduce((a,x)=>a+x.amount,0);
-  const fixedPerDay=Math.max(0,num(s.rent)+num(s.bills)-monthDue)/monthLen;
-  const variablePerDay=Math.max(0,num(s.living))/monthLen;
+  const currentMonth=ym(d)===ym(today);
+  const expensesThisMonth=currentMonth?
+    (S().transactions||[]).filter(t=>t.type==="expense"&&String(t.date||"").slice(0,7)===ym(today)&&t.date<=dayISO(today)):[];
+  const fixedAlreadySpent=expensesThisMonth.filter(t=>catFixed(t.category)).reduce((a,t)=>a+num(t.amount),0);
+  const variableAlreadySpent=expensesThisMonth.filter(t=>!catFixed(t.category)).reduce((a,t)=>a+num(t.amount),0);
+  const remainingDays=currentMonth?Math.max(1,monthLen-today.getUTCDate()):monthLen;
+  const fixedPerDay=Math.max(0,num(s.rent)+num(s.bills)-monthDue-fixedAlreadySpent)/remainingDays;
+  const variablePerDay=Math.max(0,num(s.living)-variableAlreadySpent)/remainingDays;
   const salary=p.includeSalaryForecast&&d.getUTCDate()===p.salaryDay?num(s.salary):0;
   projection+=salary-variablePerDay-fixedPerDay-(byDate.get(dstr)||0);
   minValue=Math.min(minValue,projection);
@@ -124,7 +135,7 @@ function lineRows(data){
 }
 function dashboard(){
  const host=E("phase1Home");if(!host)return;
- const v=calculate(),f=forecast(),balance=v.freeCash,percent=balance>0?Math.min(100,Math.max(0,100*v.safe/balance)):0;
+ const v=calculate(),balance=v.freeCash,percent=balance>0?Math.min(100,Math.max(0,100*v.safe/balance)):0;
  host.innerHTML='<div class="f2-card" style="margin-bottom:15px">'+
  '<div class="f2-head"><h3>فلوسي الآمنة للصرف · Safe to Spend</h3><button type="button" class="f2-toolbutton primary" data-go="phase1">التفاصيل والتوقعات</button></div>'+
  '<div class="f2-kpis" style="margin-bottom:10px"><div class="f2-kpi f2-positive"><small>إضافي آمن للصرف حتى المرتب</small><strong>'+money(v.safe)+'</strong><em>بعد الاحتياجات والالتزامات المحجوزة</em></div>'+
