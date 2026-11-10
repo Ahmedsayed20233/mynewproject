@@ -203,6 +203,11 @@ async function startLocal(){
     "Studio mobile white cards overflow: "+JSON.stringify(studioMobile));
   await page.locator("#dockAdd").click();
   assert.equal(await page.locator("#flosyStudioLauncher").isVisible(),true);
+  assert.equal(await page.locator(".mobile-dock").evaluate(x=>getComputedStyle(x).display),"none",
+    "Mobile navigation must never obscure the quick-add sheet");
+  await page.locator('#flosyStudioLauncher [data-u3-option="receipt"]').scrollIntoViewIfNeeded();
+  assert.equal(await page.locator('#flosyStudioLauncher [data-u3-option="receipt"]').isVisible(),true,
+    "Last receipt action must remain tappable on narrow phones");
   await page.screenshot({path:"tests/_artifacts/flosy-studio-mobile-quick-add.png",fullPage:false});
   await page.locator("#flosyStudioLauncher [data-u3-close]").click();
   assert.equal(await page.locator("#flosyStudioLauncher").isVisible(),false);
