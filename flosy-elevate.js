@@ -158,7 +158,9 @@ function activityRows(){
   const a=S().accounts?.find(x=>x.id===t.accountId);
   html+='<div class="u-transaction"><span class="u-txn-icon '+t.type+'">'+symbol+'</span>'+
    '<div class="u-txn-info"><b>'+esc(desc)+'</b><small>'+esc(t.category||label)+
-   (a?" · "+esc(a.name):"")+'</small></div>'+
+   (a?" · "+esc(a.name):"")+
+   (/^([01]\d|2[0-3]):[0-5]\d$/.test(String(t.time||""))?" · "+esc(t.time):"")+'</small>'+
+   (t.note?'<em class="u3-transaction-note">'+esc(String(t.note).slice(0,140))+'</em>':"")+'</div>'+
    '<div class="u-txn-value '+t.type+'">'+(t.type==="expense"?"−":t.type==="income"?"+":"⇄ ")+
    EGP(t.amount)+'</div></div>';
  }
