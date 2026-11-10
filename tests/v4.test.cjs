@@ -200,3 +200,26 @@ test("Encrypted off-device backup round-trips and rejects a wrong password witho
  await assert.rejects(app.unseal(encrypted,"incorrect-password"),/كلمة المرور/);
  assert.equal(c.data.transactions.length,0,"Unit test never changes active finance state");
 });
+
+test("Old Flosy bank fingerprint survives upgrades without duplicate historical spending",()=>{
+ const c=context();load("flosy-v4-bank.js",c);
+ const basis="bank|2026-11-10|expense|125.00|cafe";
+ let hash=2166136261;
+ for(const ch of basis){hash^=ch.charCodeAt(0);hash=Math.imul(hash,16777619)}
+ c.data.transactions.push({id:"old-import",sourceHash:"bank4-"+(hash>>>0).toString(16)});
+ const options={date:"0",description:"1",amount:"2",debit:"",credit:"",direction:"",reference:"",positiveMeans:"expense"};
+ const imported=c.window.FLOSY_BANK_CSV.translate([
+  ["2026-11-10","Cafe","125"],
+  ["2026-11-10","Cafe","125"]
+ ],options,"bank");
+ assert.equal(imported.length,1,"Previously imported first row is skipped but second genuine payment is retained");
+});
+
+test("Conflicting amounts sharing the same bank reference require review, never silent import",()=>{
+ const c=context();load("flosy-v4-bank.js",c);
+ const options={date:"0",description:"1",amount:"2",debit:"",credit:"",direction:"",reference:"3",positiveMeans:"expense"};
+ assert.throws(()=>c.window.FLOSY_BANK_CSV.translate([
+  ["2026-11-10","Cafe","125","ref-55"],
+  ["2026-11-10","Cafe","250","ref-55"]
+ ],options,"bank"),/مرجع البنك/);
+});
