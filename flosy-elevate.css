@@ -168,3 +168,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 }
 @media(prefers-reduced-motion:reduce){.u-button{transition:none}.u-button:hover{transform:none}}
 @media print{.u-button,.u-micro-button,.u-period-tabs,.u-wealth-tabs,.u-date-switch{display:none!important}.u-panel,.u-snapshot{box-shadow:none!important}}
+
+/* CSS-only progressive disclosure keeps source page DOM unchanged and intact. */
+#page-dashboard.u-advanced-hidden #flosyNextHome,
+#page-dashboard.u-advanced-hidden #phase1Home,
+#page-dashboard.u-advanced-hidden #wealthHighlights,
+#page-dashboard.u-advanced-hidden > .grid,
+#page-dashboard.u-advanced-hidden > .card{display:none!important}
+#page-dashboard .u-advanced-toggle{width:100%;margin:13px 0 16px;min-height:52px;background:linear-gradient(110deg,#FFF,#F2F9F6)!important;border:1px solid #D5E9E1!important;color:#096E68!important;box-shadow:0 5px 20px #10473E07;font-size:12px}
+#page-dashboard .u-advanced-toggle:hover{background:#EAF7F1!important}
