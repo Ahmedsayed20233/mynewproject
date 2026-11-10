@@ -162,6 +162,6 @@ test("Pearl command center stays in white mode, updates from validated local dat
  const css=fs.readFileSync("flosy-v5-pearl.css","utf8");
  assert.match(css,/color-scheme:light!important/);
  const index=fs.readFileSync("index.html","utf8");
- assert.match(index,/flosy-v5-pearl\\.css/);
- assert.match(index,/flosy-v5-command\\.js/);
+ assert.ok(index.includes("flosy-v5-pearl.css"));
+ assert.ok(index.includes("flosy-v5-command.js"));
 });
