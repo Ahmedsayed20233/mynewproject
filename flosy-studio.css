@@ -163,3 +163,13 @@ body.u3-launch-open{overflow:hidden}
 .u3-setting-link b{font-size:12px}
 .u3-setting-link small{font-size:11px}
 #txnForm select option{background:#FFF!important;color:#163A42!important}
+
+/* Full-screen modal focus: the fixed mobile dock must not cover the last action. */
+body.u3-launch-open .mobile-dock,
+body.u3-launch-open .mobile-more-shade{display:none!important}
+.u3-launcher{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.u3-launch-option:last-child{scroll-margin-bottom:16px}
+@media(max-width:650px){
+ .u3-launcher{max-height:calc(94dvh - env(safe-area-inset-bottom,0px))}
+ .u3-launcherfoot{margin-top:12px}
+}
