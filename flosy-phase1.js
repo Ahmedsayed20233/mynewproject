@@ -100,7 +100,7 @@ function forecast(today=utc(new Date()),days=90){
  const s=S().settings||{},p=settings(),starting=freeCash(),cycle=salaryCycle(today,p);
  const end=inc(today,days),events=unpaid(occurrences(today,end));
  const byDate=new Map();
- for(const ev of events){const d=ev.date<dayISO(today)?dayISO(today):ev.date;byDate.set(d,(byDate.get(d)||0)+ev.amount)}
+ for(const ev of events){const d=ev.date<=dayISO(today)?dayISO(inc(today,1)):ev.date;byDate.set(d,(byDate.get(d)||0)+ev.amount)}
  // Forecast salary is explicitly a scenario, never actual recorded income.
  let projection=starting.total,results=[{day:0,date:dayISO(today),value:projection}],minValue=projection;
  for(let n=1;n<=days;n++){
@@ -171,9 +171,9 @@ function page(){
  '<div class="f2-card f2-span-12"><div class="f2-head"><h3>جدول الالتزامات والفواتير والأقساط</h3><span class="f2-tag">القادم خلال 90 يومًا</span></div>'+lineRows(upcoming)+
  '<p>يمكن إعداد الفواتير الشهرية من صفحة «الفواتير المتكررة». «تعليم كمدفوع» لتتبع الالتزام فقط؛ لا يخصم من حسابك ولا ينشئ معاملة مالية.</p></div>'+
  '<div class="f2-card f2-span-12"><div class="f2-head"><h3>الديون المسجلة</h3></div>'+
- (S().liabilities||[]).length?
- (S().liabilities||[]).map(x=>'<div class="f2-list-item"><div><strong>'+esc(x.name)+'</strong><small>المتبقي: '+money(x.balance)+' · القسط: '+money(x.installment||0)+' · موعده: يوم '+esc(x.dueDay||"غير محدد")+'</small></div><button type="button" class="f2-toolbutton" data-phase1="edit-debt" data-id="'+esc(x.id)+'">تعديل الرصيد والقسط</button></div>').join("")+'</div></div>':
- '<div class="f2-empty">لا توجد ديون مسجلة.</div></div></div>';
+ ((S().liabilities||[]).length
+ ?(S().liabilities||[]).map(x=>'<div class="f2-list-item"><div><strong>'+esc(x.name)+'</strong><small>المتبقي: '+money(x.balance)+' · القسط: '+money(x.installment||0)+' · موعده: يوم '+esc(x.dueDay||"غير محدد")+'</small></div><button type="button" class="f2-toolbutton" data-phase1="edit-debt" data-id="'+esc(x.id)+'">تعديل الرصيد والقسط</button></div>').join("")
+ :'<div class="f2-empty">لا توجد ديون مسجلة.</div>')+'</div></div>';
  // Conditional operator ends the composed string. Keep root as one document tree.
 }
 function render(){
