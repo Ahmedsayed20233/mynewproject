@@ -475,7 +475,7 @@ document.addEventListener("submit",e=>{
   const queueId=draft.autoQueueId;
   delete x.autoQueueId;
   addRecord(x);draft=null;
-  if(queueId&&window.FLOSY_AUTO_IMPORT?.ack)window.FLOSY_AUTO_IMPORT.ack(queueId);
+  if(queueId){if(window.FLOSY_NATIVE_RELAY_AVAILABLE&&window.FLOSY_AUTOMATE_RELAY?.ack)window.FLOSY_AUTOMATE_RELAY.ack(queueId);else if(window.FLOSY_AUTO_IMPORT?.ack)window.FLOSY_AUTO_IMPORT.ack(queueId);}
   importStatus="تم اعتماد العملية وحفظها بدون نص الرسالة الخام";renderImport();C.toast("تم حفظ العملية");
  }
 });
