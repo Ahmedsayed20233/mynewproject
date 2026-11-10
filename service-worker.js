@@ -1,5 +1,5 @@
 /* Flosy v4 offline application shell. NO database/API responses are cached. */
-const VERSION="flosy-white-v4-20261110-3";
+const VERSION="flosy-white-v4-20261110-4";
 const SHELL=[
  "./","./index.html","./manifest.webmanifest","./icon.svg",
  "./finance-pro.js?v=131","./finance-pro.css?v=130",
@@ -9,7 +9,16 @@ const SHELL=[
  "./flosy-v4-wealth.js?v=400","./flosy-v4-family-privacy.js?v=402","./flosy-v4-reminders.js?v=401","./flosy-v4-sw-register.js?v=401"
 ];
 self.addEventListener("install",event=>{
- event.waitUntil(caches.open(VERSION).then(cache=>Promise.allSettled(SHELL.map(url=>cache.add(new Request(url,{cache:"reload"}))))).then(()=>self.skipWaiting()));
+ event.waitUntil(caches.open(VERSION).then(async cache=>{
+  try {
+   // Never activate a partially cached shell: missing modules can break an offline launch.
+   await cache.addAll(SHELL.map(url=>new Request(url,{cache:"reload"})));
+   await self.skipWaiting();
+  } catch(err) {
+   await caches.delete(VERSION);
+   throw err;
+  }
+ }));
 });
 self.addEventListener("activate",event=>{
  event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("flosy-")&&k!==VERSION).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
