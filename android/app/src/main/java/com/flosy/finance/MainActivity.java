@@ -29,6 +29,8 @@ import org.json.JSONArray;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.pm.PackageManager;
+import android.speech.RecognizerIntent;
+import java.util.ArrayList;
 import android.database.Cursor;
 import android.provider.Telephony;
 import java.util.Locale;
@@ -39,6 +41,7 @@ public class MainActivity extends Activity {
     private static final String HOME_HOST = "ahmedsayed20233.github.io";
     private static final int PICK_FILE = 71;
     private static final int REQ_READ_SMS = 72;
+    private static final int REQ_VOICE = 73;
     private WebView webView;
     private ProgressBar loadingBar;
     private ValueCallback<Uri[]> selectedFiles;
@@ -49,17 +52,20 @@ public class MainActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setStatusBarColor(Color.rgb(8, 20, 34));
-        getWindow().setNavigationBarColor(Color.rgb(8, 20, 34));
+        getWindow().setStatusBarColor(Color.WHITE);
+        getWindow().setNavigationBarColor(Color.WHITE);
+        int ui=View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        if (android.os.Build.VERSION.SDK_INT >= 26) ui|=View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        getWindow().getDecorView().setSystemUiVisibility(ui);
 
         FrameLayout root = new FrameLayout(this);
         webView = new WebView(this);
-        webView.setBackgroundColor(Color.rgb(8, 20, 34));
+        webView.setBackgroundColor(Color.WHITE);
         root.addView(webView, new FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         loadingBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
         loadingBar.setMax(100);
-        loadingBar.setProgressTintList(ColorStateList.valueOf(Color.rgb(35, 220, 177)));
+        loadingBar.setProgressTintList(ColorStateList.valueOf(Color.rgb(9, 144, 129)));
         loadingBar.setProgressBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
         FrameLayout.LayoutParams loadingParams = new FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, 5, Gravity.TOP);
@@ -120,6 +126,11 @@ public class MainActivity extends Activity {
                 Uri uri = request.getUrl();
                 String scheme = uri.getScheme();
                 String host = uri.getHost();
+                if ("flosyapp".equalsIgnoreCase(scheme) && "voice-expense".equalsIgnoreCase(host)) {
+                    if (request.isForMainFrame() && view.getUrl()!=null && view.getUrl().startsWith(HOME))
+                        view.post(() -> startEgyptianVoice());
+                    return true;
+                }
                 if ("flosyapp".equalsIgnoreCase(scheme) && "sms-scan".equalsIgnoreCase(host)) {
                     if (request.isForMainFrame() && view.getUrl() != null
                         && view.getUrl().startsWith(HOME)) {
@@ -159,6 +170,7 @@ public class MainActivity extends Activity {
                     view.evaluateJavascript("window.FLOSY_NATIVE_ANDROID=true;"
                         + "window.FLOSY_NATIVE_SMS_AVAILABLE="
                         + (BuildConfig.FLAVOR.equals("sms") ? "true" : "false") + ";"
+                        + "window.FLOSY_NATIVE_VOICE_AVAILABLE=true;"
                         + "if(window.FLOSY_NEXT)window.FLOSY_NEXT.render();", null);
                     deliverPendingSharedMessage();
                 }
@@ -171,9 +183,9 @@ public class MainActivity extends Activity {
                 if (request.isForMainFrame()) {
                     String html = "<!doctype html><html lang='ar' dir='rtl'>"
                         + "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-                        + "<style>body{background:#081422;color:#ecf5ff;font-family:sans-serif;"
-                        + "padding:40px;text-align:center}a{display:inline-block;background:#24deb2;"
-                        + "color:#081422;text-decoration:none;padding:13px 24px;border-radius:12px;"
+                        + "<style>body{background:#FFFFFF;color:#1c4051;font-family:sans-serif;"
+                        + "padding:40px;text-align:center}a{display:inline-block;background:#0b8f82;"
+                        + "color:#FFFFFF;text-decoration:none;padding:13px 24px;border-radius:12px;"
                         + "font-weight:bold;margin-top:20px}</style>"
                         + "<h1>فلوسي</h1><p>تعذر تحميل الموقع. تأكد من الاتصال بالإنترنت.</p>"
                         + "<a href='" + HOME + "'>إعادة المحاولة</a></html>";
@@ -325,6 +337,22 @@ public class MainActivity extends Activity {
             Toast.LENGTH_LONG).show();
     }
 
+    // Android's installed speech service handles microphone consent and Egyptian Arabic recognition.
+    private void startEgyptianVoice() {
+        try {
+            Intent intent=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE,"ar-EG");
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE,"ar-EG");
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"قول مثلًا: دفعت 75 جنيه قهوة من الفيزا");
+            intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,1);
+            startActivityForResult(intent,REQ_VOICE);
+        }catch(ActivityNotFoundException ex){
+            Toast.makeText(this,"لا توجد خدمة للتعرف الصوتي على هذا الهاتف. استخدم الإدخال النصي.",
+                Toast.LENGTH_LONG).show();
+        }
+    }
+
     private void printReport() {
         if (webView == null) return;
         PrintManager pm = (PrintManager) getSystemService(Context.PRINT_SERVICE);
@@ -349,6 +377,18 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_VOICE) {
+            if (resultCode == RESULT_OK && data != null && webView != null && pageReady) {
+                ArrayList<String> results=data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                if (results!=null && !results.isEmpty() && results.get(0)!=null) {
+                    String speech=results.get(0);
+                    if (speech.length()<=320)webView.evaluateJavascript(
+                        "if(window.FLOSY_CAPTURE)window.FLOSY_CAPTURE.receiveNativeVoice("
+                        + JSONObject.quote(speech) + ");",null);
+                }
+            }
+            return;
+        }
         if (requestCode == PICK_FILE && selectedFiles != null) {
             selectedFiles.onReceiveValue(
                 WebChromeClient.FileChooserParams.parseResult(resultCode, data));
