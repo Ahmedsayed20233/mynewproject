@@ -121,6 +121,68 @@ async function startLocal(){
   await toggle.click();
   assert.equal(await toggle.getAttribute("aria-expanded"),"false");
 
+  // 6) Studio quick-add uses canonical transaction modal, not a second ledger.
+  await page.evaluate(()=>window.FLOSY_BRIDGE.goto("dashboard"));
+  await page.waitForFunction(()=>!!window.FLOSY_STUDIO);
+  assert.ok(await page.locator("#flosyStudioHome .u3-account-row").count()>0);
+  const beforeStudio=await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length);
+  await page.locator("#flosyStudioHome [data-u3-customize]").click();
+  assert.equal(await page.locator("#flosyStudioCustomization").isVisible(),true);
+  await page.locator('input[data-u3-visible="flow"]').check();
+  const visibility=await page.evaluate(()=>window.FLOSY_STUDIO.preferences().visible.flow);
+  assert.equal(visibility,true,"New income/expense widget preference should persist in financial backup");
+  assert.equal(await page.locator('#flosyStudioHome [data-u3-widget="flow"]').count(),1);
+  // Configuring UI cannot alter financial balances, even if cloud state is synced.
+  assert.equal(await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length),beforeStudio);
+  await page.locator('[data-u3-customize-close]').click();
+  await page.locator('#flosyStudioHome [data-u3-launch]').click();
+  assert.equal(await page.locator('#flosyStudioLauncher').isVisible(),true);
+  assert.equal(await page.locator('#flosyStudioLauncher [role="dialog"]').getAttribute("aria-modal"),"true");
+  await page.locator('#flosyStudioLauncher [data-u3-option="expense"]').click();
+  assert.equal(await page.locator("#modalback").evaluate(el=>el.classList.contains("open")),true);
+  assert.equal(await page.locator("#formType").inputValue(),"expense");
+  await page.locator("#closeModal").click();
+  assert.equal(await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length),beforeStudio);
+  await page.locator("#flosyStudioHome [data-u3-launch]").click();
+  await page.locator('#flosyStudioLauncher [data-u3-option="transfer"]').click();
+  assert.equal(await page.locator("#formType").inputValue(),"transfer");
+  await page.locator("#cancelModal").click();
+  assert.equal(await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length),beforeStudio);
+  // Save one synthetic income with optional time/note via the existing canonical form.
+  await page.locator("#flosyStudioHome [data-u3-launch]").click();
+  await page.locator('#flosyStudioLauncher [data-u3-option="income"]').click();
+  await page.locator('#txnForm input[name="amount"]').fill("817.50");
+  await page.locator('#txnForm input[name="description"]').fill("STUDIO_TEST_INCOME");
+  await page.locator('#txnForm input[name="time"]').fill("12:34");
+  await page.locator('#txnForm textarea[name="note"]').fill("Studio test note");
+  await page.locator('#txnForm button[type="submit"]').click();
+  const recordedByStudio=await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions
+   .filter(t=>t.description==="STUDIO_TEST_INCOME"));
+  assert.equal(recordedByStudio.length,1,"Quick-add income must be saved only once");
+  assert.equal(recordedByStudio[0].amount,817.50);
+  assert.equal(recordedByStudio[0].time,"12:34");
+  assert.equal(recordedByStudio[0].note,"Studio test note");
+  await page.evaluate(()=>window.FLOSY_BRIDGE.goto("transactions"));
+  const seenNote=await page.locator('#flosyElevateTxRows .u3-transaction-note').allTextContents();
+  assert.ok(seenNote.some(x=>x.includes("Studio test note")));
+  // Reopening the same details should detect possible duplicates instead of silent double-logging.
+  await page.evaluate(()=>window.FLOSY_BRIDGE.goto("dashboard"));
+  await page.locator("#flosyStudioHome [data-u3-launch]").click();
+  await page.locator('#flosyStudioLauncher [data-u3-option="income"]').click();
+  await page.locator('#txnForm input[name="amount"]').fill("817.50");
+  await page.locator('#txnForm input[name="description"]').fill("STUDIO_TEST_INCOME");
+  let warning=false;
+  page.once("dialog",async dialog=>{warning=true;await dialog.dismiss()});
+  await page.locator('#txnForm button[type="submit"]').click();
+  assert.equal(warning,true,"A duplicate manual entry requires explicit review");
+  assert.equal(await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions
+   .filter(t=>t.description==="STUDIO_TEST_INCOME").length),1);
+  await page.locator("#cancelModal").click();
+  await page.evaluate(()=>window.FLOSY_BRIDGE.goto("settings"));
+  assert.ok(await page.locator("#flosyStudioSettings .u3-setting-link").count()>=4);
+  await page.evaluate(()=>window.FLOSY_BRIDGE.goto("dashboard"));
+  console.log("PASS: Studio widget controls, account balance preview, and canonical quick-add sheet");
+
   fs.mkdirSync("tests/_artifacts",{recursive:true});
   await page.screenshot({path:"tests/_artifacts/elevate-dashboard.png",fullPage:true});
   // Mobile RTL smoke test: all new cards must fit a 390px Android viewport.
@@ -134,6 +196,22 @@ async function startLocal(){
   assert.ok(mobile.length>0);
   assert.ok(mobile.every(x=>x.left>=-2&&x.right<=392),
    "Reference-inspired mobile cards should remain within 390px viewport: "+JSON.stringify(mobile));
+  const studioMobile=await page.evaluate(()=>[...document.querySelectorAll(
+    "#flosyStudioHome .u3-panel,#flosyStudioHome .u3-homehead")]
+    .map(x=>({left:x.getBoundingClientRect().left,right:x.getBoundingClientRect().right})));
+  assert.ok(studioMobile.length>0 && studioMobile.every(x=>x.left>=-2&&x.right<=392),
+    "Studio mobile white cards overflow: "+JSON.stringify(studioMobile));
+  await page.locator("#dockAdd").click();
+  assert.equal(await page.locator("#flosyStudioLauncher").isVisible(),true);
+  assert.equal(await page.locator(".mobile-dock").evaluate(x=>getComputedStyle(x).display),"none",
+    "Mobile navigation must never obscure the quick-add sheet");
+  await page.locator('#flosyStudioLauncher [data-u3-option="receipt"]').scrollIntoViewIfNeeded();
+  assert.equal(await page.locator('#flosyStudioLauncher [data-u3-option="receipt"]').isVisible(),true,
+    "Last receipt action must remain tappable on narrow phones");
+  await page.screenshot({path:"tests/_artifacts/flosy-studio-mobile-quick-add.png",fullPage:false});
+  await page.locator("#flosyStudioLauncher [data-u3-close]").click();
+  assert.equal(await page.locator("#flosyStudioLauncher").isVisible(),false);
+
   await page.screenshot({path:"tests/_artifacts/elevate-mobile-390px.png",fullPage:true});
   console.log("PASS: historical budgets, transaction explorer, real wealth journal and premium dashboard");
 

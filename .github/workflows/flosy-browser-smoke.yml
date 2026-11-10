@@ -42,8 +42,19 @@ jobs:
           path: |
             tests/_artifacts/elevate-dashboard.png
             tests/_artifacts/elevate-mobile-390px.png
+            tests/_artifacts/flosy-studio-mobile-quick-add.png
           retention-days: 7
           if-no-files-found: error
+      - name: Save desktop and mobile design screenshots
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flosy-studio-white-mode-previews
+          path: |
+            tests/_artifacts/elevate-dashboard.png
+            tests/_artifacts/elevate-mobile-390px.png
+          if-no-files-found: error
+          retention-days: 14
       - name: Save failure screenshot
         if: failure()
         uses: actions/upload-artifact@v4

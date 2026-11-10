@@ -403,3 +403,61 @@ test("Reference UI assets appear across all target pages, and precache on offlin
  assert.match(css,/color-scheme:light!important/);
  assert.match(css,/u-activity-totals/);
 });
+
+
+test("Flosy Studio account overview uses canonical ledger numbers, never a fake bank feed",()=>{
+ const c=context();c.data.accounts[0].name="HSBC <test>";
+ c.window.FLOSY_PRO.rowsForAccounts=()=>({bank:12150.25,wallet:0,emergency:30000});
+ load("flosy-studio.js",c);
+ const accounts=c.window.FLOSY_STUDIO.balances();
+ assert.equal(accounts[0].balance,12150.25);
+ assert.match(c.elems.flosyStudioHome.innerHTML,/12.?150|١٢.?١٥٠/);
+ assert.doesNotMatch(c.elems.flosyStudioHome.innerHTML,/HSBC <test>/);
+ assert.match(c.elems.flosyStudioHome.innerHTML,/HSBC &lt;test&gt;/);
+ assert.equal(c.data.transactions.length,0);
+});
+test("Flosy Studio excludes transfers from expenses and projects no unsourced savings",()=>{
+ const c=context(),now=new Date(),day=[now.getFullYear(),String(now.getMonth()+1).padStart(2,"0"),
+  String(now.getDate()).padStart(2,"0")].join("-");
+ c.data.transactions.push({id:"t1",type:"expense",category:"مواصلات",date:day,amount:500});
+ c.data.transactions.push({id:"t2",type:"transfer",category:"الطوارئ",date:day,amount:50000});
+ c.data.transactions.push({id:"t3",type:"income",category:"مرتب",date:day,amount:1000});
+ load("flosy-studio.js",c);
+ const r=c.window.FLOSY_STUDIO.recorded();
+ assert.equal(r.income,1000);assert.equal(r.expense,500);assert.equal(r.transfers,50000);
+ assert.equal(r.top.length,1);
+ assert.equal(r.top[0][0],"مواصلات");
+ assert.match(c.elems.flosyStudioHome.innerHTML,/10٪|١٠٪|10%/);
+});
+test("Flosy Studio customization saves only display preferences, not transaction changes",()=>{
+ const c=context();load("flosy-studio.js",c);
+ const ui=c.window.FLOSY_STUDIO;
+ const before=JSON.stringify(c.data.transactions);
+ assert.equal(ui.preferences().visible.accounts,true);
+ assert.equal(ui.preferences().visible.flow,false);
+ ui.editPreferences("toggle","flow");
+ assert.equal(ui.preferences().visible.flow,true);
+ ui.editPreferences("move","accounts",1);
+ assert.equal(ui.preferences().order[1],"accounts");
+ assert.equal(JSON.stringify(c.data.transactions),before);
+ assert.equal(c.data.studio.version,1);
+});
+test("Studio quick launcher is an enhancement over the existing canonical transaction form",()=>{
+ const code=fs.readFileSync("flosy-studio.js","utf8");
+ const html=fs.readFileSync("index.html","utf8");
+ const sw=fs.readFileSync("service-worker.js","utf8");
+ assert.match(code,/original\.click\(\)/);
+ assert.match(code,/\["expense","income","transfer"\]/);
+ assert.match(code,/stopImmediatePropagation\(\)/);
+ assert.match(code,/aria-modal="true"/);
+ assert.match(html,/id="flosyStudioLauncherHost"/);
+ assert.match(html,/id="flosyStudioHome"/);
+ assert.match(html,/id="flosyStudioSettings"/);
+ assert.match(html,/flosy-studio.js\?v=901/);
+ assert.match(html,/flosy-studio.css\?v=901/);
+ assert.match(sw,/flosy-studio.js\?v=901/);
+ assert.match(sw,/flosy-studio.css\?v=901/);
+ const css=fs.readFileSync("flosy-studio.css","utf8");
+ assert.match(css,/color-scheme:light!important/);
+ assert.match(css,/u3-launcher-backdrop/);
+});
