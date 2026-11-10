@@ -1,7 +1,7 @@
 name: Flosy Quality Gates — Financial Safety + V4
 on:
   push:
-    branches: [flosy-site]
+    branches: [flosy-site, "fix/**"]
     paths:
       - 'index.html'
       - 'flosy-sync-v3.js'
