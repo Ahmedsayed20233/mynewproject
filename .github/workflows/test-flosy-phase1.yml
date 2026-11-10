@@ -1,0 +1,31 @@
+name: Flosy Phase 1 Quality Gates
+on:
+  push:
+    branches: [flosy-site]
+    paths:
+      - 'index.html'
+      - 'flosy-sync-v3.js'
+      - 'flosy-phase1.js'
+      - 'flosy-next.js'
+      - 'tests/phase1.test.cjs'
+      - '.github/workflows/test-flosy-phase1.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    name: Finance calculation and cloud synchronization tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show Node version
+        run: node --version
+      - name: Validate JavaScript modules
+        run: |
+          node --check flosy-sync-v3.js
+          node --check flosy-phase1.js
+          node --check flosy-next.js
+          node --check flosy-ai.js
+      - name: Run financial safety regression suite
+        run: node --test tests/phase1.test.cjs
