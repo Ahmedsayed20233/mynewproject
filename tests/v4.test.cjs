@@ -115,3 +115,53 @@ test("Offline service worker precaches every local script and stylesheet referen
  assert.ok(files.length>=10,"Expected a full offline app shell");
  for(const file of files) assert.ok(sw.includes("./"+file),"Not precached: "+file);
 });
+
+
+test("Egyptian CSV keeps identical same-day purchases as separate real rows",()=>{
+ const c=context();load("flosy-v4-bank.js",c);
+ const b=c.window.FLOSY_BANK_CSV;
+ const rows=[["10/11/2026","CAFÉ", "125.00"],["10/11/2026","CAFÉ", "125.00"]];
+ const mapping={date:"0",description:"1",debit:"",credit:"",amount:"2",direction:"",reference:"",positiveMeans:"expense"};
+ const result=b.translate(rows,mapping,"bank");
+ assert.equal(result.length,2,"Repeated real transactions must not be silently dropped");
+ assert.notEqual(result[0].sourceHash,result[1].sourceHash);
+ c.data.transactions.push(...result);
+ assert.equal(b.translate(rows,mapping,"bank").length,0,"Reimporting the same source is idempotent");
+});
+
+test("Egyptian bank reference makes different statements idempotent",()=>{
+ const c=context();load("flosy-v4-bank.js",c);
+ const b=c.window.FLOSY_BANK_CSV;
+ const mapping={date:"0",description:"1",debit:"2",credit:"3",amount:"",direction:"",reference:"4",positiveMeans:""};
+ const first=b.translate([["2026-11-10","CIB card", "350","", "TXN-1001"]],mapping,"bank");
+ assert.equal(first.length,1);
+ c.data.transactions.push(...first);
+ const imported=b.translate([["2026-11-10","CIB card","","350","TXN-1001"]],mapping,"bank");
+ assert.equal(imported.length,0,"Bank reference wins over changing export narratives/amount columns");
+});
+
+test("Egyptian receipt parser reads labeled total and date; never infers from invoice number",()=>{
+ const c=context();load("flosy-v4-capture.js",c);
+ const p=c.window.FLOSY_CAPTURE.parseReceipt;
+ const receipt=p("كافيه الجامعة\\nرقم الفاتورة: 104857\\nالاجمالي 1,234.50\\nالتاريخ: 10/11/2026");
+ assert.equal(receipt.amount,1234.5);
+ assert.equal(receipt.date,"2026-11-10");
+ assert.equal(receipt.source,"receipt_reviewed");
+ assert.throws(()=>p("رقم الفاتورة: 99999\\nكافيه الجامعة\\nضريبة 12.50"),/إجمالي/);
+});
+
+test("Pearl command center stays in white mode, updates from validated local data, and has real buttons",()=>{
+ const c=context();c.window.FLOSY_PHASE1={calculate:()=>({daily:150,days:12})};
+ c.window.FLOSY_SYNC_V3={getStatus:()=>({status:"متزامن",revision:7,dirty:false})};
+ c.window.FLOSY_REMINDERS={upcoming:()=>[{days:1,paid:false,linked:false}]};
+ c.window.FLOSY_BRIDGE.getSession=()=>({user:{id:"dev-user"}});
+ load("flosy-v5-command.js",c);
+ assert.match(c.elems.flosyV5Command.innerHTML,/150/);
+ assert.match(c.elems.flosyV5Command.innerHTML,/إصدار 7/);
+ assert.match(c.elems.flosyV5Command.innerHTML,/data-v5-go="v4-bank"/);
+ const css=fs.readFileSync("flosy-v5-pearl.css","utf8");
+ assert.match(css,/color-scheme:light!important/);
+ const index=fs.readFileSync("index.html","utf8");
+ assert.match(index,/flosy-v5-pearl\\.css/);
+ assert.match(index,/flosy-v5-command\\.js/);
+});
