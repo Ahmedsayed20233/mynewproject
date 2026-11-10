@@ -833,6 +833,13 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onResume(){
+        super.onResume();
+        if(isAutoImportVariant()&&webView!=null&&pageReady)
+            webView.post(this::sendAutoStatus);
+    }
+
+    @Override
     protected void onDestroy() {
         releaseSpeech();cleanupPhoto();
         if (webView != null) {
