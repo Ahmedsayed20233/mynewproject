@@ -80,3 +80,26 @@ test("White design is exclusive with hidden theme toggle, attached new pages and
  assert.match(css,/#themeBtn\{display:none!important\}/);
  assert.match(sw,/url\.origin!==self\.location\.origin/);
 });
+
+
+test("Due reminders only show unpaid items; request permission is user-driven",()=>{
+ const c=context();
+ const today=new Date();today.setHours(12,0,0,0);
+ const iso=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");
+ const tomorrow=new Date(today);tomorrow.setDate(today.getDate()+1);
+ c.window.FLOSY_PHASE1={occurrences:()=>[
+  {id:"one",key:"bill/one",date:iso(tomorrow),name:"Internet",amount:500,paid:false,linked:false},
+  {id:"two",key:"bill/two",date:iso(tomorrow),name:"Rent",amount:2500,paid:true,linked:false}
+ ]};
+ load("flosy-v4-reminders.js",c);
+ const upcoming=c.window.FLOSY_REMINDERS.upcoming();
+ assert.equal(upcoming.length,1);assert.equal(upcoming[0].amount,500);
+ assert.match(c.elems["v4-reminders"].innerHTML,/Internet/);
+ assert.doesNotMatch(c.elems["v4-reminders"].innerHTML,/Rent/);
+});
+test("Biometric privacy reveal is explicitly delegated to native Android when available",()=>{
+ const js=fs.readFileSync("flosy-v4-family-privacy.js","utf8");
+ assert.match(js,/FLOSY_NATIVE_BIOMETRIC_AVAILABLE/);
+ assert.match(js,/flosyapp:\/\/biometric-unlock/);
+ assert.match(js,/biometricUnlocked/);
+});
