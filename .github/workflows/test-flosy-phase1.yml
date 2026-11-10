@@ -35,6 +35,7 @@ jobs:
           node --check flosy-v4-bank.js
           node --check flosy-v4-wealth.js
           node --check flosy-v4-family-privacy.js
+          node --check flosy-v4-reminders.js
           node --check service-worker.js
       - name: Run financial safety regression suite
         run: node --test tests/phase1.test.cjs tests/v4.test.cjs
