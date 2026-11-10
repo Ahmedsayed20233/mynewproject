@@ -21,8 +21,8 @@ android {
         applicationId 'com.flosy.finance'
         minSdk 24
         targetSdk 35
-        versionCode 11
-        versionName '2.6.0'
+        versionCode 12
+        versionName '2.7.0'
     }
 
 
@@ -32,12 +32,12 @@ android {
     productFlavors {
         standard {
             dimension 'permissionLevel'
-            // Unrestricted install; SMS can still be shared manually via ACTION_SEND.
+            // No restricted SMS/notification permissions; accepts user-selected ACTION_SEND text.
         }
         sms {
             dimension 'permissionLevel'
             applicationIdSuffix '.sms'
-            // Explicit user-initiated Android READ_SMS scan, sideloaded test only.
+            // Safe Import variant supports only share/paste and CSV, with no restricted SMS permissions.
         }
     }
 

@@ -25,7 +25,6 @@ import android.webkit.WebViewClient;
 import android.widget.Toast;
 import android.webkit.ValueCallback;
 import org.json.JSONObject;
-import org.json.JSONArray;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.hardware.biometrics.BiometricPrompt;
@@ -53,17 +52,12 @@ import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 import android.content.res.AssetFileDescriptor;
 import java.util.ArrayList;
-import android.database.Cursor;
-import android.provider.Telephony;
-import android.provider.Settings;
 import java.util.Locale;
-import java.util.regex.Pattern;
 
 public class MainActivity extends Activity {
     private static final String HOME = "https://ahmedsayed20233.github.io/mynewproject/";
     private static final String HOME_HOST = "ahmedsayed20233.github.io";
     private static final int PICK_FILE = 71;
-    private static final int REQ_READ_SMS = 72;
     private static final int REQ_VOICE = 73;
     private static final int REQ_OCR = 74;
     private static final int REQ_CAMERA = 75;
@@ -144,8 +138,6 @@ public class MainActivity extends Activity {
                             if("voice".equals(action))startEgyptianVoice();
                             else if("receipt-ocr".equals(action))pickNativeReceipt();
                             else if("receipt-camera".equals(action))captureReceiptPhoto();
-                            else if("sms-scan".equals(action))requestSmsScan();
-                            else if("instapay-notifications".equals(action))requestInstaPayNotificationScan();
                             else if("receipt-export".equals(action)){
                                 String receipt=msg.optString("text","");
                                 if(!receipt.isEmpty() && receipt.length()<=12000)
@@ -217,13 +209,6 @@ public class MainActivity extends Activity {
                         view.post(()->captureReceiptPhoto());
                     return true;
                 }
-                if ("flosyapp".equalsIgnoreCase(scheme) && "sms-scan".equalsIgnoreCase(host)) {
-                    if (request.isForMainFrame() && view.getUrl() != null
-                        && view.getUrl().startsWith(HOME)) {
-                        view.post(() -> requestSmsScan());
-                    }
-                    return true;
-                }
                 if ("flosyapp".equalsIgnoreCase(scheme) && "print".equalsIgnoreCase(host)) {
                     if (request.isForMainFrame()) {
                         view.post(() -> printReport());
@@ -255,7 +240,7 @@ public class MainActivity extends Activity {
                     pageReady = true;
                     view.evaluateJavascript("window.FLOSY_NATIVE_ANDROID=true;"
                         + "window.FLOSY_NATIVE_SMS_AVAILABLE="
-                        + (BuildConfig.FLAVOR.equals("sms") ? "true" : "false") + ";"
+                        + "false;"
                         + "window.FLOSY_NATIVE_VOICE_AVAILABLE=true;"
                         + "window.FLOSY_NATIVE_OCR_AVAILABLE=true;"
                         + "window.FLOSY_NATIVE_BRIDGE_AVAILABLE="+(webMessageReady ? "true" : "false")+";"
@@ -383,134 +368,15 @@ public class MainActivity extends Activity {
     }
 
 
-    // Active InstaPay alerts only; NO background notification logging.
-    // User must explicitly allow system Notification Access for SMS Beta and tap
-    // the import button every time. Android controls revocation.
-    private void requestInstaPayNotificationScan(){
-        if(!BuildConfig.FLAVOR.equals("sms")){
-            Toast.makeText(this,"هذه الميزة اختيارية في نسخة SMS Beta فقط",Toast.LENGTH_LONG).show();
-            return;
-        }
-        new AlertDialog.Builder(this)
-            .setTitle("فحص إشعارات InstaPay بإذنك")
-            .setMessage("سيقرأ Flosy فقط إشعارات InstaPay النشطة حاليًا عند الضغط، وليس تاريخ الإشعارات أو إشعارات التطبيقات الأخرى. "+
-                "لن يخزن الإشعارات أو يحفظ معاملة قبل موافقتك. "+
-                "يمنح Android صلاحية إشعارات واسعة؛ تقدر تلغيها في أي وقت من إعدادات الهاتف.")
-            .setNegativeButton("إلغاء",(d,which)->{})
-            .setPositiveButton("موافق، فحص الآن",(d,which)->{
-                if(!InstaPayNotificationReader.isReady()){
-                    new AlertDialog.Builder(this)
-                        .setTitle("إذن Notification Access غير مفعّل")
-                        .setMessage("افتح إعدادات Android وفعّل Flosy SMS Beta فقط إذا كنت توافق، ثم ارجع واضغط زر الفحص مرة أخرى.")
-                        .setNegativeButton("لاحقًا",(dialog,index)->{})
-                        .setPositiveButton("فتح إعدادات Android",(dialog,index)->{
-                            try{startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));}
-                            catch(Exception ex){Toast.makeText(this,"تعذر فتح إعدادات الإشعارات",Toast.LENGTH_LONG).show();}
-                        }).show();
-                    return;
-                }
-                JSONArray items=InstaPayNotificationReader.reviewCurrent();
-                sendReviewCandidates(items);
-                Toast.makeText(this,"تم فحص إشعارات InstaPay الحالية: "+items.length()+" للمراجعة",
-                    Toast.LENGTH_LONG).show();
-            }).show();
-    }
-
-    private void sendReviewCandidates(JSONArray items){
-        if(webView==null||!pageReady||webView.getUrl()==null||!webView.getUrl().startsWith(HOME))return;
-        webView.evaluateJavascript(
-            "if(window.FLOSY_NEXT&&window.FLOSY_NEXT.receiveScannedSMS)"+
-            "window.FLOSY_NEXT.receiveScannedSMS("+items.toString()+");",null);
-    }
-
-    // Read only recent, potentially relevant financial SMS after explicit per-use consent.
-    // No background receiver, no bulk upload and no automatic financial record creation.
-    private void requestSmsScan() {
-        if (!BuildConfig.FLAVOR.equals("sms")) {
-            Toast.makeText(this, "توجد ميزة مسح الرسائل فقط في إصدار SMS التجريبي",
-                Toast.LENGTH_LONG).show();
-            return;
-        }
-        new AlertDialog.Builder(this)
-            .setTitle("قراءة الرسائل المالية")
-            .setMessage("سيبحث فلوسي على جهازك عن الرسائل المالية خلال آخر 45 يومًا، "
-               + "بعد موافقتك على صلاحية READ_SMS. سيستبعد رسائل التحقق OTP، "
-               + "ولن يخزن نصوص الرسائل أو يرسلها إلى الخادم. "
-               + "ستختار كل معاملة لمراجعتها قبل تسجيلها. "
-               + "يمكنك سحب الإذن لاحقًا من إعدادات الهاتف.")
-            .setNegativeButton("إلغاء", (d,which)->{})
-            .setPositiveButton("موافق، فحص الآن", (d,which)->{
-                if (checkSelfPermission(Manifest.permission.READ_SMS)
-                     != PackageManager.PERMISSION_GRANTED) {
-                    requestPermissions(new String[]{Manifest.permission.READ_SMS},REQ_READ_SMS);
-                } else {
-                    scanFinancialSms();
-                }
-            }).show();
-    }
-
+    // Only the microphone, upon an explicit voice-entry tap, needs runtime consent.
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                                           int[] results) {
+    public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] results){
         super.onRequestPermissionsResult(requestCode,permissions,results);
         if(requestCode==REQ_AUDIO){
-            if(results.length>0&&results[0]==PackageManager.PERMISSION_GRANTED)
+            if(results.length>0 && results[0]==PackageManager.PERMISSION_GRANTED)
                 startEgyptianVoice();
-            else notifyVoiceFailure("تم رفض إذن الميكروفون. افتح إعدادات Flosy وفعّل إذن الميكروفون للتسجيل الصوتي.");
-            return;
+            else notifyVoiceFailure("تم رفض إذن الميكروفون؛ يمكنك تفعيله من إعدادات Android.");
         }
-        if(requestCode!=REQ_READ_SMS)return;
-        if(results.length>0 && results[0]==PackageManager.PERMISSION_GRANTED){
-            scanFinancialSms();
-        }else{
-            Toast.makeText(this,"لم يتم منح إذن قراءة SMS. يمكن استخدام مشاركة الرسالة بدلًا منه.",
-                Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private void scanFinancialSms() {
-        if (!BuildConfig.FLAVOR.equals("sms")
-            || checkSelfPermission(Manifest.permission.READ_SMS)
-                != PackageManager.PERMISSION_GRANTED
-            || webView == null || !pageReady) return;
-        JSONArray found = new JSONArray();
-        final long earliest = System.currentTimeMillis() - 45L*24*60*60*1000;
-        final Pattern direction = Pattern.compile(
-          "(خصم|سحب|شراء|دفع|إيداع|ايداع|استلام|تم التحويل|تم إرسال|تم ارسال|حوالة|paid|purchase|debited|credited|withdraw|received|deposit|sent|transfer)",
-          Pattern.CASE_INSENSITIVE|Pattern.UNICODE_CASE);
-        final Pattern currency = Pattern.compile(
-          "(EGP|جنيه|جنيها|ج\\.م|L\\.E\\.|ج\\s*م)",
-          Pattern.CASE_INSENSITIVE|Pattern.UNICODE_CASE);
-        final Pattern otp = Pattern.compile(
-          "(OTP|one.time.password|verification.code|security.code|رمز.{0,12}(التحقق|التفعيل)|كود.{0,12}(التحقق|التفعيل)|رمز.سري)",
-          Pattern.CASE_INSENSITIVE|Pattern.UNICODE_CASE);
-        String[] cols={Telephony.Sms.BODY,Telephony.Sms.DATE};
-        int inspected=0;
-        try(Cursor cursor=getContentResolver().query(Telephony.Sms.Inbox.CONTENT_URI,
-            cols,Telephony.Sms.DATE+" >= ?",new String[]{String.valueOf(earliest)},
-            Telephony.Sms.DATE+" DESC")){
-            if(cursor!=null)while(cursor.moveToNext()&&inspected<350&&found.length()<35){
-                inspected++;
-                String body=cursor.getString(0);
-                long millis=cursor.getLong(1);
-                if(body==null||body.length()>1200||!direction.matcher(body).find()
-                    ||!currency.matcher(body).find()||otp.matcher(body).find()) continue;
-                // Redact long numeric sequences typically used for card/account identifiers.
-                String sanitized=body.replaceAll("(?<!\\d)(?:\\d[ -]?){12,19}(?!\\d)","[رقم مخفي]");
-                JSONObject item=new JSONObject();
-                item.put("date",millis);
-                item.put("source","sms");
-                item.put("text",sanitized);
-                found.put(item);
-            }
-        }catch(Exception ex){
-            Toast.makeText(this,"تعذر قراءة الرسائل. راجع إذن SMS.",Toast.LENGTH_LONG).show();
-            return;
-        }
-        final String json=found.toString();
-        sendReviewCandidates(found);
-        Toast.makeText(this,"تم العثور على "+found.length()+" رسالة مالية محتملة للمراجعة.",
-            Toast.LENGTH_LONG).show();
     }
 
     // Android's installed speech service handles microphone consent and Egyptian Arabic recognition.
