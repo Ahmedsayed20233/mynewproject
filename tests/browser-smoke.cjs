@@ -106,6 +106,37 @@ async function startLocal(){
   });
   console.log("PASS: Play-variant opt-in, allowlist, queue review and safe invisible default");
 
+  // Free Automate relay must never request SMS/notification access in Flosy itself.
+  assert.equal(await page.locator("#flosyAutomateRelayRoot .f29-panel").count(),0);
+  await page.evaluate(()=>{
+    window.FLOSY_NATIVE_RELAY_AVAILABLE=true;
+    window.__relayCalls=[];
+    window.FlosyNative={postMessage:msg=>window.__relayCalls.push(JSON.parse(msg))};
+    window.FLOSY_AUTOMATE_RELAY.render();
+  });
+  assert.ok(await page.locator("#flosyAutomateRelayRoot .f29-panel").count()===1);
+  await page.locator('#flosyAutomateRelayRoot [data-f29="pair"]').click();
+  assert.deepEqual(await page.evaluate(()=>window.__relayCalls.map(x=>x.action)),["relay-pair"]);
+  await page.evaluate(()=>window.FLOSY_AUTOMATE_RELAY.nativePair({token:"a".repeat(48)}));
+  assert.match(await page.locator("#flosyRelayToken").innerText(),/^a{48}$/);
+  await page.evaluate(()=>window.FLOSY_AUTOMATE_RELAY.nativeStatus({
+   paired:true,senders:"CIB,NBE",apps:"",pending:1,packageName:"com.flosy.finance"
+  }));
+  const beforeRelay=await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length);
+  await page.evaluate(()=>window.FLOSY_AUTOMATE_RELAY.nativePending({items:[{
+   id:"ab".repeat(16),source:"sms",date:Date.now(),text:"CIB تم خصم مبلغ 250 EGP مقابل شراء"
+  }]}));
+  assert.ok(await page.locator("#f2ReviewForm").count()===0);
+  await page.locator('[data-f2="sms-select:0"]').click();
+  assert.ok(await page.locator("#f2ReviewForm").isVisible());
+  assert.equal(await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length),beforeRelay,
+   "Free Automate import must remain review-only");
+  await page.evaluate(()=>{
+   window.FLOSY_NATIVE_RELAY_AVAILABLE=false;
+   window.FLOSY_AUTOMATE_RELAY.render();
+  });
+  console.log("PASS: free Automate native pair and SMS queue, still no automatic ledger writes");
+
   // 1) Free assistant really allows asking without signing into Supabase.
   await page.evaluate(()=>window.FLOSY_BRIDGE.goto("ai"));
   const freeOption=await page.locator("#flosyAiMode").inputValue();
