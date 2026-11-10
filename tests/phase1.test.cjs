@@ -27,6 +27,13 @@ test('Safe to Spend excludes emergency/reserve/Thndr and reserves living + fixed
  assert.equal(v.variableRemaining,6000);assert.equal(v.buffer,1000);assert.equal(v.cycle.days,21);
  assert.ok(m.dom.phase1Root.innerHTML.includes('إدارة الديون والأقساط'));
 });
+test('Earmarked Visa cash is reserved only while still in an unrestricted bank account',()=>{
+ const m=bootPhase1({phase1:{salaryDay:1,buffer:1000,protectedInsideBank:15000,includeSalaryForecast:true,oneOff:[],payments:[]}});
+ const calculated=m.api.calculate(d);
+ assert.equal(calculated.earmarked,15000);assert.equal(calculated.safe,0);
+ m.state.phase1.protectedInsideBank=0;
+ assert.equal(m.api.calculate(d).safe,10000);
+});
 test('Scheduling a fixed bill does not double subtract it from fixed monthly reserve',()=>{
  const m=bootPhase1({next:{recurring:[{id:'internet',name:'Internet',category:'فاتورة الإنترنت',amount:500,day:14}]}});
  const v=m.api.calculate(d);assert.equal(v.obligations,500);assert.equal(v.fixedRemaining,2500);assert.equal(v.safe,10000);
