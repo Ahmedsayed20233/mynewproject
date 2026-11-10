@@ -6,7 +6,7 @@ const C=global.FLOSY_BRIDGE;if(!C)return;
 const $=id=>document.getElementById(id),num=x=>Number(x)||0;
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const uuid=()=>crypto.randomUUID?crypto.randomUUID():"csv-"+Math.random().toString(36).slice(2);
-let header=[],rows=[],prepared=[],message="",filename="",loaded=false;
+let header=[],rows=[],prepared=[],message="",filename="",loaded=false,selectedAccount="";
 const fhash=(s)=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return(h>>>0).toString(16)};
 function csvRecords(text){
  let content=String(text||"").replace(/^\uFEFF/,"");
@@ -54,6 +54,7 @@ function matchedHeader(search){
  search==="description"?["description","details","narrative","merchant","بيان","الوصف","تفاصيل","البيان"]:
  search==="debit"?["debit","withdrawal","money out","الخصم","مدين","سحب"]:
  search==="credit"?["credit","deposit","money in","الدائن","دائن","إيداع","ايداع"]:
+ search==="direction"?["type","transaction type","نوع","حركة","direction"]:
  ["amount","value","المبلغ","المبلغ بالجنيه"];
  return header.findIndex(h=>terms.some(k=>h.trim().toLowerCase().includes(k)));
 }
@@ -78,11 +79,13 @@ function uploadForm(){
  mappingSelect("credit","عمود الإضافة",optional)+
  mappingSelect("amount","المبلغ الموحد (لو مفيش خصم/إضافة)",optional)+
  mappingSelect("direction","نوع المعاملة (اختياري)",optional)+
+ '<label class="full">معنى المبلغ الموجب<select name="positiveMeans" required><option value="">حدد طريقة الإشارة حسب كشف البنك</option><option value="income">موجب = دخل / سالب = مصروف</option><option value="expense">موجب = مصروف / سالب = دخل</option><option value="explicit">عمود نوع مستقل يحدد الاتجاه</option></select></label>'+
  '<button class="v4-btn full">تحليل وعرض المعاملات</button></form>':'<div class="v4-empty">اختار ملفًا أولًا علشان تحدد الأعمدة الموجودة فيه.</div>')+
  '</div><div class="v4-surface v4-full"><h3>3. راجع واعتمد الدفعة</h3><div id="v4-bankpreview"></div></div></div>';
 }
 function render(){
  const root=$("v4-bank");if(!root)return;root.innerHTML=uploadForm();
+ if(selectedAccount&&$("v4-importAccount"))$("v4-importAccount").value=selectedAccount;
  if(loaded){const frm=$("v4-mapcsv");for(const key of ["date","description","debit","credit","amount","direction"]){
    const ix=matchedHeader(key);const item=frm.elements.namedItem(key);if(item)item.value=ix<0?"":String(ix);
   }}
@@ -107,7 +110,9 @@ function translate(rows,opts,accountId){
  if(!(C.getState().accounts||[]).some(a=>a.id===accountId))throw Error("اختر حسابًا صحيحًا");
  const find=key=>opts[key]===""?-1:Number(opts[key]);
  const d=find("date"),desc=find("description"),debit=find("debit"),credit=find("credit"),amount=find("amount"),direction=find("direction");
+ const positiveMeans=String(opts.positiveMeans||"");
  if(d<0||((debit<0||credit<0)&&amount<0))throw Error("حدد عمود التاريخ وعمود المبلغ أو الخصم والإضافة");
+ if(!(debit>=0&&credit>=0)&&((direction<0&&!["income","expense"].includes(positiveMeans))||(direction>=0&&positiveMeans!=="explicit")))throw Error("حدد طريقة تفسير إشارة المبلغ أو اختر وجود عمود مستقل لنوع المعاملة.");
  const ids=new Set((C.getState().transactions||[]).map(x=>x.sourceHash).filter(Boolean));
  const duplicates=new Set(),out=[];
  for(const [i,r] of rows.entries()){
@@ -122,9 +127,12 @@ function translate(rows,opts,accountId){
       type=cre>0?"income":"expense";value=cre||deb;
     }else{
       const a=normalizeMoney(r[amount]);
-      type=a>0?"income":a<0?"expense":/income|credit|deposit|دائن|ايداع/.test(directionStr)?"income":"expense";
-      // Most banks use positive amounts in a signed direction column; trust direction if supplied.
-      if(direction>=0)type=/credit|deposit|income|دائن|ايداع/.test(directionStr)?"income":"expense";
+      type=positiveMeans==="income"?(a>=0?"income":"expense"):(a>=0?"expense":"income");
+      if(direction>=0){
+        if(!/credit|deposit|income|دائن|ايداع|debit|withdraw|expense|مدين|خصم|سحب/.test(directionStr))
+          throw Error("نوع المعاملة غير واضح في عمود الاتجاه");
+        type=/credit|deposit|income|دائن|ايداع/.test(directionStr)?"income":"expense";
+      }
       value=Math.abs(a);
     }
     if(!(value>0&&value<=1e8))continue;
@@ -139,12 +147,14 @@ function translate(rows,opts,accountId){
  return out;
 }
 document.addEventListener("change",async e=>{
+ if(e.target.id==="v4-importAccount"){selectedAccount=e.target.value;return}
  if(e.target.id!=="v4-bankfile")return;try{await loadCSV(e.target.files[0])}catch(err){message=err.message;loaded=false;prepared=[];render()}
 });
 document.addEventListener("submit",e=>{
  if(e.target.id!=="v4-mapcsv")return;e.preventDefault();
  try{const f=new FormData(e.target),options=Object.fromEntries(f.entries());
- prepared=translate(rows,options,$("v4-importAccount")?.value||"");
+ selectedAccount=$("v4-importAccount")?.value||"";
+ prepared=translate(rows,options,selectedAccount);
  message=prepared.length?"تمت المعاينة. افحص الصفوف والمبالغ قبل الضغط على حفظ.":"لم أجد معاملات جديدة أو جميع الصفوف مكررة.";
  render();
  }catch(err){message=err.message;prepared=[];render()}
