@@ -133,7 +133,7 @@ public final class FinancialAutoImport {
             JSONObject item=new JSONObject();
             item.put("id",fingerprint);
             item.put("fingerprint",fingerprint);
-            item.put("source","sms".equals(source)?"sms":"instapay");
+            item.put("source","sms".equals(source)?"sms":INSTAPAY.equals(sender)?"instapay":"bank_notification");
             item.put("date",date);
             item.put("text",redacted);
             item.put("sender",sender==null?"":sender.substring(0,Math.min(50,sender.length())));
@@ -188,7 +188,8 @@ public final class FinancialAutoImport {
         byte[] combined=new byte[12+data.length];
         System.arraycopy(iv,0,combined,0,12);
         System.arraycopy(data,0,combined,12,data.length);
-        prefs(c).edit().putString(K_PENDING,Base64.encodeToString(combined,Base64.NO_WRAP)).apply();
+        if(!prefs(c).edit().putString(K_PENDING,Base64.encodeToString(combined,Base64.NO_WRAP)).commit())
+            throw new IllegalStateException("Unable to persist encrypted transaction candidates");
     }
     public static synchronized JSONArray pending(Context c){
         JSONArray src=readQueue(c),result=new JSONArray();
