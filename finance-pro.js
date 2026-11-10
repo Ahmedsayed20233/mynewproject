@@ -11,10 +11,10 @@
     {id:"thndr",name:"حساب استثمار (اختياري)",type:"thndr",opening:0,updatedAt:0}
   ];
   var presets=[
-    {code:"CI30",name:"صندوق مؤشر أسهم واسعة — CI30",target:50,unit:"وحدة"},
-    {code:"T70",name:"صندوق أسهم EGX70 — T70",target:10,unit:"وحدة"},
-    {code:"SAVINGS",name:"أداة ادخار / صندوق نقدي على ثاندر",target:25,unit:"وحدة"},
-    {code:"GOLD",name:"ذهب ثاندر",target:15,unit:"جرام"}
+    {code:"CI30",name:"صندوق مؤشر أسهم واسعة — CI30",target:0,unit:"وحدة"},
+    {code:"T70",name:"صندوق أسهم EGX70 — T70",target:0,unit:"وحدة"},
+    {code:"SAVINGS",name:"أداة ادخار / صندوق نقدي (اختياري)",target:0,unit:"وحدة"},
+    {code:"GOLD",name:"ذهب استثماري (اختياري)",target:0,unit:"جرام"}
   ];
   var ids={};
   function el(id){return document.getElementById(id)}
@@ -152,13 +152,13 @@
       box("الديون والالتزامات",m.debt,"تُطرح من صافي الثروة","pro-warn")+'</div>';
     var plan=st().plan||{},visa=num(plan.initialVisa),seed=num(plan.initialEmergency),visaBalance=m.balances.bank||0,emergencyBalance=m.balances.emergency||0;
     var hasStartingTransfer=(st().transactions||[]).some(function(t){return !!t.startingAllocation});
-    html+='<div class="pro-card"><div class="pro-head"><h3>تجهيز رصيد الفيزا وخطة البداية</h3><span class="pro-meta">عملية اختيارية وآمنة</span></div>'+
+    html+='<div class="pro-card"><div class="pro-head"><h3>إعداد رصيد البداية والحسابات</h3><span class="pro-meta">عملية اختيارية وآمنة</span></div>'+
       '<p>هذه خطوة اختيارية إذا سجلت رصيدًا مملوكًا لك في حسابك: '+money(visa)+' مبدئيًا، منه '+money(seed)+' للطوارئ و'+money(Math.max(0,visa-seed))+' للسيولة. لا توجد افتراضات عن دخلك أو حسابك البنكي.</p>'+
       '<div class="pro-stat-grid">'+box("رصيد البنك المسجل",visaBalance,"يتغير بعد كل معاملة")+
       box("رصيد الطوارئ المسجل",emergencyBalance,"من الحسابات الفعلية")+
       box("البداية المستهدفة للطوارئ",seed,"جزء من رصيد الفيزا")+
       box("سيولة تشغيلية مستهدفة",visa-seed,"تبقى داخل الفيزا")+'</div>'+
-      '<div class="pro-toolbar"><button type="button" class="btn primary" data-pro="set-visa" '+(hasStartingTransfer?'disabled title="تم تسجيل تحويل البداية"':'')+'>1. مطابقة الفيزا مع '+money(visa)+'</button>'+
+      '<div class="pro-toolbar"><button type="button" class="btn primary" data-pro="set-visa" '+(hasStartingTransfer?'disabled title="تم تسجيل تحويل البداية"':'')+'>1. مطابقة الحساب مع '+money(visa)+'</button>'+
       '<button type="button" class="btn" data-pro="seed-emergency" '+(hasStartingTransfer||emergencyBalance>=seed-.005?'disabled title="مخصص البداية مسجل بالفعل"':'')+'>2. تسجيل تحويل '+money(seed)+' للطوارئ</button></div>'+
       '<div class="pro-note">هذان الزران لا يحركان أي أموال حقيقية: يُسجلان ما حدث بالفعل فقط داخل فلوسي. إذا كانت الفيزا ائتمانية والمبلغ حدًا ائتمانيًا أو قرضًا وليس رصيدًا مملوكًا لك، لا تستخدم زر المطابقة؛ سجّل الالتزام في «الديون» بدلًا من ذلك. لا تضغط تسجيل التحويل حتى تنفذه فعليًا من البنك.</div></div>';
     html+='<div class="pro-card"><div class="pro-head"><div><h3>حساباتك وأرصدة الأموال</h3><p>أدخل الرصيد الافتتاحي مرة واحدة، وسجّل بعده العمليات عبر حساب محدد. استخدم «مطابقة» لو الرصيد الحالي مختلف عن البنك.</p></div><button class="btn primary" data-pro="add-account">＋ حساب</button></div>';
@@ -263,14 +263,14 @@
     var seed=num(p.initialEmergency),initialVisa=num(p.initialVisa),buffer=num(p.initialBuffer);
     var yearOne=items.slice(0,12).reduce(function(a,x){return a+x.investment},0);
     var twoYears=total+initialVisa;
-    var html='<div class="pro-hero"><div><small>خطة فلوسي × ثاندر</small><div class="pro-major">24 شهرًا</div><span>الأمان المالي أولًا، ثم زيادة الاستثمار على مراحل</span></div><span class="pro-hero-icon">◎</span></div>';
+    var html='<div class="pro-hero"><div><small>خطة ادخار واستثمار قابلة للتخصيص</small><div class="pro-major">24 شهرًا</div><span>الأمان المالي أولًا، ثم زيادة الاستثمار على مراحل</span></div><span class="pro-hero-icon">◎</span></div>';
     html+='<div class="pro-note">هذه خطة قابلة للتخصيص بالكامل: الرصيد الأولي الذي تُدخله '+money(initialVisa)+
  '، الطوارئ الأولية '+money(seed)+'، والسيولة التشغيلية '+money(buffer)+
  '. الفائض الشهري المقدر من إعداداتك الحالية هو '+money(Math.max(0,planSave))+
  '؛ لا تُنفذ المخصصات حتى تؤكد أن أموالك والتزاماتك حقيقية. <strong>الرصيد الافتتاحي الافتراضي لا يُسجل كمعاملة.</strong></div>';
     html+='<div class="pro-stat-grid">'+box("إجمالي المخصصات خلال 24 شهرًا",twoYears,"رصيد بداية + مخصصات شهرية")+
       box("صندوق الطوارئ بنهاية الخطة",emergency+seed,"مع احتساب التخصيص الأولي")+
-      box("ثاندر — مساهمات 24 شهرًا",investments,"سنة أولى "+money(yearOne))+
+      box("مساهمات استثمارية خلال 24 شهرًا",investments,"سنة أولى "+money(yearOne))+
       box("الاحتياطي غير المنتظم",reserves,"+ "+money(buffer)+" سيولة تشغيلية")+'</div>';
     if(planSave<=0)html+='<div class="pro-alert">سجّل دخلك والتزاماتك الواقعية أولًا. لا يوجد فائض آمن يُفترض من بيانات غير مكتملة.</div>';
     html+='<div class="pro-card"><div class="pro-head"><h3>تخصيص مراحل الادخار</h3><span class="pro-meta">القيم قابلة للتعديل حسب دخلك</span></div>'+
@@ -279,7 +279,7 @@
       '<label>الاحتياطي كل شهر<input name="reserveMonthly" min="0" type="number" required value="'+num(p.reserveMonthly)+'"></label>'+
       '<label>عدد شهور المرحلة الأولى<input name="p1Months" min="1" max="22" type="number" required value="'+num(p.p1Months)+'"></label>'+
       '<label>عدد شهور المرحلة الثانية<input name="p2Months" min="1" max="22" type="number" required value="'+num(p.p2Months)+'"></label>'+
-      '<label>رصيد الفيزا المبلغ عنه مبدئيًا<input name="initialVisa" min="0" type="number" required value="'+num(p.initialVisa)+'"></label>'+
+      '<label>الرصيد النقدي المملوك في بداية الخطة<input name="initialVisa" min="0" type="number" required value="'+num(p.initialVisa)+'"></label>'+
       '<label>جزء البداية المخصص للطوارئ<input name="initialEmergency" min="0" type="number" required value="'+num(p.initialEmergency)+'"></label>'+
       '<label>السيولة التشغيلية من رصيد البداية<input name="initialBuffer" min="0" type="number" required value="'+num(p.initialBuffer)+'"></label>'+
       '<label>طوارئ المرحلة الأولى / شهر<input name="p1Emergency" min="0" type="number" required value="'+num(p.p1Emergency)+'"></label>'+
