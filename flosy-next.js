@@ -373,20 +373,20 @@ async function loadBackups(){
  }catch(e){C.toast("تعذر عرض النسخ: "+e.message)}
 }
 async function restoreBackup(id){
- if(!C.getSession())return C.toast("سجل الدخول أولًا");
- if(!confirm("استرجاع هذه النسخة سيستبدل البيانات الحالية على جهازك وفي حسابك السحابي. سيتم إنشاء نسخة من الحالة الحالية أولًا. هل تريد المتابعة؟"))return;
+ if(!C.getSession())return C.toast("سجّل الدخول أولًا");
+ if(!window.FLOSY_SYNC_V3)return C.toast("محرك المزامنة الآمن لم يتم تحميله. لا يمكن الاسترجاع الآن.");
+ if(!confirm("هل أنت متأكد أنك تريد استرجاع نسخة قديمة؟ سيتم حفظ نسخة محلية ونسخة تاريخية آليًا قبل تغيير السجل السحابي."))return;
  try{
-  await C.ensureSession();const session=C.getSession(),uid=session.user.id;
+  await C.ensureSession();
+  const session=C.getSession(),uid=session.user.id;
   const snapshot=await cloudApi("/rest/v1/flosy_backups?select=payload&user_id=eq."+encodeURIComponent(uid)+"&id=eq."+encodeURIComponent(id));
   if(!snapshot?.length||!snapshot[0].payload)throw Error("النسخة غير متاحة");
-  let old=await cloudApi("/rest/v1/flosy_data?select=payload&user_id=eq."+encodeURIComponent(uid));
-  const oldPayload=old?.[0]?.payload||C.getState();
-  await cloudApi("/rest/v1/flosy_backups",{method:"POST",headers:{"Prefer":"return=minimal"},body:JSON.stringify([{user_id:uid,payload:oldPayload,source:"before_user_restore"}])});
-  let restored=snapshot[0].payload;
-  await cloudApi("/rest/v1/flosy_data?on_conflict=user_id",{method:"POST",headers:{"Prefer":"resolution=merge-duplicates,return=minimal"},body:JSON.stringify([{user_id:uid,payload:restored,updated_at:now()}])});
-  C.replaceState(restored);C.toast("تم استرجاع النسخة. راجع عدد المعاملات والأرصدة.");
+  const restored=snapshot[0].payload;
+  if(!restored||typeof restored!=="object"||!Array.isArray(restored.transactions))throw Error("نسخة غير صالحة");
+  await window.FLOSY_SYNC_V3.restorePayload(restored);
+  C.toast("تم الاسترجاع برقم إصدار جديد. راجع معاملاتك وأرصدتك ثم صدّر نسخة JSON.");
   await loadBackups();
- }catch(e){C.toast("تعذر الاسترجاع: "+e.message)}
+ }catch(e){C.toast("تعذر الاسترجاع دون استبدال البيانات: "+e.message)}
 }
 function receiveScannedSMS(items){
  smsCandidates=Array.isArray(items)?items.slice(0,35).filter(x=>x&&typeof x.text==="string"&&x.text.length<=1200&&Number.isFinite(Number(x.date))):[];
