@@ -25,11 +25,11 @@ const alert=(text,kind="info")=>'<div class="f2-'+kind+'">'+esc(text)+'</div>';
 let draft=null,csvDrafts=[],lastBackupList=[],importStatus="",smsCandidates=[];
 function ensure(){
   let s=S();
-  if(!s.next||typeof s.next!=="object")s.next={recurring:[],rules:[],flexBudget:{target:6000,carry:true},savedViews:[],version:2};
+  if(!s.next||typeof s.next!=="object")s.next={recurring:[],rules:[],flexBudget:{target:0,carry:true},savedViews:[],version:2};
   if(!Array.isArray(s.next.recurring))s.next.recurring=[];
   if(!Array.isArray(s.next.rules))s.next.rules=[];
   if(!Array.isArray(s.next.savedViews))s.next.savedViews=[];
-  if(!s.next.flexBudget)s.next.flexBudget={target:6000,carry:true};
+  if(!s.next.flexBudget)s.next.flexBudget={target:0,carry:true};
   C.persistInitial();
 }
 const F=()=>S().next;
@@ -160,7 +160,7 @@ function renderRules(){
  card('<div class="f2-head"><h3>القواعد الحالية</h3><small>'+F().rules.length+' قاعدة</small></div>'+
  (F().rules.length?F().rules.map(r=>'<div class="f2-list-item"><div><strong>لو الوصف يحتوي: '+esc(r.term)+'</strong><small>تصنيف → '+esc(r.category)+'</small></div>'+smBtn("delete-rule:"+r.id,"حذف")+'</div>').join(""):'<div class="f2-empty">مفيش قواعد لسه.</div>'),"8")+'</div>';
 }
-function digits(s){return String(s).replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776))}
+function digits(s){return String(s).replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).replace(/٬/g,",").replace(/٫/g,".")}
 function fingerprint(raw){let h=2166136261,s=raw.trim().replace(/\s+/g," ").toLowerCase();for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(16)}
 function categoryFromText(raw){
  const a=raw.toLowerCase();
@@ -172,30 +172,56 @@ function categoryFromText(raw){
  if(/uber|careem|اوبر|مواصلات/.test(a))return "مواصلات";
  return "مشتريات";
 }
-function parseSMS(raw){
- const normalized=digits(raw).replace(/\u200e|\u200f/g," ");
- if(normalized.length>5000)throw Error("الرسالة طويلة للغاية");
- if(/\bOTP\b|one.time.password|verification\s*code|رمز\s*(?:التحقق|التفعيل)|كود\s*(?:التحقق|التفعيل)/i.test(normalized))
-  throw Error("هذه تبدو رسالة تحقق أو رمز سري؛ لن نعالجها.");
- const expense=/(?:خصم|سحب|شراء|استخدام|عملية شراء|دفع|تم التحويل من|spent|purchase|withdraw|debited|paid|POS)/i.test(normalized);
- const income=/(?:إيداع|ايداع|إضافة|استلام|وصلتك|تم التحويل إلى|credited|received|deposited|salary)/i.test(normalized);
- if(!expense&&!income)throw Error("لم أتعرف على عملية دفع أو إيداع واضحة. يمكن تسجيلها يدويًا.");
+function parseSMS(raw,options={}){
+ const normalized=digits(String(raw||"")).replace(/[\u200e\u200f]/g," ").trim().slice(0,5000);
+ if(normalized.length<6)throw Error("الرسالة قصيرة ولا يمكن تأكيد معاملة منها");
+ if(/\b(?:OTP|PIN|CVV)\b|one.time.password|verification\s*code|security\s*code|رمز.{0,14}(التحقق|التفعيل|سري)|كود.{0,14}(التحقق|التفعيل)|كلمة\s*(?:مرور|السر)/i.test(normalized))
+  throw Error("رسالة تحقق أو رمز سري؛ لن نقرأها أو نحفظها");
+ if(/فشلت|فشل|لم تتم|تم رفض|pending|failed|declined|cancelled|canceled/i.test(normalized))
+  throw Error("هذه رسالة فشل أو عملية لم تكتمل، وليست حركة مالية مؤكدة");
+ const instapay=/insta[\s-]?pay|انستا\s*باي|إنستا\s*باي/i.test(normalized)||options.source==="instapay";
+ const out=/(?:خصم|سحب|شراء|عملية شراء|دفع|تم إرسال|تم ارسال|تم التحويل إلى|تم التحويل الي|تم تحويل.+(?:إلى|الي)|تحويل صادر|تمت عملية تحويل|debited|withdrawn|paid|purchased|spent|sent|transfer to)/i.test(normalized);
+ const inc=/(?:إيداع|ايداع|إضافة|تم إضافة|استلام|تم استلام|وصلتك|وارد|تم التحويل من|تحويل وارد|credited|received|deposited|salary|transfer from)/i.test(normalized);
+ if(out&&inc)throw Error("اتجاه العملية غير واضح (إرسال/استلام). راجعها وأضفها يدويًا");
+ if(!out&&!inc)throw Error("لا توجد عملية خصم أو استلام مؤكدة؛ استخدم الإدخال اليدوي");
+ const pCurrency=/(?:EGP|جنيه(?:ا)?|ج\.?\s*م\.?|L\.?E\.?)/i;
+ // Look for a labeled transaction amount, never remaining balance/fee/reference.
  const patterns=[
-  /(?:بمبلغ|مبلغ|amount|amt|عملية بقيمة|بقيمة)\s*[:\-]?\s*([0-9][0-9,\s.]{0,18})\s*(?:EGP|جنيه|ج\.م|جم|L\.E\.?)/i,
-  /(?:EGP|جنيه|ج\.م|جم|L\.E\.?)\s*[:\-]?\s*([0-9][0-9,\s.]{0,18})/i,
-  /(?:خصم|شراء|دفع|إيداع|ايداع|سحب|debited|credited|paid)\s*[:\-]?\s*([0-9][0-9,.]{0,18})\s*(?:EGP|جنيه|ج\.م|جم|L\.E\.?)/i
+  /(?:بمبلغ|مبلغ|القيمة|قيمة التحويل|amount|amt|تم خصم|تم استلام|تم إرسال|تم ارسال)\s*[:\-]?\s*(?:EGP|جنيه|ج\.?\s*م\.?)?\s*([0-9][0-9,\s.]{0,16})\s*(?:EGP|جنيه|ج\.?\s*م\.?)?/i,
+  /(?:EGP|جنيه|ج\.?\s*م\.?|L\.?E\.?)\s*[:\-]?\s*([0-9][0-9,\s.]{0,16})/i,
+  /([0-9][0-9,\s.]{0,16})\s*(?:EGP|جنيه|ج\.?\s*م\.?|L\.?E\.?)/i
  ];
- const m=patterns.map(p=>normalized.match(p)).find(Boolean);
- if(!m)throw Error("لم أجد مبلغًا واضحًا بالجنيه المصري؛ راجع الرسالة وأدخلها يدويًا.");
- let rawNum=m[1].replace(/\s/g,"");
- if(rawNum.includes(",")&&rawNum.includes("."))rawNum=rawNum.replace(/,/g,"");
- else if((rawNum.match(/,/g)||[]).length===1&&!rawNum.includes(".")){let parts=rawNum.split(",");rawNum=parts[1].length===3?parts.join(""):parts.join(".")}
- else rawNum=rawNum.replace(/,/g,"");
+ let match=null;
+ for(const pattern of patterns){const m=normalized.match(pattern);if(m){match=m;break}}
+ if(!match&&!pCurrency.test(normalized)&&instapay){
+  match=normalized.match(/(?:حوّلت|حولت|تحويل|أرسلت|ارسلت|استلمت|received|sent)\s*(?:مبلغ)?\s*([0-9][0-9,.]{0,13})/i);
+ }
+ if(!match)throw Error("لم أجد مبلغ معاملة واضحًا؛ لا يمكن الاعتماد على الرصيد أو الرسوم بدلًا منه");
+ let rawNum=String(match[1]||"").trim().replace(/\s/g,"").replace(/[,.]$/,"");
+ if(rawNum.includes(",")&&rawNum.includes(".")){
+  rawNum=rawNum.lastIndexOf(",")>rawNum.lastIndexOf(".")?
+    rawNum.replace(/\./g,"").replace(",","."):rawNum.replace(/,/g,"");
+ }else if(rawNum.includes(",")){
+  const a=rawNum.split(",");rawNum=a.length===2&&a[1].length!==3?a.join("."):a.join("");
+ }else if((rawNum.match(/\./g)||[]).length===1&&rawNum.split(".")[1]?.length===3){
+  rawNum=rawNum.replace(".","");
+ }
  const amount=Number(rawNum);
- if(!Number.isFinite(amount)||amount<=0||amount>100000000)throw Error("المبلغ المستخرج غير صالح");
- let ymd=dateISO();const dm=normalized.match(/\b([0-3]?\d)[\/-]([01]?\d)[\/-](20\d{2})\b/);
- if(dm){const d=new Date(+dm[3],+dm[2]-1,+dm[1]);if(d.getFullYear()==+dm[3]&&d.getMonth()==+dm[2]-1&&d.getDate()==+dm[1])ymd=dateISO(d)}
- return {id:uid(),sourceHash:fingerprint(normalized),amount:amount,type:expense?"expense":"income",date:ymd,category:expense?categoryFromText(normalized):"دخل آخر",description:expense?"عملية مالية مستوردة من رسالة — تحتاج مراجعة":"إيداع مستورد من رسالة — يحتاج مراجعة"};
+ if(!Number.isFinite(amount)||amount<=0||amount>100000000)
+  throw Error("المبلغ المستخرج غير صالح");
+ let day=dateISO();
+ if(Number.isFinite(Number(options.date))&&Number(options.date)>0){
+  const dt=new Date(Number(options.date));if(!Number.isNaN(+dt))day=dateISO(dt);
+ }else{
+  const dm=normalized.match(/\b([0-3]?\d)[/.-]([01]?\d)[/.-](20\d{2})\b/);
+  if(dm){const dt=new Date(+dm[3],+dm[2]-1,+dm[1]);if(dt.getFullYear()===+dm[3]&&dt.getMonth()+1===+dm[2]&&dt.getDate()===+dm[1])day=dateISO(dt)}
+ }
+ const ref=normalized.match(/(?:reference|ref(?:erence)?\s*(?:no|number)?|رقم\s*(?:المرجع|العملية|التحويل)|الرقم\s*المرجعي)\s*[:#\-]?\s*([A-Z0-9-]{6,36})/i)?.[1]||"";
+ const type=out?"expense":"income";
+ return {id:uid(),sourceHash:ref?fingerprint("transaction-ref|"+ref.toLowerCase()+"|"+amount+"|"+type):fingerprint(normalized),
+  amount,type,date:day,category:out?categoryFromText(normalized):"دخل آخر",
+  description:(instapay?"InstaPay": "رسالة مالية")+" — "+(out?"تحويل/خصم":"استلام/إيداع")+" للمراجعة",
+  source:instapay?"instapay_reviewed":"sms_reviewed"};
 }
 function duplicate(d){
  return txs().some(t=>t.sourceHash&&t.sourceHash===d.sourceHash)
@@ -225,10 +251,13 @@ function renderImport(){
  (window.FLOSY_NATIVE_SMS_AVAILABLE?
  card('<div class="f2-head"><h3>قراءة SMS المالية من الهاتف</h3><span class="f2-tag">إذن اختياري</span></div>'+
  '<p>افحص الرسائل المالية الحديثة محليًا بعد منح إذن READ_SMS، ثم اختر رسالة محددة لعرض بياناتها وتأكيد المعاملة.</p>'+
- '<div class="f2-btnrow">'+smBtn("scan-sms-inbox","فحص رسائل SMS الحديثة","primary")+' '+smBtn("clear-sms-inbox","مسح نتائج الفحص من الشاشة")+'</div>'+
- '<div class="f2-privacy">يبحث الإصدار التجريبي في آخر 45 يومًا عن رسائل مالية محتملة، ويستبعد OTP. لا توجد قراءة في الخلفية، ولا رفع للنص الأصلي إلى Supabase أو OpenAI. يمكنك إلغاء الإذن من إعدادات Android.</div>'+
+ '<label class="f2-owner-consent"><input type="checkbox" id="flosySmsOwnerConsent"> <span>أنا صاحب الهاتف أو مخوّل بالاطلاع على رسائله، وأوافق على فحص الرسائل المالية عند الضغط فقط.</span></label>'+
+ '<div class="f2-btnrow">'+smBtn("scan-sms-inbox","فحص SMS بإذني","primary")+' '+smBtn("clear-sms-inbox","مسح نتائج الفحص")+'</div>'+
+ '<div class="f2-btnrow">'+smBtn("instapay-notifications","فحص إشعارات InstaPay الموجودة الآن")+'</div>'+
+ '<p class="f2-privacy">إشعارات InstaPay تتطلب سماحًا منفصلًا من إعدادات Android؛ لا نراقب الإشعارات بالخلفية ولا نجمع رموز التحقق. لا يدعم الويب القراءة المباشرة.</p>'+
+ '<div class="f2-privacy">إصدار SMS Beta فقط: يفحص آخر 45 يومًا بعد موافقتك، ويستبعد OTP. دون قراءة في الخلفية أو رفع الرسائل إلى السحابة. تستطيع إلغاء إذن SMS والإشعارات من إعدادات هاتفك.</div>'+
  (smsCandidates.length?'<div class="f2-info">'+smsCandidates.length+' رسائل محتملة. راجع كل واحدة قبل تسجيلها.</div>'+
- smsCandidates.map((m,i)=>'<div class="f2-list-item"><div><strong>رسالة مالية محتملة • '+esc(new Date(m.date).toLocaleDateString("ar-EG"))+'</strong><small>'+esc(m.text.slice(0,100))+'</small></div>'+smBtn("sms-select:"+i,"مراجعة")+'</div>').join(""):'<div class="f2-empty">مافيش نتائج فحص معروضة حتى الآن.</div>'),"12"):"") +
+ smsCandidates.map((m,i)=>'<div class="f2-list-item"><div><strong>'+(m.source==="instapay"?"إشعار InstaPay":"رسالة مالية")+' • '+esc(new Date(m.date).toLocaleDateString("ar-EG"))+'</strong><small>'+esc(m.text.slice(0,100))+'</small></div>'+smBtn("sms-select:"+i,"مراجعة")+'</div>').join(""):'<div class="f2-empty">مافيش نتائج فحص معروضة حتى الآن.</div>'),"12"):"") +
  card('<h3>استيراد كشف معاملات CSV</h3><p>لملف صادر بنفسك من البنك أو المحفظة. صيغة أعمدة مدعومة: <code>date,description,amount,type</code> مع <code>type</code> يساوي expense أو income. تُراجع العمليات قبل تسجيلها.</p>'+
  '<div class="f2-inputs"><label>ملف CSV<input type="file" accept=".csv,text/csv" id="f2CSVFile"></label>'+
  '<label>الحساب المرتبط بالمعاملات<select id="f2CSVAccount">'+aList()+'</select></label></div>'+
@@ -305,16 +334,28 @@ function addRecord(obj){
 }
 function onAction(action){
  if(action==="go-import")return C.goto("import");
- if(action==="scan-sms-inbox"){
-   if(!window.FLOSY_NATIVE_SMS_AVAILABLE){C.toast("الميزة غير متاحة في إصدار الويب أو APK القياسي");return}
-   window.location.href="flosyapp://sms-scan";return;
+ if(action==="scan-sms-inbox"||action==="instapay-notifications"){
+   if(!window.FLOSY_NATIVE_SMS_AVAILABLE){
+    C.toast("الفحص المباشر بإذن متاح فقط في APK SMS Beta؛ استخدم مشاركة نص رسالة أو لصقها.");return;
+   }
+   if(!$("flosySmsOwnerConsent")?.checked){
+    C.toast("فعّل مربع الموافقة بصفتك صاحب الجهاز أولًا.");return;
+   }
+   const native=window.FlosyNative;
+   const method=action==="scan-sms-inbox"?"sms-scan":"instapay-notifications";
+   if(native&&typeof native.postMessage==="function"){
+    native.postMessage(JSON.stringify({action:method}));
+   }else if(method==="sms-scan"){
+    window.location.href="flosyapp://sms-scan";
+   }else C.toast("حدث APK إلى أحدث نسخة لتفعيل فحص إشعارات InstaPay.");
+   return;
  }
  if(action==="clear-sms-inbox"){smsCandidates=[];draft=null;importStatus="تم مسح نتائج الفحص من الذاكرة.";renderImport();return}
  if(action.startsWith("sms-select:")){
   const n=Number(action.slice(11));const row=smsCandidates[n];
   if(!row){C.toast("لم يتم العثور على الرسالة");return}
   try{
-    let parsed=parseSMS(row.text);
+    let parsed=parseSMS(row.text,{source:row.source||'sms',date:row.date});
     if(duplicate(parsed))throw Error("المعاملة تبدو مسجلة بالفعل");
     draft=parsed;csvDrafts=[];
     importStatus="راجع بيانات الرسالة بعناية: المبلغ والحساب والتاريخ والفئة. النص الخام لا يُحفظ.";
@@ -346,7 +387,7 @@ function onAction(action){
  if(action==="load-backups")return loadBackups();
  if(action.startsWith("restore:"))return restoreBackup(action.slice(8));
  if(action==="sample-csv"){
-  const sample="date,description,amount,type\n2026-11-09,سوبرماركت,120,expense\n2026-11-10,مرتب,17000,income\n";
+  const sample="date,description,amount,type\n2026-01-01,مثال مصروف,100,expense\n2026-01-02,مثال دخل,200,income\n";
   const blob=new Blob(["\uFEFF"+sample],{type:"text/csv;charset=utf-8"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="flosy-csv-example.csv";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
  }
@@ -389,9 +430,11 @@ async function restoreBackup(id){
  }catch(e){C.toast("تعذر الاسترجاع دون استبدال البيانات: "+e.message)}
 }
 function receiveScannedSMS(items){
- smsCandidates=Array.isArray(items)?items.slice(0,35).filter(x=>x&&typeof x.text==="string"&&x.text.length<=1200&&Number.isFinite(Number(x.date))):[];
+ smsCandidates=Array.isArray(items)?items.slice(0,35).filter(x=>x&&typeof x.text==="string"&&x.text.length<=1200&&
+ Number.isFinite(Number(x.date))&&(x.source==="instapay"||x.source===undefined||x.source==="sms"))
+ .map(x=>({date:Number(x.date),source:x.source==="instapay"?"instapay":"sms",text:x.text.slice(0,1200)})):[];
  draft=null;csvDrafts=[];
- importStatus="تم الفحص محليًا. اختر رسالة لمراجعة المبلغ والحساب والتصنيف؛ لم تُسجل أي معاملة.";
+ importStatus=smsCandidates.length?"تم العثور على "+smsCandidates.length+" رسائل/إشعارات. اختر المعاملة لمراجعتها؛ لم يُحفظ شيء.":"لم نعثر على رسائل أو إشعارات مكتملة ومتاحة الآن. يمكنك مشاركة رسالة من التطبيق يدويًا.";
  C.goto("import");renderImport();
 }
 function receiveSharedText(message){

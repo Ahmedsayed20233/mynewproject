@@ -268,7 +268,7 @@ test("WebView native OCR contract uses reviewed parseReceipt; browser camera rem
  const capture=fs.readFileSync("flosy-v4-capture.js","utf8");
  assert.match(repair,/receiveNativeReceipt/);
  assert.match(repair,/FLOSY_NATIVE_OCR_AVAILABLE/);
- assert.match(capture,/data-v4-import="ocr"/);
+ assert.match(repair,/data-v4-import="ocr"/);
  assert.match(repair,/Tesseract/);
 });
 
@@ -324,7 +324,7 @@ test("Flosy AI defaults to free mode, API stays optional and offline shell is ve
  assert.match(ai,/answerFree/);
  assert.match(ai,/OpenAI API/);
  assert.ok(sw.includes("flosy-ai.js?v=700"));
- assert.ok(sw.includes("flosy-repair.js?v=700"));
+ assert.ok(sw.includes("flosy-repair.js?v=1001"));
 });
 
 
@@ -454,10 +454,63 @@ test("Studio quick launcher is an enhancement over the existing canonical transa
  assert.match(html,/id="flosyStudioHome"/);
  assert.match(html,/id="flosyStudioSettings"/);
  assert.match(html,/flosy-studio.js\?v=901/);
- assert.match(html,/flosy-studio.css\?v=901/);
+ assert.match(html,/flosy-studio.css\?v=1001/);
  assert.match(sw,/flosy-studio.js\?v=901/);
- assert.match(sw,/flosy-studio.css\?v=901/);
+ assert.match(sw,/flosy-studio.css\?v=1001/);
  const css=fs.readFileSync("flosy-studio.css","utf8");
  assert.match(css,/color-scheme:light!important/);
  assert.match(css,/u3-launcher-backdrop/);
+});
+
+
+test("InstaPay sent and received alerts parse with correct direction, even with Arabic digits",()=>{
+ const a=context();load("flosy-next.js",a);
+ const received=a.window.FLOSY_NEXT.parseSMS("InstaPay: تم استلام مبلغ ١٬٢٥٠٫٥٠ جنيه من حساب آخر");
+ // Decimal punctuation varies by bank; use a standard example when importer requires EGP grammar.
+ assert.equal(received.amount,1250.5);
+ const expense=a.window.FLOSY_NEXT.parseSMS("InstaPay تم إرسال مبلغ 250.00 EGP إلى أحمد");
+ const income=a.window.FLOSY_NEXT.parseSMS("InstaPay تم استلام مبلغ 750 EGP من محمد");
+ assert.equal(expense.type,"expense");assert.equal(expense.amount,250);
+ assert.equal(income.type,"income");assert.equal(income.amount,750);
+ assert.equal(expense.source,"instapay_reviewed");
+ assert.equal(a.data.transactions.length,0,"Parsing never imports without user review");
+});
+test("Payment importer rejects OTP and failed InstaPay transfers",()=>{
+ const a=context();load("flosy-next.js",a);
+ assert.throws(()=>a.window.FLOSY_NEXT.parseSMS("OTP 223233 InstaPay sent 500 EGP"),/تحقق|رمز/);
+ assert.throws(()=>a.window.FLOSY_NEXT.parseSMS("InstaPay فشلت عملية تحويل مبلغ 500 EGP"),/فشل/);
+ assert.throws(()=>a.window.FLOSY_NEXT.parseSMS("InstaPay مبلغ 400 EGP"),/لا توجد عملية/);
+});
+test("Privacy is user-controlled and never persists a hidden mask on visibilitychange",()=>{
+ const p=fs.readFileSync("flosy-v4-family-privacy.js","utf8");
+ const css=fs.readFileSync("flosy-studio.css","utf8");
+ assert.match(p,/data-balance-privacy/);
+ assert.doesNotMatch(p,/if\s*\(\s*document.hidden\s*\)\s*privateVisibility\s*\(\s*true\s*\)/);
+ assert.match(css,/body:not\(\.v4-private\)/);
+ const ui=fs.readFileSync("flosy-v5-command.js","utf8");
+ assert.match(ui,/flosyPrivacyQuickToggle/);
+});
+test("New user has zero financial assumptions while existing records stay intact",()=>{
+ const html=fs.readFileSync("index.html","utf8");
+ const pro=fs.readFileSync("finance-pro.js","utf8");
+ const next=fs.readFileSync("flosy-next.js","utf8");
+ assert.match(html,/const def=\{salary:0,rent:0,bills:0,living:0,emergencyTarget:0/);
+ assert.doesNotMatch(pro,/planSave<8000/);
+ assert.match(pro,/initialVisa:0,initialEmergency:0,initialBuffer:0/);
+ assert.doesNotMatch(pro,/state\.settings\.investmentTarget\s*=\s*39000/);
+ assert.match(next,/flexBudget:\{target:0,carry:true\}/);
+});
+test("Capture has one clear voice/receipt studio, review-only and a dedicated import route",()=>{
+ const cap=fs.readFileSync("flosy-v4-capture.js","utf8");
+ const repair=fs.readFileSync("flosy-repair.js","utf8");
+ const html=fs.readFileSync("index.html","utf8");
+ assert.match(repair,/id="v4-voice-text"/);
+ assert.match(repair,/id="v4-ocr-file"/);
+ assert.match(repair,/data-repair="voice"/);
+ assert.match(repair,/data-repair="native-camera"/);
+ assert.match(repair,/data-repair="open-import"/);
+ assert.match(repair,/id="flosyRepairOCRText"/);
+ assert.match(cap,/id="v4-capture-review"/);
+ assert.match(html,/flosy-capture-v10\.css\?v=1001/);
+ assert.ok(html.indexOf('id="flosyRepairRoot"')<html.indexOf('id="v4-capture"></div>'));
 });

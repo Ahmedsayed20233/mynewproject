@@ -173,3 +173,7 @@ body.u3-launch-open .mobile-more-shade{display:none!important}
  .u3-launcher{max-height:calc(94dvh - env(safe-area-inset-bottom,0px))}
  .u3-launcherfoot{margin-top:12px}
 }
+
+/* Mask only by explicit user action. Avoid inherited filters and dark fallback. */
+body:not(.v4-private) :is([data-money],.v4-sensitive,.metric .value,.f2-kpi strong,.pro-stat strong,.v5-primarystat strong,.v4-reminder-row strong){filter:none!important;-webkit-filter:none!important;opacity:1!important;text-shadow:none!important}
+#flosyPrivacyQuickToggle[aria-pressed="true"]{background:#FFF5E8!important;color:#895833!important;border-color:#E9CDA7!important}

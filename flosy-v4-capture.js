@@ -169,26 +169,11 @@ function renderReview(){
 }
 function review(d,message){pending=d;staged=[];rawOutput="";notification=message||"راجع كل خانة، ثم وافق على الحفظ.";renderReview()}
 function captureForm(){
- return '<div class="v4-hero"><div class="v4-eyebrow">QUICK ADD · EGYPT FIRST</div><h2>سجّل مصروفك بطريقتك</h2><p>بالعامية المصرية، بصورة إيصال، أو برسالة بنك. كل عملية تُعرض للمراجعة قبل حفظها.</p></div>'+
- '<div class="v4-bento">'+
- '<div class="v4-surface v4-half"><div class="v4-head"><h3>🎙️ مصروف بالصوت المصري</h3><span class="v4-badge">ar-EG</span></div>'+
- '<div class="v4-chips"><button class="v4-btn" type="button" data-v4-import="voice">ابدأ تسجيل الصوت</button><span class="v4-chip">«دفعت 75 جنيه قهوة من الفيزا»</span></div>'+
- '<form id="v4-voice-text" class="v4-form" style="margin-top:13px"><label class="full">ممكن تكتب الجملة لو الميكروفون مش متاح<textarea name="spoken" rows="2" maxlength="280" required placeholder="دفعت 120 جنيه غداء من البنك امبارح"></textarea></label>'+
- '<button class="v4-btn secondary full">تحليل الجملة</button></form>'+
- '<p class="v4-fineprint">التعرف الصوتي قد يستخدم خدمة نطق خارجية بحسب الهاتف/المتصفح. لا تُخزن التسجيلات الصوتية في Flosy.</p></div>'+
- '<div class="v4-surface v4-half"><div class="v4-head"><h3>📷 تصوير إيصال (OCR)</h3><span class="v4-badge">معاينة أولًا</span></div>'+
- '<input id="v4-ocr-file" type="file" accept="image/png,image/jpeg,image/webp" capture="environment" aria-label="صورة إيصال" />'+
- '<div class="v4-chips" style="margin-top:10px"><button type="button" data-v4-import="ocr" class="v4-btn">استخراج من الصورة</button></div>'+
- '<p class="v4-fineprint">معالجة الصورة داخل المتصفح باستخدام Tesseract.js؛ تُحمّل مكتبة التعرف واللغات من الإنترنت عند أول استخدام. قد تخطئ في السعر أو التاريخ؛ تأكد بنفسك.</p></div>'+
- '<div class="v4-surface v4-half"><h3>💬 تحليل رسالة مالية</h3><form class="v4-form" id="v4-sms-form">'+
- '<label class="full">رسالة SMS مالية تختارها<textarea rows="3" name="sms" maxlength="5000" placeholder="CIB: Your card purchase EGP 250.00" required></textarea></label>'+
- '<button type="submit" class="v4-btn full">تحليل الرسالة بدون حفظ تلقائي</button></form>'+
- '<p class="v4-fineprint">دعم مبدئي لعبارات CIB، البنك الأهلي، بنك مصر، QNB، بنك القاهرة، الإسكندرية، InstaPay، المحافظ. لازم تختبر نماذج البنك الفعلية؛ رموز OTP مرفوضة.</p></div>'+
- '<div class="v4-surface v4-half"><h3>📑 كشف بنك CSV</h3>'+
- '<p>الملفات تختلف من بنك لبنك؛ استخدم استيراد CSV الذكي لتحديد أعمدة التاريخ والمبلغ والخصم والإضافة والوصف يدويًا عند الحاجة.</p>'+
- '<button class="v4-btn secondary" type="button" data-v4-import="bank">فتح مستورد CSV الذكي</button>'+
- '<p class="v4-fineprint">لا يوجد ربط مباشر بأي بنك أو سحب تلقائي لسجلات الحساب.</p></div>'+
- '<div class="v4-surface v4-full"><div class="v4-head"><h3>مراجعة العملية قبل الحفظ</h3><span class="v4-badge">تحت سيطرتك</span></div><div id="v4-capture-review"></div></div></div>';
+ return '<section class="f10-review" aria-label="مراجعة المعاملة المالية">'+
+  '<div class="f10-review-head"><span class="f10-step">03</span><div><h3>راجع العملية قبل حفظها</h3>'+
+  '<p>تقدر تعدّل الحساب، والمبلغ، والتصنيف، والتاريخ. لا يتم تسجيل أي حركة بدون تأكيد.</p></div></div>'+
+  '<div id="v4-capture-review"></div>'+
+ '</section>';
 }
 function render(){
  const node=el("v4-capture");if(!node)return;

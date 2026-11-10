@@ -70,9 +70,19 @@ function renderFamily(){
  '<div class="v4-empty">مفيش مصروفات عائلية بعد.</div>','v4-full'):"")+
  '</div>';
 }
-function privateVisibility(enabled){
- localStorage.setItem("flosy_v4_hide_balances",enabled?"1":"0");
- document.body.classList.toggle("v4-private",enabled);
+// Privacy masking is ONLY a user decision; tab switching, taking photos or opening
+// Android settings must never secretly persist a mask and leave values blurred.
+function privateVisibility(hidden){
+ const value=Boolean(hidden);
+ document.body.classList.toggle("v4-private",value);
+ document.body.setAttribute?.("data-balance-privacy",value?"hidden":"visible");
+ localStorage.setItem("flosy_v4_hide_balances",value?"1":"0");
+ const button=E("flosyPrivacyQuickToggle");
+ if(button){
+  button.setAttribute?.("aria-pressed",value?"true":"false");
+  button.setAttribute?.("aria-label",value?"إظهار الأرصدة":"إخفاء الأرصدة");
+  button.textContent=value?"◉ إظهار الأرقام":"◌ إخفاء الأرقام";
+ }
 }
 function renderPrivacy(){
  const root=E("v4-privacy");if(!root)return;
@@ -81,7 +91,7 @@ function renderPrivacy(){
  '<div class="v4-bento">'+
  card("إخفاء الأرقام الحساسة",'<div class="v4-note">يمكنك إخفاء المبالغ من الواجهة على الجهاز الحالي. الإخفاء البصري لا يشفّر البيانات المحلية.</div>'+
  '<button type="button" class="v4-btn" data-v4-private="toggle">'+(hid?(w.FLOSY_NATIVE_BIOMETRIC_AVAILABLE?"إظهار بالبصمة / الوجه":"إظهار الأرصدة"):"إخفاء الأرصدة")+'</button>'+
- '<p>يفعّل Flosy الإخفاء تلقائيًا عند إبعاد التطبيق إلى الخلفية، ويظل مخفيًا حتى تسمح بإظهاره.</p>')+
+ '<p>الإخفاء اختيار منك فقط. فتح الكاميرا أو تغيير التطبيق لا يخفي الأرقام تلقائيًا. اضغط «إظهار الأرصدة» في أي وقت.</p>')+
  card("النسخ والاسترجاع",'<div class="v4-chips">'+
  '<button class="v4-btn" data-v4-private="export" type="button">تصدير JSON</button>'+
  '<button class="v4-btn secondary" data-v4-private="recovery" type="button">سجل النسخ السحابية</button></div>'+
@@ -200,13 +210,8 @@ document.addEventListener("click",async e=>{
   }
  }catch(err){C.toast("تعذر تنفيذ الأمر: "+err.message)}
 });
-function privateVisibility(hidden){
- document.body.classList.toggle("v4-private",hidden);
- localStorage.setItem("flosy_v4_hide_balances",hidden?"1":"0");
-}
-document.addEventListener("visibilitychange",()=>{
- if(document.hidden)privateVisibility(true);
-});
+// Removing the legacy visibilitychange auto-blur fixes balance values remaining
+// obscured after opening the Android camera, permission prompts, or app switcher.
 function render(){renderFamily();renderPrivacy()}
 privateVisibility(localStorage.getItem("flosy_v4_hide_balances")==="1");
 w.FLOSY_V4_FAMILY={
