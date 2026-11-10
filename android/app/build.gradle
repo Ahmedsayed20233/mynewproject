@@ -21,8 +21,8 @@ android {
         applicationId 'com.flosy.finance'
         minSdk 24
         targetSdk 35
-        versionCode 12
-        versionName '2.7.0'
+        versionCode 13
+        versionName '2.8.0'
     }
 
 
@@ -38,6 +38,12 @@ android {
             dimension 'permissionLevel'
             applicationIdSuffix '.sms'
             // Safe Import variant supports only share/paste and CSV, with no restricted SMS permissions.
+        }
+        auto {
+            dimension 'permissionLevel'
+            applicationIdSuffix '.auto'
+            // Play review candidate only. Never sideload/release from GitHub Actions.
+            // READ_SMS/RECEIVE_SMS and listener are declared ONLY in src/auto.
         }
     }
 
