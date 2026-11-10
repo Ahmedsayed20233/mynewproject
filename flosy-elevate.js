@@ -306,8 +306,15 @@ function move(step){
  transactionPage();
 }
 document.addEventListener("click",event=>{
- const t=event.target.closest?.("[data-u-go],[data-u-period],[data-u-move],[data-u-wealth],[data-u-accept],[data-u-dismiss],[data-u-remove],[data-u-snapshot]");
+ const t=event.target.closest?.("[data-u-go],[data-u-period],[data-u-move],[data-u-wealth],[data-u-accept],[data-u-dismiss],[data-u-remove],[data-u-snapshot],[data-u-advanced]");
  if(!t)return;
+ if(t.hasAttribute("data-u-advanced")){
+  const page=E("page-dashboard");if(!page)return;
+  const closed=page.classList.toggle("u-advanced-hidden");
+  t.setAttribute("aria-expanded",String(!closed));
+  t.textContent=closed?"◫ عرض التحليلات المتقدمة والحسابات ↓":"◫ إخفاء التفاصيل الموسعة ↑";
+  return;
+ }
  if(t.dataset.uGo)return C.goto(t.dataset.uGo);
  if(t.dataset.uPeriod){period=t.dataset.uPeriod;transactionPage();return}
  if(t.dataset.uMove){move(Number(t.dataset.uMove));return}
