@@ -167,7 +167,7 @@
 </nav><div class="sidefooter"><div>✦ إدارة مالية عملية</div><strong>خطوة صغيرة كل يوم</strong><p>دخلك 17,000 ج.م · فائضك المخطط 8,000 ج.م</p></div></aside>
 <main class="main"><div class="top"><div><div class="eyebrow" id="nowLabel">ملخص وضعك المالي</div><h1 id="pageTitle">مرحبًا بك في فلوسي 👋</h1></div><div class="topactions"><button class="chip" id="monthChip">هذا الشهر ▾</button><button class="chip" id="themeBtn" title="تغيير المظهر">☾</button><button class="chip" id="storageChip" title="الحفظ والمزامنة" aria-label="إعدادات الحفظ والمزامنة">💾 حفظ محلي</button><button class="chip" data-go="settings" id="settingsShortcut" title="الإعدادات والمزامنة" aria-label="الإعدادات والمزامنة">⚙</button><button class="btn primary" id="addBtn">＋ إضافة معاملة</button></div></div>
 <section class="page active" id="page-dashboard">
-<div id="flosyNextHome"></div>
+<div id="flosyNextHome"></div><div id="flosyV3SyncStatus" style="margin:0 0 14px"></div>
 <div id="wealthHighlights"></div>
 <div class="grid kpis">
 <div class="card metric highlight"><span class="corner">↗</span><div class="metriclabel">الفائض الشهري المخطط</div><div class="value" id="kSurplus">—</div><div class="sub">بعد المصروفات المستهدفة</div></div>
@@ -263,7 +263,11 @@ function normalizeData(d){
 function load(){try{return normalizeData(JSON.parse(localStorage.getItem(STORE)))}catch{return normalizeData({})}}
 function save(fromCloud=false){
  if(!fromCloud)state._updatedAt=new Date().toISOString();
- try{localStorage.setItem(STORE,JSON.stringify(state));render()}catch(err){render();toast('تعذر الحفظ على الجهاز. تحقق من مساحة التخزين وإعدادات الخصوصية')}
+ try{
+   localStorage.setItem(STORE,JSON.stringify(state));
+   if(!fromCloud&&window.FLOSY_SYNC_V3)window.FLOSY_SYNC_V3.onLocalChange();
+   render();
+ }catch(err){render();toast('تعذر الحفظ على الجهاز؛ لا تحذف التطبيق. صدّر بياناتك، وراجع مساحة التخزين')}
 }function loadCloud(){try{const d=JSON.parse(localStorage.getItem(CLOUD))||{};return {url:d.url||"https://vzuitcaarklesgehznha.supabase.co",key:d.key||"sb_publishable_g3aHnf_b3m_HSCfWQIRtVg_vUzlMOJa"}}catch{return{url:"https://vzuitcaarklesgehznha.supabase.co",key:"sb_publishable_g3aHnf_b3m_HSCfWQIRtVg_vUzlMOJa"}}}function toast(msg){$('toast').textContent=msg;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',3300)}
 function subcategoryOptions(){
  const type=$('formType').value,category=$('formCategory').value;
@@ -586,34 +590,9 @@ async function cloudBackupSnapshot(payload,source){
   body:JSON.stringify([{user_id:session.user.id,payload:payload,source}])});
 }
 
-async function sync(){
- if(saving){syncPending=true;return;}
- if(!session)return toast('سجّل دخولك أولًا');
- saving=true;
- try{
-  if(!await ensureSession())throw Error('سجّل الدخول أولًا');
-  const remote=await api('/rest/v1/flosy_data?select=payload&user_id=eq.'+encodeURIComponent(session.user.id),{
-    headers:{'Prefer':'return=representation'}
-  });
-  const r=remote&&remote[0]?remote[0].payload:null;
-  const merged=r?mergeFinanceData(r,state):normalizeData(state);
-  const payload=[{user_id:session.user.id,payload:merged,updated_at:new Date().toISOString()}];
-  if(r&&JSON.stringify(r)!==JSON.stringify(merged)){
-    await cloudBackupSnapshot(r,'before_sync');
-  }
-  await api('/rest/v1/flosy_data?on_conflict=user_id',{
-   method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
-   body:JSON.stringify(payload)
-  });
-  await cloudBackupSnapshot(merged,'after_sync');
-  state=merged;
-  localStorage.setItem('flosy_last_sync_'+session.user.id,new Date().toISOString());
-  save(true);
-  toast('تمت مزامنة الحسابات والاستثمارات والمعاملات بأمان');
- }catch(err){toast('تعذرت المزامنة: '+err.message)}
- finally{saving=false;if(syncPending){syncPending=false;if(session)sync()}}
-}
-function syncIfReady(){if(session){if(saving)syncPending=true;else sync()}}
+// The legacy blind upsert is intentionally disabled. All cloud writes go through revision CAS.
+function sync(){return window.FLOSY_SYNC_V3?window.FLOSY_SYNC_V3.requestSync():Promise.resolve(false)}
+function syncIfReady(){/* save() directly notifies the v3 change tracker */}
 
 window.FLOSY_BRIDGE={
  getState:()=>state,
@@ -625,13 +604,14 @@ window.FLOSY_BRIDGE={
  getCloud:()=>cloud,
  cloudApi:api,
  ensureSession:ensureSession,
- replaceState:(payload)=>{state=normalizeData(payload);state._updatedAt=new Date().toISOString();save(true);render()},
+ replaceState:(payload)=>{state=normalizeData(payload);save(true)},
  persistInitial:()=>{try{localStorage.setItem(STORE,JSON.stringify(state))}catch{}},
  mutate:(fn)=>{fn(state);save();syncIfReady()}
 };
-try{let s=JSON.parse(sessionStorage.getItem('flosy_session'));if(s&&s.refresh_token)session=s}catch{}categoryOptions();render();if(session)sync();})();
+try{let s=JSON.parse(sessionStorage.getItem('flosy_session'));if(s&&s.refresh_token)session=s}catch{}categoryOptions();render();})();
 </script>
 <script src="finance-pro.js?v=131"></script>
 <script src="flosy-next.js?v=202"></script>
 <script src="flosy-ai.js?v=210"></script>
+<script src="flosy-sync-v3.js?v=300"></script>
 </body></html>
