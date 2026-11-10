@@ -92,16 +92,7 @@ async function startLocal(){
    window.FLOSY_BRIDGE.getState().elevate?.categoryBudgets?.["طعام ومشروبات"]?.amount);
   assert.equal(activeBudget,200,"Suggested category budget must be explicit and conservative");
   await page.evaluate(()=>window.FLOSY_BRIDGE.goto("transactions"));
-  const activityDiagnostic=await page.evaluate(()=>{
-    const el=document.getElementById("flosyElevateTransactions");
-    const initial=el?.innerHTML.length??-1;
-    let result="ok";
-    try{window.FLOSY_ELEVATE.render()}catch(e){result=String(e.stack||e)}
-    return {rootExists:!!el,initial,after:el?.innerHTML.length??-1,
-      periodButtons:document.querySelectorAll('button[data-u-period]').length,
-      module:typeof window.FLOSY_ELEVATE,errors:result};
-  });
-  console.log("ELEVATE ACTIVITY DIAGNOSTIC",JSON.stringify(activityDiagnostic));
+  assert.equal(await page.locator("#flosyElevateTransactions").count(),1);
   assert.equal(await page.locator('button[data-u-period="month"]').count(),1);
   await page.locator("#flosyElevateSearch").fill("EXACT_MARKER");
   const searched=await page.evaluate(()=>window.FLOSY_ELEVATE.periodRows().rows);
