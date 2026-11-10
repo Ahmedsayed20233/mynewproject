@@ -64,11 +64,15 @@ function recurringDue(){
 }
 function rolloverBudget(){
  const prefs=F().flexBudget,target=num(prefs.target);
- let spentThis=txMonth(monthKey(),"expense");
+ const isFlexible=t=>t.type==="expense"&&t.category!=="إيجار"&&!["فواتير","فاتورة الإنترنت","فاتورة شحن رصيد","فاتورة الكهرباء","فاتورة الأنبوبة","فاتورة صيانة الشقة"].includes(t.category);
+ let spentThis=txs().filter(t=>isFlexible(t)&&String(t.date).slice(0,7)===monthKey()).reduce((n,t)=>n+num(t.amount),0);
  let carried=0;
  if(prefs.carry){
-  const hist=monthlyHistory(6),recorded=hist.slice(0,-1).filter(m=>txs().some(t=>String(t.date).slice(0,7)===m.key));
-  recorded.forEach(m=>{carried+=target-m.expense;carried=Math.min(target*3,Math.max(-target,carried))});
+  const hist=monthlyHistory(6),recorded=hist.slice(0,-1).filter(m=>txs().some(t=>isFlexible(t)&&String(t.date).slice(0,7)===m.key));
+  recorded.forEach(m=>{
+    const flexSpent=txs().filter(t=>isFlexible(t)&&String(t.date).slice(0,7)===m.key).reduce((a,t)=>a+num(t.amount),0);
+    carried+=target-flexSpent;carried=Math.min(target*3,Math.max(-target,carried));
+  });
  }
  return {target,carry:carried,available:target+carried,spent:spentThis,remaining:target+carried-spentThis};
 }
@@ -126,7 +130,7 @@ function renderSmart(){
  '<form id="f2FlexForm" class="f2-inputs">'+input("target","السقف الشهري بالجنيه","number",'min="0" step="1" value="'+num(F().flexBudget.target)+'"')+
  '<label>ترحيل غير المستخدم للأشهر التالية<select name="carry"><option value="yes" '+(F().flexBudget.carry?'selected':'')+'>مفعّل</option><option value="no" '+(!F().flexBudget.carry?'selected':'')+'>متوقف</option></select></label>'+
  '<button type="submit" class="f2-toolbutton primary full">حفظ إعداد الميزانية</button></form>'+
- '<p>الترحيل يُحسب بصورة تقريبية من آخر خمسة أشهر ويسري على المبلغ المرن كله. لا يُنشئ معاملات أو ينقل أموالًا فعلية.</p>',"6")+
+ '<p>الترحيل يُحسب بصورة تقريبية من الأشهر التي سجلت فيها مصروفات مرنة فقط، بعد استبعاد الإيجار والفواتير. لا ينقل أموالًا فعلية.</p>',"6")+
  card('<h3>ملخص الإنفاق</h3><div class="f2-balance"><span>استخدام الميزانية</span><strong>'+pct+'%</strong></div><div class="f2-progress"><i style="width:'+Math.min(100,pct)+'%"></i></div>'+
  '<div class="f2-balance"><span>مقارنة بالشهر الماضي</span><strong>'+(i.prev?Math.round(i.prev.percent)+'%':'بيانات غير كافية')+'</strong></div>'+
  '<p>المراجعة تعتمد على المعاملات المسجلة؛ الراتب المخطط لا يُعامل كدخل فعلي.</p>',"6")+
