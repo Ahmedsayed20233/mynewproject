@@ -230,3 +230,44 @@ test("Even the first unstyled HTML shell defaults to light; no dark startup flas
  assert.doesNotMatch(html,/--bg:#081422|background:linear-gradient\(180deg,#0b1c30/);
  assert.match(html,/<body class="light">/);
 });
+
+
+test("Repair UI renders manual OCR review and keeps every expense approval-only",()=>{
+ const c=context();load("flosy-v4-capture.js",c);load("flosy-repair.js",c);
+ assert.match(c.elems.flosyRepairRoot.innerHTML,/flosyRepairOCRText/);
+ assert.match(c.elems.flosyRepairRoot.innerHTML,/data-repair="voice"/);
+ assert.equal(c.data.transactions.length,0);
+ const r=c.window.FLOSY_REPAIR.proposeReceipt(["Cafe Campus","TOTAL: EGP 125.00"].join(String.fromCharCode(10)),"manual");
+ assert.equal(r,true,c.elems.flosyOcrStatus?.textContent||"Receipt parsing returned false");
+ assert.equal(c.data.transactions.length,0,"Extraction must never save expense automatically");
+ assert.match(c.elems["v4-capture-review"].innerHTML,/125/);
+});
+test("Flosy assistant generates trustworthy local figures and never sends transaction records",()=>{
+ const c=context();c.data.transactions.push({id:"t1",type:"expense",amount:80,date:new Date().toISOString().slice(0,7)+"-02"});
+ c.window.FLOSY_PHASE1={calculate:()=>({safe:800,daily:50,days:16,obligations:500})};
+ load("flosy-assistant-bridge.js",c);
+ const helper=c.window.FLOSY_ASSIST_TOOLS;
+ assert.ok(helper.evidence().expenses===80);
+ assert.match(helper.localInsight(),/80|٨٠/);
+ assert.match(c.elems.flosyAssistantBridgeRoot.innerHTML,/ChatGPT/);
+ assert.equal(c.data.transactions.length,1);
+});
+test("Supabase assistant uses a supported model and exposes no API secrets from health",()=>{
+ const edge=fs.readFileSync("supabase/functions/flosy-ai/index.ts","utf8");
+ assert.match(edge,/gpt-5\.4-mini/);
+ assert.doesNotMatch(edge,/gpt-6-luna/);
+ assert.match(edge,/ai_ready/);
+ assert.match(edge,/auth\/v1\/user/);
+ assert.match(edge,/OPENAI_API_KEY/);
+ const site=fs.readFileSync("index.html","utf8");
+ assert.match(site,/flosy-assistant-bridge\.js/);
+ assert.match(site,/flosy-repair\.js/);
+});
+test("WebView native OCR contract uses reviewed parseReceipt; browser camera remains available",()=>{
+ const repair=fs.readFileSync("flosy-repair.js","utf8");
+ const capture=fs.readFileSync("flosy-v4-capture.js","utf8");
+ assert.match(repair,/receiveNativeReceipt/);
+ assert.match(repair,/FLOSY_NATIVE_OCR_AVAILABLE/);
+ assert.match(capture,/data-v4-import="ocr"/);
+ assert.match(repair,/Tesseract/);
+});

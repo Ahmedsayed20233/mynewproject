@@ -197,7 +197,7 @@
 <section class="page" id="page-plan"><div id="proPlan"></div></section>
 <section class="page" id="page-risk"><div id="proRisk"></div></section>
 <section class="page" id="page-phase1"><div id="phase1Root"></div></section>
-<section class="page" id="page-v4-capture"><div id="v4-capture"></div></section>
+<section class="page" id="page-v4-capture"><div id="v4-capture"></div><div id="flosyRepairRoot"></div></section>
 <section class="page" id="page-v4-bank"><div id="v4-bank"></div></section>
 <section class="page" id="page-v4-wealth"><div id="v4-wealth"></div></section>
 <section class="page" id="page-v4-crisis"><div id="v4-crisis"></div></section>
@@ -208,7 +208,7 @@
 <section class="page" id="page-rules"><div id="f2-rules"></div></section>
 <section class="page" id="page-import"><div id="f2-import"></div></section>
 <section class="page" id="page-recovery"><div id="f2-backups"></div></section>
-<section class="page" id="page-ai"><div id="flosyAiRoot"></div></section>
+<section class="page" id="page-ai"><div id="flosyAiRoot"></div><div id="flosyAssistantBridgeRoot"></div></section>
 <section class="page" id="page-reports"><div class="grid reportgrid"><div class="card"><div class="sectiontitle"><h3>الدخل والمصروفات في آخر 6 أشهر</h3><span>بالجنيه المصري</span></div><div class="chart" id="sixChart"></div></div><div class="card"><div class="sectiontitle"><h3>استنتاجات الميزانية</h3><span>حسب البيانات المسجلة</span></div><div id="insights" class="callout"></div></div></div><div class="card" style="margin-top:15px"><h3>مؤشرات الأداء</h3><div id="kpiReport" class="grid kpis"></div></div><div class="card report-builder" style="margin-top:15px">
 <div class="sectiontitle"><h3>تقرير مالي تفصيلي للطباعة PDF</h3><span>أسبوع • 1–24 شهرًا • فترة مخصصة</span></div>
 <div class="report-tools">
@@ -654,10 +654,10 @@ try{let s=JSON.parse(sessionStorage.getItem('flosy_session'));if(s&&s.refresh_to
 </script>
 <script src="finance-pro.js?v=131"></script>
 <script src="flosy-next.js?v=202"></script>
-<script src="flosy-ai.js?v=210"></script>
+<script src="flosy-ai.js?v=602"></script>
 <script src="flosy-phase1.js?v=311"></script>
 <script src="flosy-sync-v3.js?v=302"></script>
-<script src="flosy-v4-capture.js?v=500"></script>
+<script src="flosy-v4-capture.js?v=602"></script>
 <script src="flosy-v4-bank.js?v=500"></script>
 <script src="flosy-v4-wealth.js?v=400"></script>
 <script src="flosy-v4-family-privacy.js?v=402"></script>
@@ -665,4 +665,6 @@ try{let s=JSON.parse(sessionStorage.getItem('flosy_session'));if(s&&s.refresh_to
 <script src="flosy-v4-reminders.js?v=501"></script>
 <script src="flosy-v5-command.js?v=500"></script>
 <script src="flosy-v5-private-backup.js?v=500"></script>
+<script src="flosy-repair.js?v=602"></script>
+<script src="flosy-assistant-bridge.js?v=602"></script>
 </body></html>
