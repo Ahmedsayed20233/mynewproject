@@ -1,18 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Only the optional SMS Beta product flavor requests protected SMS access. -->
-    <uses-permission android:name="android.permission.READ_SMS" />
-    <application>
-        <!-- Android settings controls this privileged access. The service collects
-             nothing in the background: only an explicit scan of active InstaPay alerts. -->
-        <service
-            android:name=".InstaPayNotificationReader"
-            android:label="Flosy — InstaPay اختياري"
-            android:exported="false"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
-            <intent-filter>
-                <action android:name="android.service.notification.NotificationListenerService" />
-            </intent-filter>
-        </service>
-    </application>
+    <!-- This optional variant uses the Android share chooser, never full inbox
+         access or notification listening. Do not add restricted permissions. -->
 </manifest>
