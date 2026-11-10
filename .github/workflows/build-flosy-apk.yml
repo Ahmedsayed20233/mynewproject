@@ -56,10 +56,14 @@ jobs:
               android/app/src/main/AndroidManifest.xml android/app/src/sms/AndroidManifest.xml; then
             echo "Blocked: restricted SMS/notification permission in Android manifest"; exit 1
           fi
-          if grep -Eq 'Telephony.Sms|Manifest.permission.READ_SMS|InstaPayNotificationReader' \
+          # The Play-reviewed auto flavor has explicit permission checks in MainActivity,
+          # but Standard and Safe Import must NEVER include the restricted permissions
+          # in the merged APK manifests; this is checked below with aapt.
+          if grep -Eq 'Telephony.Sms|InstaPayNotificationReader' \
               android/app/src/main/java/com/flosy/finance/MainActivity.java; then
-            echo "Blocked: retired broad SMS/notification scanner still referenced"; exit 1
+            echo "Blocked: retired unscoped scanner still referenced"; exit 1
           fi
+          grep -q 'if(!isAutoImportVariant())return;' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -q 'android.intent.action.SEND' android/app/src/main/AndroidManifest.xml
 
       - name: Compile both Android versions

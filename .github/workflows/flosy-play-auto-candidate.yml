@@ -1,0 +1,64 @@
+name: Flosy Play Auto Import Candidate - no sideload distribution
+on:
+  push:
+    branches: ["feature/flosy-play-approved-auto-import-v28"]
+    paths:
+      - "android/**"
+      - ".github/workflows/flosy-play-auto-candidate.yml"
+  pull_request:
+    branches: [flosy-android]
+    paths:
+      - "android/**"
+      - ".github/workflows/flosy-play-auto-candidate.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: ''
+      - run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Validate isolated permission scope
+        run: |
+          set -euo pipefail
+          if grep -Eq '<uses-permission[^>]*android.permission.(READ_SMS|RECEIVE_SMS)' android/app/src/main/AndroidManifest.xml android/app/src/sms/AndroidManifest.xml; then
+            echo "Restricted permissions must only exist in Play-review auto flavor"; exit 1
+          fi
+          grep -q 'android.permission.READ_SMS' android/app/src/auto/AndroidManifest.xml
+          grep -q 'android.permission.RECEIVE_SMS' android/app/src/auto/AndroidManifest.xml
+          grep -q 'BIND_NOTIFICATION_LISTENER_SERVICE' android/app/src/auto/AndroidManifest.xml
+          grep -q 'AndroidKeyStore' android/app/src/main/java/com/flosy/finance/FinancialAutoImport.java
+          grep -q 'trustedSmsSender' android/app/src/main/java/com/flosy/finance/FinancialSmsReceiver.java
+          grep -q 'trustedNotification' android/app/src/main/java/com/flosy/finance/FinancialNotificationListener.java
+      - name: Compile approval candidate and safe variants (no artifact publication)
+        run: gradle -p android --no-daemon --stacktrace assembleAutoDebug assembleStandardDebug assembleSmsDebug
+      - name: Validate merged APK permissions and only-on-review feature
+        run: |
+          set -euo pipefail
+          AAPT="$ANDROID_HOME/build-tools/35.0.0/aapt"
+          AUTO=android/app/build/outputs/apk/auto/debug/app-auto-debug.apk
+          test -s "$AUTO"
+          "$AAPT" dump permissions "$AUTO" > /tmp/flosy-auto-permissions.txt
+          grep -q 'android.permission.READ_SMS' /tmp/flosy-auto-permissions.txt
+          grep -q 'android.permission.RECEIVE_SMS' /tmp/flosy-auto-permissions.txt
+          for flavor in standard sms; do
+            file="android/app/build/outputs/apk/$flavor/debug/app-$flavor-debug.apk"
+            test -s "$file"
+            "$AAPT" dump permissions "$file" > "/tmp/flosy-$flavor-permissions.txt"
+            if grep -Eq 'android.permission.(READ_SMS|RECEIVE_SMS|SEND_SMS|BIND_NOTIFICATION_LISTENER_SERVICE)' "/tmp/flosy-$flavor-permissions.txt"; then
+              echo "Safe flavor requests privileged SMS/notifications permissions"; exit 1
+            fi
+          done
+          echo "Candidate compiled for review; no restricted APK has been uploaded, distributed or approved."

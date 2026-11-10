@@ -25,6 +25,9 @@ import android.webkit.WebViewClient;
 import android.widget.Toast;
 import android.webkit.ValueCallback;
 import org.json.JSONObject;
+import org.json.JSONArray;
+import androidx.core.app.NotificationManagerCompat;
+import android.provider.Settings;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.hardware.biometrics.BiometricPrompt;
@@ -63,6 +66,7 @@ public class MainActivity extends Activity {
     private static final int REQ_CAMERA = 75;
     private static final int REQ_AUDIO = 76;
     private static final int REQ_SAVE_RECEIPT = 77;
+    private static final int REQ_AUTO_SMS = 78;
     private WebView webView;
     private ProgressBar loadingBar;
     private ValueCallback<Uri[]> selectedFiles;
@@ -138,6 +142,36 @@ public class MainActivity extends Activity {
                             if("voice".equals(action))startEgyptianVoice();
                             else if("receipt-ocr".equals(action))pickNativeReceipt();
                             else if("receipt-camera".equals(action))captureReceiptPhoto();
+                            else if("auto-status".equals(action))sendAutoStatus();
+                            else if("auto-enable".equals(action))requestAutoConsent();
+                            else if("auto-configure".equals(action)){
+                                if(isAutoImportVariant()){
+                                    FinancialAutoImport.configure(this,
+                                        msg.optString("senders",""),msg.optString("apps",""));
+                                    sendAutoStatus();
+                                }
+                            }
+                            else if("auto-pending".equals(action))sendAutoQueue();
+                            else if("auto-disable".equals(action)){
+                                if(isAutoImportVariant()){
+                                    FinancialAutoImport.disable(this);
+                                    sendAutoStatus();
+                                }
+                            }
+                            else if("auto-clear".equals(action)){
+                                if(isAutoImportVariant()){
+                                    FinancialAutoImport.clear(this);
+                                    sendAutoQueue();
+                                }
+                            }
+                            else if("auto-dismiss".equals(action)){
+                                if(isAutoImportVariant()){
+                                    FinancialAutoImport.remove(this,msg.optString("id",""));
+                                    sendAutoQueue();
+                                }
+                            }
+                            else if("auto-scan-existing".equals(action))scanPreviousFinancialSms();
+                            else if("auto-notification-settings".equals(action))openAutoNotificationSettings();
                             else if("receipt-export".equals(action)){
                                 String receipt=msg.optString("text","");
                                 if(!receipt.isEmpty() && receipt.length()<=12000)
@@ -241,15 +275,18 @@ public class MainActivity extends Activity {
                     view.evaluateJavascript("window.FLOSY_NATIVE_ANDROID=true;"
                         + "window.FLOSY_NATIVE_SMS_AVAILABLE="
                         + "false;"
+                        + "window.FLOSY_NATIVE_AUTO_IMPORT_AVAILABLE="+(isAutoImportVariant()?"true":"false")+";"
                         + "window.FLOSY_NATIVE_VOICE_AVAILABLE=true;"
                         + "window.FLOSY_NATIVE_OCR_AVAILABLE=true;"
                         + "window.FLOSY_NATIVE_BRIDGE_AVAILABLE="+(webMessageReady ? "true" : "false")+";"
                         + "window.FLOSY_NATIVE_BIOMETRIC_AVAILABLE="
                         + (Build.VERSION.SDK_INT >= 28 ? "true" : "false") + ";"
                         + "if(window.FLOSY_NEXT)window.FLOSY_NEXT.render();"
+                        + "if(window.FLOSY_AUTO_IMPORT)window.FLOSY_AUTO_IMPORT.render();"
                         + "if(window.FLOSY_REPAIR)window.FLOSY_REPAIR.render();", null);
                     deliverPendingSharedMessage();
                     deliverNativePending();
+                    if(isAutoImportVariant())sendAutoStatus();
                 }
             }
 
@@ -368,6 +405,92 @@ public class MainActivity extends Activity {
     }
 
 
+
+    private boolean isAutoImportVariant(){return "auto".equals(BuildConfig.FLAVOR);}
+    private boolean hasSmsAutoPermission(){
+        return Build.VERSION.SDK_INT<23||
+            (checkSelfPermission(Manifest.permission.READ_SMS)==PackageManager.PERMISSION_GRANTED&&
+             checkSelfPermission(Manifest.permission.RECEIVE_SMS)==PackageManager.PERMISSION_GRANTED);
+    }
+    private boolean hasNotificationAutoPermission(){
+        try{return NotificationManagerCompat.getEnabledListenerPackages(this)
+            .contains(getPackageName());}catch(Exception ignored){return false;}
+    }
+    private void sendAutoStatus(){
+        if(!isAutoImportVariant()||!pageReady||webView==null||
+            webView.getUrl()==null||!webView.getUrl().startsWith(HOME))return;
+        try{
+            JSONObject data=new JSONObject();
+            data.put("enabled",FinancialAutoImport.enabled(this));
+            data.put("smsGranted",hasSmsAutoPermission());
+            data.put("notificationGranted",hasNotificationAutoPermission());
+            data.put("senders",FinancialAutoImport.senders(this));
+            data.put("apps",FinancialAutoImport.apps(this));
+            data.put("pending",FinancialAutoImport.pending(this).length());
+            webView.evaluateJavascript(
+                "if(window.FLOSY_AUTO_IMPORT)window.FLOSY_AUTO_IMPORT.nativeStatus("+data.toString()+");",
+                null);
+        }catch(Exception ignored){}
+    }
+    private void sendAutoQueue(){
+        if(!isAutoImportVariant()||webView==null||!pageReady||
+            webView.getUrl()==null||!webView.getUrl().startsWith(HOME))return;
+        JSONArray arr=FinancialAutoImport.pending(this);
+        webView.evaluateJavascript(
+            "if(window.FLOSY_AUTO_IMPORT)window.FLOSY_AUTO_IMPORT.nativeQueue("+arr.toString()+");",
+            null);
+        sendAutoStatus();
+    }
+    // Separate prominent in-app consent is required even when Android permissions
+    // were previously granted. Protects against implicit background monitoring.
+    private void requestAutoConsent(){
+        if(!isAutoImportVariant())return;
+        new AlertDialog.Builder(this)
+            .setTitle("موافقة على الاستيراد التلقائي المالي")
+            .setMessage("بعد موافقتك، يتيح Android لفلوسي قراءة جميع رسائل SMS وعرض جميع الإشعارات. "+
+                "لكن Flosy يفحص فقط مرسلي البنوك الذين تختارهم وتطبيقات مالية محددة. "+
+                "يستبعد OTP والرسائل الشخصية والفاشلة، ويحفظ مرشحات محدودة محليًا "+
+                "في طابور مشفّر لمدة أقصاها 30 يومًا. "+
+                "لا يرفع نصوص الرسائل أو الإشعارات إلى الخادم أو OpenAI، "+
+                "ولا يضيف أي معاملة دون مراجعتك. "+
+                "تستطيع الإيقاف ومسح الطابور في أي وقت؛ وأذونات Android تُلغى من إعدادات الهاتف.")
+            .setNegativeButton("إلغاء",(d,which)->{})
+            .setPositiveButton("أوافق وأفعّل",(d,which)->{
+                FinancialAutoImport.enable(this);
+                if(!hasSmsAutoPermission()&&Build.VERSION.SDK_INT>=23){
+                    requestPermissions(new String[]{
+                        Manifest.permission.READ_SMS,Manifest.permission.RECEIVE_SMS
+                    },REQ_AUTO_SMS);
+                }else{
+                    FinancialAutoImport.importExistingSms(this);
+                    sendAutoStatus();
+                }
+            }).show();
+    }
+    private void scanPreviousFinancialSms(){
+        if(!isAutoImportVariant())return;
+        if(!FinancialAutoImport.enabled(this)||!hasSmsAutoPermission()){
+            Toast.makeText(this,"فعّل الاستيراد وأذونات SMS أولًا",Toast.LENGTH_LONG).show();
+            sendAutoStatus();return;
+        }
+        int found=FinancialAutoImport.importExistingSms(this);
+        Toast.makeText(this,"أُضيفت "+found+" معاملات مرشحة للمراجعة",Toast.LENGTH_LONG).show();
+        sendAutoQueue();
+    }
+    private void openAutoNotificationSettings(){
+        if(!isAutoImportVariant())return;
+        new AlertDialog.Builder(this)
+            .setTitle("صلاحية الإشعارات اختيارية")
+            .setMessage("Android يمنح خدمات Notification Access إمكانية قراءة إشعارات من تطبيقات متعددة. "+
+                "Flosy يفحص إشعارات InstaPay والتطبيقات التي تختارها فقط بعد الموافقة. "+
+                "لا يتم الوصول إلى رسائل OTP أو تخزينها. يمكنك سحب الصلاحية من إعدادات Android.")
+            .setNegativeButton("إلغاء",(d,w)->{})
+            .setPositiveButton("افتح إعدادات الإشعارات",(d,w)->{
+                try{startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));}
+                catch(Exception ex){Toast.makeText(this,"تعذر فتح الإعدادات",Toast.LENGTH_LONG).show();}
+            }).show();
+    }
+
     // Only the microphone, upon an explicit voice-entry tap, needs runtime consent.
     @Override
     public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] results){
@@ -376,6 +499,15 @@ public class MainActivity extends Activity {
             if(results.length>0 && results[0]==PackageManager.PERMISSION_GRANTED)
                 startEgyptianVoice();
             else notifyVoiceFailure("تم رفض إذن الميكروفون؛ يمكنك تفعيله من إعدادات Android.");
+        }
+        if(requestCode==REQ_AUTO_SMS&&isAutoImportVariant()){
+            if(hasSmsAutoPermission()){
+                FinancialAutoImport.importExistingSms(this);
+                Toast.makeText(this,"تم تفعيل فحص الرسائل المالية المختارة",Toast.LENGTH_LONG).show();
+            }else{
+                Toast.makeText(this,"لم تمنح أذونات SMS؛ لن تُقرأ رسائلك. يمكنك إيقاف الميزة الآن.",Toast.LENGTH_LONG).show();
+            }
+            sendAutoStatus();
         }
     }
 
@@ -698,6 +830,13 @@ public class MainActivity extends Activity {
                         Toast.LENGTH_SHORT).show();
                 }
             });
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        if(isAutoImportVariant()&&webView!=null&&pageReady)
+            webView.post(this::sendAutoStatus);
     }
 
     @Override
