@@ -1,5 +1,18 @@
 # فلوسي | Flosy Personal Finance
 
+## Flosy Studio v9 — personalized home and one-tap actions
+
+This release compares two user-supplied finance-app screenshot packages (24 screens) to identify usability gaps, **without copying their brands, assets or source code**. See [Arabic reference analysis](docs/Flosy_Reference_Upgrade_AR.md).
+
+- **One-tap mobile quick-add bottom sheet:** choose expense, income, a *recorded* transfer between owned accounts, monthly budget, Egyptian voice capture or receipt OCR. Expense/income/transfer reopen the **same existing Flosy ledger form**; no second accounting system.
+- **Improved transaction form:** explicit optional time and note, correct local date, and confirmation when an apparently duplicate transaction is entered (genuinely repeated purchases remain possible).
+- **Customizable home widgets:** account balances from the actual `FLOSY_PRO.rowsForAccounts` engine; hypothetical spending-opportunity cards; 30-day money in/out (transfers excluded); onboarding actions. Widget visibility and order survive cloud backup in `state.studio`.
+- **Professional settings shortcuts:** accounts, categorization rules, import, privacy.
+- **Original white-only RTL design:** contrast-safe responsive cards and accessible keyboard/mobile launcher, without changing the rest of the Pearl app.
+- **No imaginary provider offers, net-worth history or bank connectivity.** 10% savings opportunities are transparent examples, not claims of guaranteed savings.
+- Browser E2E and financial regression tests should pass before merging. Actual Android camera/microphone and two-device synchronization still require device-level QA.
+
+
 ## Flosy Pearl — 10 November 2026 (current website release)
 
 **Live website:** https://ahmedsayed20233.github.io/mynewproject/
