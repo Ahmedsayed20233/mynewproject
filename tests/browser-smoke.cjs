@@ -113,6 +113,18 @@ async function startLocal(){
   assert.ok(await page.locator("#flosyElevateDashboard").isVisible());
   fs.mkdirSync("tests/_artifacts",{recursive:true});
   await page.screenshot({path:"tests/_artifacts/elevate-dashboard.png",fullPage:true});
+  // Mobile RTL smoke test: all new cards must fit a 390px Android viewport.
+  await page.setViewportSize({width:390,height:844});
+  await page.waitForTimeout(100);
+  const mobile=await page.evaluate(()=>{
+    const boxes=[...document.querySelectorAll("#flosyElevateDashboard .u-panel,#flosyElevateDashboard .u-snapshot")];
+    return boxes.map(x=>({width:x.getBoundingClientRect().width,
+      left:x.getBoundingClientRect().left,right:x.getBoundingClientRect().right}));
+  });
+  assert.ok(mobile.length>0);
+  assert.ok(mobile.every(x=>x.left>=-2&&x.right<=392),
+   "Reference-inspired mobile cards should remain within 390px viewport: "+JSON.stringify(mobile));
+  await page.screenshot({path:"tests/_artifacts/elevate-mobile-390px.png",fullPage:true});
   console.log("PASS: historical budgets, transaction explorer, real wealth journal and premium dashboard");
 
  }catch(error){
