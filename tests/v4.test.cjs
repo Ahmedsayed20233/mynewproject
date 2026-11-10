@@ -271,3 +271,58 @@ test("WebView native OCR contract uses reviewed parseReceipt; browser camera rem
  assert.match(capture,/data-v4-import="ocr"/);
  assert.match(repair,/Tesseract/);
 });
+
+
+test("Free Flosy coach works without login, internet or OpenAI API key",async()=>{
+ const c=context();
+ c.ctx.fetch=()=>{throw Error("No API should be called in free mode")};
+ const month=new Date().toISOString().slice(0,7);
+ c.data.transactions.push({id:"free-income",type:"income",amount:10000,date:month+"-03"});
+ c.data.transactions.push({id:"free-expense",type:"expense",amount:250,date:month+"-04",category:"طعام ومشروبات"});
+ c.window.FLOSY_PHASE1={calculate:()=>({daily:95,safe:1900,days:20})};
+ load("flosy-ai.js",c);
+ const s=c.window.FLOSY_AI.snapshot();
+ assert.equal(s.income,10000);assert.equal(s.spending,250);
+ assert.equal(s.safeDaily,95);
+ const reply=c.window.FLOSY_AI.answerFree("أكبر فئات المصروف");
+ assert.match(reply,/طعام ومشروبات/);
+ assert.match(reply,/250|٢٥٠/);
+ assert.match(reply,/محلي/);
+ await c.window.FLOSY_AI.ask("أبني صندوق طوارئ إزاي؟");
+ assert.match(c.elems.flosyAiRoot.innerHTML,/طوارئ/);
+ assert.match(c.elems.flosyAiRoot.innerHTML,/المجاني/);
+ assert.doesNotMatch(c.elems.flosyAiRoot.innerHTML,/disabled>اسأل المساعد/);
+});
+test("Android microphone and camera taps use origin-restricted native bridge if available",()=>{
+ const c=context(),messages=[];
+ c.window.FLOSY_NATIVE_VOICE_AVAILABLE=true;
+ c.window.FLOSY_NATIVE_OCR_AVAILABLE=true;
+ c.window.FlosyNative={postMessage:message=>messages.push(JSON.parse(message))};
+ load("flosy-v4-capture.js",c);
+ load("flosy-repair.js",c);
+ assert.match(c.elems.flosyRepairRoot.innerHTML,/native-camera/);
+ c.window.FLOSY_REPAIR.startVoice();
+ c.window.FLOSY_REPAIR.nativeAction("receipt-camera","receipt-camera");
+ c.window.FLOSY_REPAIR.nativeAction("receipt-export","", "Cafe\\nTOTAL EGP 50");
+ assert.equal(messages.length,3);
+ assert.deepEqual(messages.map(m=>m.action),["voice","receipt-camera","receipt-export"]);
+ assert.equal(messages[2].text.includes("TOTAL"),true);
+ assert.equal(c.data.transactions.length,0);
+});
+test("Receipt UI provides manual confirmation and export even if OCR network model fails",()=>{
+ const c=context();load("flosy-v4-capture.js",c);load("flosy-repair.js",c);
+ const html=c.elems.flosyRepairRoot.innerHTML;
+ assert.match(html,/flosyReceiptManualForm/);
+ assert.match(html,/export-ocr/);
+ assert.match(html,/flosyRepairOCRText/);
+ assert.equal(c.data.transactions.length,0);
+});
+test("Flosy AI defaults to free mode, API stays optional and offline shell is versioned",()=>{
+ const ai=fs.readFileSync("flosy-ai.js","utf8");
+ const sw=fs.readFileSync("service-worker.js","utf8");
+ assert.match(ai,/mode="free"/);
+ assert.match(ai,/answerFree/);
+ assert.match(ai,/OpenAI API/);
+ assert.ok(sw.includes("flosy-ai.js?v=700"));
+ assert.ok(sw.includes("flosy-repair.js?v=700"));
+});
