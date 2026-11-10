@@ -53,3 +53,12 @@ body.light .highlight{background:linear-gradient(115deg,#0f706d,#19485c)}
 @media(max-width:1100px){.f2-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.f2-span-8,.f2-span-4{grid-column:span 6}}
 @media(max-width:680px){.f2-header{padding:17px;border-radius:17px;align-items:flex-start;flex-direction:column}.f2-header h2{font-size:19px}.f2-grid{gap:11px}.f2-span-4,.f2-span-6,.f2-span-8{grid-column:span 12}.f2-card{padding:15px;border-radius:14px}.f2-kpi{padding:13px}.f2-kpi strong{font-size:18px}.f2-inputs{grid-template-columns:1fr}.f2-inputs label.full,.f2-inputs .full{grid-column:auto}.f2-graph{height:140px}.f2-table td,.f2-table th{padding:9px 7px}.f2-btnrow button{flex:1}.f2-list-item{align-items:flex-start}}
 @media print{.f2-header,.f2-kpis,.f2-grid,.f2-card{display:none!important}}
+
+
+/* Keep the home focused: the rebuilt command center replaces the legacy duplicate KPI row. */
+#page-dashboard>.grid.kpis{display:none!important}
+#page-dashboard #flosyNextHome{margin-bottom:16px}
+#page-dashboard #wealthHighlights{margin-top:12px}
+body.light .f2-header{box-shadow:0 16px 32px #0e6c6622}
+body.light .f2-card{box-shadow:0 9px 24px #183a4b08}
+@media(max-width:680px){#page-dashboard #flosyNextHome{margin-bottom:12px}}
