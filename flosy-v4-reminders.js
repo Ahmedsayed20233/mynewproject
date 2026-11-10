@@ -69,6 +69,7 @@
   const api=w.FLOSY_PHASE1;if(!api)return"";
   const today=start(),end=new Date(today);end.setDate(end.getDate()+90);
   const rows=api.occurrences(today,end).filter(x=>!x.paid&&!x.linked&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)).slice(0,300);
+  if(!rows.length)return"";
   const lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Flosy//Egypt Due Dates//AR","CALSCALE:GREGORIAN","METHOD:PUBLISH"];
   const stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
   for(const x of rows){
