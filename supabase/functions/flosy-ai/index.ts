@@ -63,7 +63,7 @@ Deno.serve(async req=>{
  }catch{return json({error:"rate_limit_unavailable"},503)}
  let summary=null;
  if(wants){
-  try{let rows=await call(sb+"/rest/v1/flosy_data?select=payload&user_id=eq."+id,pub,token);
+  try{let rows=await call(sb+"/rest/v1/flosy_state_v3?select=payload&user_id=eq."+id,pub,token);
     summary=totals(rows?.[0]?.payload||{})}
   catch{return json({error:"financial_summary_unavailable"},503)}
  }
