@@ -75,12 +75,12 @@ function renderFamily(){
 function privateVisibility(hidden){
  const value=Boolean(hidden);
  document.body.classList.toggle("v4-private",value);
- document.body.setAttribute("data-balance-privacy",value?"hidden":"visible");
+ document.body.setAttribute?.("data-balance-privacy",value?"hidden":"visible");
  localStorage.setItem("flosy_v4_hide_balances",value?"1":"0");
  const button=E("flosyPrivacyQuickToggle");
  if(button){
-  button.setAttribute("aria-pressed",value?"true":"false");
-  button.setAttribute("aria-label",value?"إظهار الأرصدة":"إخفاء الأرصدة");
+  button.setAttribute?.("aria-pressed",value?"true":"false");
+  button.setAttribute?.("aria-label",value?"إظهار الأرصدة":"إخفاء الأرصدة");
   button.textContent=value?"◉ إظهار الأرقام":"◌ إخفاء الأرقام";
  }
 }
