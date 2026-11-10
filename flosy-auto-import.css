@@ -1,0 +1,35 @@
+/* Only rendered inside the approved Auto Import Android flavor, never normal web. */
+.flosy-auto-panel{margin:0 0 18px;border:1px solid #D6E9E3;border-radius:20px;background:#FFF;
+ padding:20px;direction:rtl;box-shadow:0 8px 28px rgba(25,88,76,.045)}
+.flosy-auto-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.flosy-auto-head h2{font-size:20px;color:#204D4C;font-weight:900;margin:4px 0 7px}
+.flosy-auto-head p{font-size:12px;color:#6A8784;line-height:1.9;margin:0}
+.flosy-auto-label{letter-spacing:.8px;font-size:10px;color:#0C8879;font-weight:900}
+.flosy-auto-state{border-radius:99px;background:#E7F5EF;color:#166E5E;font-size:11px;font-weight:800;white-space:nowrap;padding:7px 12px}
+.flosy-auto-warning{border-radius:14px;background:#FFF9F0;border:1px solid #EFDDC7;padding:13px 16px;margin:17px 0}
+.flosy-auto-warning strong{color:#916A3D;font-size:12px}
+.flosy-auto-warning p{font-size:11px;color:#7D735F;line-height:1.9;margin:5px 0 0}
+.flosy-auto-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.flosy-auto-grid label{font-size:11px;font-weight:800;color:#345C5C}
+.flosy-auto-grid textarea,.flosy-auto-grid input{width:100%;display:block;margin-top:7px;min-height:44px;
+ background:#FFF!important;color:#204747!important;border:1px solid #D4E7E0;border-radius:11px;
+ padding:12px 13px;resize:vertical;font:inherit;font-size:12px}
+.flosy-auto-grid small{display:block;margin-top:5px;color:#829995;font-size:10px;font-weight:500;line-height:1.7}
+.flosy-auto-consent{display:flex;align-items:flex-start;gap:10px;border-radius:12px;padding:13px;
+ background:#F0F8F5;border:1px solid #D4E8DF;font-size:12px;line-height:1.9;color:#315E56;cursor:pointer}
+.flosy-auto-consent input{width:20px;height:20px;margin-top:3px;accent-color:#087D71;flex:none}
+.flosy-auto-buttons{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:12px 0}
+.flosy-auto-buttons button{min-height:44px;border-radius:12px;cursor:pointer;font-weight:850;
+ font-size:11px;padding:10px 14px}
+.flosy-auto-primary{background:#087B70;color:#FFF;border:1px solid #087B70}
+.flosy-auto-secondary{background:#FFF;color:#196D62;border:1px solid #C5DFD5}
+.flosy-auto-danger{background:#FFF2ED;color:#A84D36;border:1px solid #EFC5B6}
+.flosy-auto-buttons button:focus-visible{outline:3px solid #70BCAA;outline-offset:2px}
+.flosy-auto-status{border:1px solid #E4EEEC;background:#F9FCFB;border-radius:13px;padding:14px}
+.flosy-auto-status strong{font-size:12px;color:#265D55}
+.flosy-auto-status div{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.flosy-auto-status span{display:inline-block;background:#FFF;border:1px solid #E3ECE9;padding:8px 12px;border-radius:10px;
+ font-size:10px;color:#53766F}
+.flosy-auto-status p,.flosy-auto-small{font-size:11px;line-height:1.8;color:#7A8D8A}
+.flosy-auto-feedback{font-size:12px;color:#0A796C;font-weight:800}
+@media(max-width:700px){.flosy-auto-panel{padding:15px;border-radius:16px}.flosy-auto-grid{grid-template-columns:1fr}.flosy-auto-head{flex-wrap:wrap}.flosy-auto-buttons button{flex:1;min-width:136px}.flosy-auto-head h2{font-size:18px}}

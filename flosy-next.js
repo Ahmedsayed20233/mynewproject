@@ -247,11 +247,24 @@ function renderImport(){
  '<form id="f2SMSForm" class="f2-inputs">'+
  '<label class="full">الصق رسالة مالية واحدة هنا<textarea name="message" id="f2SMSText" placeholder="مثال توضيحي: تم خصم مبلغ 125 EGP من حسابك مقابل شراء."></textarea></label>'+
  '<button type="submit" class="f2-toolbutton primary full">تحليل الرسالة محليًا</button></form>'+
- '<div class="f2-privacy">يمكنك أيضًا الضغط «مشاركة» من تطبيق الرسائل واختيار Flosy في APK. Flosy لا يحتاج صلاحية قراءة جميع SMS، ولا يسجّل أي معاملة حتى تراجعها وتوافق عليها.</div>',"6")+
+ '<div class="f2-privacy">يمكنك أيضًا مشاركة رسالة واحدة من تطبيق الرسائل مع Flosy. '+
+ (window.FLOSY_NATIVE_AUTO_IMPORT_AVAILABLE?'الاستيراد التلقائي خيار منفصل بالأعلى يتطلب موافقتك وأذونات Android ومراجعة Google Play.':
+ 'النسخة الآمنة لا تطلب صلاحية قراءة صندوق SMS بالكامل.')+
+ ' لن تُسجل أي معاملة تلقائيًا بدون مراجعتك.</div>',"6")+
  card('<div class="f2-head"><h3>استيراد رسالة SMS أو InstaPay بأمان</h3><span class="f2-tag">بدون صلاحيات حساسة</span></div>'+
  '<p>من تطبيق الرسائل: افتح الرسالة المالية المحددة، واضغط «مشاركة → Flosy» إن ظهر الخيار، أو «نسخ»، ثم ألصق النص في الخانة بالأعلى. ويمكنك مشاركة نص إيصال InstaPay إن كان التطبيق يوفر ذلك.</p>'+
- '<p>Flosy لا يستطيع الآن قراءة صندوق SMS كاملًا أو إشعارات التطبيقات؛ هذه الصلاحيات أُزيلت لحماية هاتفك. لن يسجل أي معاملة إلا بعد مراجعتك الصريحة.</p>'+
+ '<p>'+(window.FLOSY_NATIVE_AUTO_IMPORT_AVAILABLE?
+ 'في إصدار الاستيراد التلقائي المخصص لمراجعة Google Play، يمكنك تفعيل فحص محدود بالمصادر التي تختارها بالأعلى.':
+ 'نسخة الويب وSafe Import لا تقرأ صندوق SMS أو إشعارات التطبيقات؛ استورد رسالة تختارها بنفسك.')+
+ ' لن يسجل أي معاملة إلا بعد مراجعتك الصريحة.</p>'+
  '<div class="f2-privacy">ارفض مشاركة رموز OTP أو PIN أو أرقام البطاقات. لو مشاركة InstaPay غير متاحة، أدخل العملية يدويًا أو استورد CSV من البنك.</div>',"12")+
+ (smsCandidates.length?card('<div class="f2-head"><h3>معاملات تلقائية تحتاج مراجعة</h3>'+
+ '<span class="f2-tag">لا حفظ تلقائي</span></div>'+
+ '<p>يتم استخراج هذه الرسائل محليًا من مصادر سمحت بها؛ اختر كل معاملة وراجع المبلغ والحساب والاتجاه.</p>'+
+ smsCandidates.map((m,i)=>'<div class="f2-list-item"><div><strong>'+
+ (m.source==="instapay"?"إشعار InstaPay":m.source==="bank_notification"?"إشعار بنك":"رسالة بنك")+" · "+
+ esc(new Date(m.date).toLocaleDateString("ar-EG"))+'</strong><small>'+
+ esc(m.text.slice(0,105))+'</small></div>'+smBtn("sms-select:"+i,"مراجعة")+'</div>').join(""),"12"):"")+
  card('<h3>استيراد كشف معاملات CSV</h3><p>لملف صادر بنفسك من البنك أو المحفظة. صيغة أعمدة مدعومة: <code>date,description,amount,type</code> مع <code>type</code> يساوي expense أو income. تُراجع العمليات قبل تسجيلها.</p>'+
  '<div class="f2-inputs"><label>ملف CSV<input type="file" accept=".csv,text/csv" id="f2CSVFile"></label>'+
  '<label>الحساب المرتبط بالمعاملات<select id="f2CSVAccount">'+aList()+'</select></label></div>'+
@@ -335,7 +348,8 @@ function onAction(action){
   try{
     let parsed=parseSMS(row.text,{source:row.source||'sms',date:row.date});
     if(duplicate(parsed))throw Error("المعاملة تبدو مسجلة بالفعل");
-    draft=parsed;csvDrafts=[];
+    draft=parsed;draft.autoQueueId=/^[0-9a-f]{32}$/.test(String(row.id||""))?row.id:"";
+    csvDrafts=[];
     importStatus="راجع بيانات الرسالة بعناية: المبلغ والحساب والتاريخ والفئة. النص الخام لا يُحفظ.";
     renderImport();
   }catch(e){C.toast(e.message)}
@@ -408,9 +422,10 @@ async function restoreBackup(id){
  }catch(e){C.toast("تعذر الاسترجاع دون استبدال البيانات: "+e.message)}
 }
 function receiveScannedSMS(items){
- smsCandidates=Array.isArray(items)?items.slice(0,35).filter(x=>x&&typeof x.text==="string"&&x.text.length<=1200&&
- Number.isFinite(Number(x.date))&&(x.source==="instapay"||x.source===undefined||x.source==="sms"))
- .map(x=>({date:Number(x.date),source:x.source==="instapay"?"instapay":"sms",text:x.text.slice(0,1200)})):[];
+ smsCandidates=Array.isArray(items)?items.slice(0,60).filter(x=>x&&typeof x.text==="string"&&x.text.length<=1200&&
+ Number.isFinite(Number(x.date))&&(x.source==="instapay"||x.source==="bank_notification"||x.source===undefined||x.source==="sms"))
+ .map(x=>({id:/^[0-9a-f]{32}$/.test(String(x.id||""))?x.id:"",
+ date:Number(x.date),source:x.source==="instapay"?"instapay":x.source==="bank_notification"?"bank_notification":"sms",text:x.text.slice(0,1200)})):[];
  draft=null;csvDrafts=[];
  importStatus=smsCandidates.length?"تم العثور على "+smsCandidates.length+" رسائل/إشعارات. اختر المعاملة لمراجعتها؛ لم يُحفظ شيء.":"لم نعثر على رسائل أو إشعارات مكتملة ومتاحة الآن. يمكنك مشاركة رسالة من التطبيق يدويًا.";
  C.goto("import");renderImport();
@@ -457,7 +472,11 @@ document.addEventListener("submit",e=>{
   x.amount=amount;x.date=String(d.get("date"));x.type=String(d.get("type"));x.category=String(d.get("category"));x.accountId=String(d.get("accountId"));x.description=String(d.get("description")||"").trim().slice(0,100);
   if(!/^\d{4}-\d{2}-\d{2}$/.test(x.date)||!x.description||!aList().includes('value="'+esc(x.accountId)+'"'))return C.toast("راجع التاريخ والوصف والحساب");
   if(duplicate(x))return C.toast("المعاملة مسجلة من قبل");
-  addRecord(x);draft=null;importStatus="تم اعتماد العملية وحفظها بدون نص الرسالة الخام";renderImport();C.toast("تم حفظ العملية");
+  const queueId=draft.autoQueueId;
+  delete x.autoQueueId;
+  addRecord(x);draft=null;
+  if(queueId&&window.FLOSY_AUTO_IMPORT?.ack)window.FLOSY_AUTO_IMPORT.ack(queueId);
+  importStatus="تم اعتماد العملية وحفظها بدون نص الرسالة الخام";renderImport();C.toast("تم حفظ العملية");
  }
 });
 document.addEventListener("change",async e=>{

@@ -68,6 +68,44 @@ async function startLocal(){
     "Sharing a message cannot create a transaction without explicit review");
   console.log("PASS: neutral setup, privacy and permission-light shared-message review");
 
+  // v28: Auto-import controls are invisible on normal web / safe Android wrapper.
+  assert.equal(await page.locator("#flosyAutoImportRoot .flosy-auto-panel").count(),0);
+  // Simulate only an authorized native wrapper; no real SMS/notifications accessed.
+  await page.evaluate(()=>{
+    window.FLOSY_NATIVE_AUTO_IMPORT_AVAILABLE=true;
+    window.__autoRequests=[];
+    window.FlosyNative={postMessage:msg=>window.__autoRequests.push(JSON.parse(msg))};
+    window.FLOSY_AUTO_IMPORT.render();
+  });
+  assert.ok(await page.locator("#flosyAutoImportRoot .flosy-auto-consent").isVisible());
+  await page.locator('[data-auto-action="enable"]').click();
+  assert.equal(await page.evaluate(()=>window.__autoRequests.length),0,
+   "Native automatic import must not start without explicit consent");
+  await page.locator("#flosyAutoSenders").fill("CIB, NBE");
+  await page.locator("#flosyAutoConsent").check();
+  await page.locator('[data-auto-action="enable"]').click();
+  assert.deepEqual(await page.evaluate(()=>window.__autoRequests.map(x=>x.action)),
+    ["auto-configure","auto-enable"]);
+  await page.evaluate(()=>window.FLOSY_AUTO_IMPORT.nativeStatus({
+   enabled:true,smsGranted:true,notificationGranted:false,
+   senders:"CIB,NBE",apps:"",pending:1
+  }));
+  assert.match(await page.locator("#flosyAutoImportRoot").innerText(),/معاملات في انتظار المراجعة/);
+  const beforeAuto=await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length);
+  await page.evaluate(()=>window.FLOSY_AUTO_IMPORT.nativeQueue([
+   {id:"ab".repeat(16),source:"sms",date:Date.now(),
+    text:"تم خصم مبلغ 250 EGP مقابل شراء"}
+  ]));
+  await page.locator('[data-f2="sms-select:0"]').click();
+  assert.ok(await page.locator("#f2ReviewForm").isVisible());
+  assert.equal(await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length),beforeAuto,
+   "Auto-import is a review queue, never a silent finance ledger write");
+  await page.evaluate(()=>{
+    window.FLOSY_NATIVE_AUTO_IMPORT_AVAILABLE=false;
+    window.FLOSY_AUTO_IMPORT.render();
+  });
+  console.log("PASS: Play-variant opt-in, allowlist, queue review and safe invisible default");
+
   // 1) Free assistant really allows asking without signing into Supabase.
   await page.evaluate(()=>window.FLOSY_BRIDGE.goto("ai"));
   const freeOption=await page.locator("#flosyAiMode").inputValue();

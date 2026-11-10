@@ -148,7 +148,7 @@
 <link rel="stylesheet" href="flosy-v5-pearl.css?v=500">
 <link rel="stylesheet" href="flosy-elevate.css?v=801">
 <link rel="stylesheet" href="flosy-studio.css?v=1001">
-<link rel="stylesheet" href="flosy-capture-v10.css?v=1001">
+<link rel="stylesheet" href="flosy-capture-v10.css?v=1001"><link rel="stylesheet" href="flosy-auto-import.css?v=2801">
 </head>
 <body class="light">
 <div class="shell">
@@ -211,7 +211,7 @@
 <section class="page" id="page-smart"><div id="f2-smart"></div></section>
 <section class="page" id="page-recurring"><div id="f2-recurring"></div></section>
 <section class="page" id="page-rules"><div id="f2-rules"></div></section>
-<section class="page" id="page-import"><div id="f2-import"></div></section>
+<section class="page" id="page-import"><div id="flosyAutoImportRoot"></div><div id="f2-import"></div></section>
 <section class="page" id="page-recovery"><div id="f2-backups"></div></section>
 <section class="page" id="page-ai"><div id="flosyAiRoot"></div><div id="flosyAssistantBridgeRoot"></div></section>
 <section class="page" id="page-reports"><div class="grid reportgrid"><div class="card"><div class="sectiontitle"><h3>الدخل والمصروفات في آخر 6 أشهر</h3><span>بالجنيه المصري</span></div><div class="chart" id="sixChart"></div></div><div class="card"><div class="sectiontitle"><h3>استنتاجات الميزانية</h3><span>حسب البيانات المسجلة</span></div><div id="insights" class="callout"></div></div></div><div class="card" style="margin-top:15px"><h3>مؤشرات الأداء</h3><div id="kpiReport" class="grid kpis"></div></div><div class="card report-builder" style="margin-top:15px">
@@ -342,7 +342,7 @@ $('storageChip').textContent=session?(lastSync?'☁ آخر مزامنة':'☁ ح
 $('saveStatusCard').innerHTML='<h3>💾 حالة حفظ بياناتك</h3><p class="callout"><strong>الحفظ على الجهاز: مفعّل تلقائيًا.</strong> يتم حفظ كل معاملة وإعداد على هذا الجهاز داخل التطبيق أو المتصفح. لا تحذف التطبيق قبل التأكد من المزامنة أو تنزيل نسخة احتياطية.</p><p><strong>المزامنة السحابية:</strong> '+(session?'تم تسجيل الدخول إلى '+safe(session.user?.email||'حسابك'):'غير مفعّلة بعد — سجّل الدخول أسفل الصفحة')+'</p><p class="muted">آخر مزامنة ناجحة: '+safe(syncLabel)+'</p><div class="buttonbar"><button class="btn" type="button" id="saveStatusSyncButton">☁ مزامنة الآن</button><button class="btn" type="button" id="saveStatusExportButton">⬇ نسخة احتياطية JSON</button></div>';
 $('saveStatusSyncButton').onclick=()=>{if(!session){toast('سجّل الدخول لتفعيل المزامنة السحابية');return}sync()};
 $('saveStatusExportButton').onclick=()=>$('exportJSON').click();
-if(page==='reports')renderDetailedReportPreview();if(window.FLOSY_PRO)window.FLOSY_PRO.render();if(window.FLOSY_NEXT)window.FLOSY_NEXT.render();if(window.FLOSY_AI)window.FLOSY_AI.render();if(window.FLOSY_PHASE1)window.FLOSY_PHASE1.render();
+if(page==='reports')renderDetailedReportPreview();if(window.FLOSY_PRO)window.FLOSY_PRO.render();if(window.FLOSY_NEXT)window.FLOSY_NEXT.render();if(window.FLOSY_AUTO_IMPORT)window.FLOSY_AUTO_IMPORT.render();if(window.FLOSY_AI)window.FLOSY_AI.render();if(window.FLOSY_PHASE1)window.FLOSY_PHASE1.render();
  if(window.FLOSY_CAPTURE)window.FLOSY_CAPTURE.render();
  if(window.FLOSY_BANK_CSV)window.FLOSY_BANK_CSV.render();
  if(window.FLOSY_V4_WEALTH)window.FLOSY_V4_WEALTH.render();
@@ -670,7 +670,8 @@ window.FLOSY_BRIDGE={
 try{let s=JSON.parse(sessionStorage.getItem('flosy_session'));if(s&&s.refresh_token)session=s}catch{}categoryOptions();render();})();
 </script>
 <script src="finance-pro.js?v=1001"></script>
-<script src="flosy-next.js?v=2701"></script>
+<script src="flosy-next.js?v=2801"></script>
+<script src="flosy-auto-import.js?v=2801"></script>
 <script src="flosy-ai.js?v=700"></script>
 <script src="flosy-phase1.js?v=311"></script>
 <script src="flosy-sync-v3.js?v=302"></script>

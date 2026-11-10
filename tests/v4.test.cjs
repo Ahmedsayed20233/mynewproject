@@ -524,10 +524,36 @@ test("The protected SMS inbox UI is retired; one message can be pasted and revie
  assert.match(next,/استيراد رسالة SMS أو InstaPay بأمان/);
  const index=fs.readFileSync("index.html","utf8");
  const sw=fs.readFileSync("service-worker.js","utf8");
- assert.ok(index.includes("flosy-next.js?v=2701"));
- assert.ok(sw.includes("flosy-next.js?v=2701"));
+ assert.ok(index.includes("flosy-next.js?v=2801"));
+ assert.ok(sw.includes("flosy-next.js?v=2801"));
  const ctx=context();load("flosy-next.js",ctx);
  const tx=ctx.window.FLOSY_NEXT.parseSMS("InstaPay تم استلام مبلغ 500 EGP من محمد");
  assert.equal(tx.amount,500);
  assert.equal(ctx.data.transactions.length,0);
+});
+
+
+test("Automatic queue UI stays hidden in Standard and Web and offers opt-in to approved native variant",()=>{
+ const script=fs.readFileSync("flosy-auto-import.js","utf8");
+ const html=fs.readFileSync("index.html","utf8");
+ const css=fs.readFileSync("flosy-auto-import.css","utf8");
+ assert.match(script,/FLOSY_NATIVE_AUTO_IMPORT_AVAILABLE===true/);
+ assert.match(script,/if\(!consent\)/);
+ assert.match(script,/auto-enable/);
+ assert.match(script,/auto-disable/);
+ assert.match(script,/auto-clear/);
+ assert.match(script,/nativeQueue/);
+ assert.match(script,/receiveScannedSMS\(safe\)/);
+ assert.match(html,/flosy-auto-import\.js\?v=2801/);
+ assert.match(html,/id="flosyAutoImportRoot"/);
+ assert.match(css,/flosy-auto-consent/);
+});
+test("Automatically captured SMS remains a review candidate, never a ledger entry",()=>{
+ const c=context();load("flosy-next.js",c);
+ c.window.FLOSY_NEXT.receiveScannedSMS([
+  {id:"ab".repeat(16),source:"sms",date:Date.now(),text:"تم خصم مبلغ 120 جنيه مقابل شراء."}
+ ]);
+ assert.equal(c.data.transactions.length,0);
+ const parsed=c.window.FLOSY_NEXT.parseSMS("تم خصم مبلغ 120 جنيه مقابل شراء.");
+ assert.equal(parsed.amount,120);assert.equal(parsed.type,"expense");
 });
