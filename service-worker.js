@@ -1,12 +1,12 @@
 /* Flosy v4 offline application shell. NO database/API responses are cached. */
-const VERSION="flosy-white-v4-20261110-1";
+const VERSION="flosy-white-v4-20261110-2";
 const SHELL=[
  "./","./index.html","./manifest.webmanifest","./icon.svg",
  "./finance-pro.js?v=131","./finance-pro.css?v=130",
  "./flosy-next.css?v=202","./flosy-next.js?v=202","./flosy-ai.css?v=210","./flosy-ai.js?v=210",
  "./flosy-phase1.js?v=311","./flosy-sync-v3.js?v=302",
- "./flosy-v4-white.css?v=400","./flosy-v4-capture.js?v=400","./flosy-v4-bank.js?v=400",
- "./flosy-v4-wealth.js?v=400","./flosy-v4-family-privacy.js?v=400"
+ "./flosy-v4-white.css?v=401","./flosy-v4-capture.js?v=400","./flosy-v4-bank.js?v=400",
+ "./flosy-v4-wealth.js?v=400","./flosy-v4-family-privacy.js?v=402","./flosy-v4-reminders.js?v=401"
 ];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(VERSION).then(cache=>Promise.allSettled(SHELL.map(url=>cache.add(new Request(url,{cache:"reload"}))))).then(()=>self.skipWaiting()));
