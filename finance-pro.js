@@ -8,7 +8,7 @@
     {id:"bank",name:"الحساب البنكي",type:"bank",opening:0,updatedAt:0},
     {id:"emergency",name:"صندوق الطوارئ",type:"emergency",opening:0,updatedAt:0},
     {id:"reserve",name:"احتياطي المصروفات",type:"reserve",opening:0,updatedAt:0},
-    {id:"thndr",name:"نقدي ثاندر",type:"thndr",opening:0,updatedAt:0}
+    {id:"thndr",name:"حساب استثمار (اختياري)",type:"thndr",opening:0,updatedAt:0}
   ];
   var presets=[
     {code:"CI30",name:"صندوق مؤشر أسهم واسعة — CI30",target:50,unit:"وحدة"},
@@ -31,32 +31,28 @@
   function cashAccounts(){return st().accounts||[]}
   function acc(id){return cashAccounts().find(function(a){return a.id===id})}
   function init(){
-    var state=st();var changed=false;
-    if(!Array.isArray(state.accounts)||!state.accounts.length){state.accounts=defs.map(function(x){return Object.assign({},x)});changed=true}
-    ["trades","assets","liabilities"].forEach(function(k){if(!Array.isArray(state[k])){state[k]=[];changed=true}});
-    if(!state.prices||typeof state.prices!=="object"){state.prices={};changed=true}
-    if(!state.plan||typeof state.plan!=="object"){
-      state.plan={startMonth:ym(new Date()),emergencyTarget:60000,reserveTarget:12000,year1InvestTarget:39000,
-        initialVisa:20000,initialEmergency:15000,initialBuffer:5000,p1Months:6,p2Months:1,
-        p1Emergency:7000,p2Emergency:3000,p2Investment:4000,p3Investment:7000,reserveMonthly:1000,
-        weights:{CI30:50,T70:10,SAVINGS:25,GOLD:15},planVersion:3};
+    var state=st(),changed=false;
+    // New users get generic zero-balance containers, not the original developer's
+    // personal income, investment target or initial bank/visa balance.
+    if(!Array.isArray(state.accounts)||!state.accounts.length){
+      state.accounts=defs.map(function(x){return Object.assign({},x)});
       changed=true;
     }
-    if(state.plan&&!state.plan.planVersion){
-      var old=state.plan;
-      var originalDefaults=Number(old.p1Emergency)===7000&&Number(old.p2Emergency)===5750&&Number(old.p2Investment)===1250&&Number(old.p3Investment)===7000&&Number(old.reserveMonthly)===1000;
-      if(originalDefaults){
-        Object.assign(old,{initialVisa:20000,initialEmergency:15000,initialBuffer:5000,
-          p1Months:6,p2Months:1,p2Emergency:3000,p2Investment:4000,year1InvestTarget:39000,planVersion:3});
-      }else{
-        Object.assign(old,{initialVisa:20000,initialEmergency:15000,initialBuffer:5000,
-          p1Months:2,p2Months:8,planVersion:2});
-      }
-      state._updatedAt=new Date().toISOString();changed=true;
-    }
-    if(Number(state.settings&&state.settings.investmentTarget)===24000&&
-        Number(state.plan&&state.plan.year1InvestTarget)===39000){
-      state.settings.investmentTarget=39000;state._updatedAt=new Date().toISOString();changed=true;
+    ["trades","assets","liabilities"].forEach(function(k){
+      if(!Array.isArray(state[k])){state[k]=[];changed=true}
+    });
+    if(!state.prices||typeof state.prices!=="object"){state.prices={};changed=true}
+    // Existing plans are user data. NEVER auto-update an investment target because
+    // it coincidentally equals a number from a prior example or migration.
+    if(!state.plan||typeof state.plan!=="object"){
+      state.plan={startMonth:ym(new Date()),emergencyTarget:0,reserveTarget:0,year1InvestTarget:0,
+        initialVisa:0,initialEmergency:0,initialBuffer:0,p1Months:6,p2Months:6,
+        p1Emergency:0,p2Emergency:0,p2Investment:0,p3Investment:0,reserveMonthly:0,
+        weights:{CI30:0,T70:0,SAVINGS:0,GOLD:0},planVersion:4};
+      changed=true;
+    } else if(!state.plan.planVersion){
+      // Only tag the old plan; preserve all monetary amounts and allocation choices.
+      state.plan.planVersion=1;changed=true;
     }
     if(changed)C.persistInitial();
   }
@@ -154,10 +150,10 @@
       box("الأصول الاستثمارية",m.portfolio.market,"القيمة من الأسعار التي تدخلها")+
       box("أصول أخرى",m.other,"مثل سيارة أو عقار")+
       box("الديون والالتزامات",m.debt,"تُطرح من صافي الثروة","pro-warn")+'</div>';
-    var plan=st().plan||{},visa=Number(plan.initialVisa||20000),seed=Number(plan.initialEmergency||15000),visaBalance=m.balances.bank||0,emergencyBalance=m.balances.emergency||0;
+    var plan=st().plan||{},visa=num(plan.initialVisa),seed=num(plan.initialEmergency),visaBalance=m.balances.bank||0,emergencyBalance=m.balances.emergency||0;
     var hasStartingTransfer=(st().transactions||[]).some(function(t){return !!t.startingAllocation});
     html+='<div class="pro-card"><div class="pro-head"><h3>تجهيز رصيد الفيزا وخطة البداية</h3><span class="pro-meta">عملية اختيارية وآمنة</span></div>'+
-      '<p>ذكرت أن رصيد الفيزا الحالي '+money(visa)+'، والخطة المقترحة: '+money(seed)+' للطوارئ و'+money(visa-seed)+' سيولة تشغيلية متاحة.</p>'+
+      '<p>هذه خطوة اختيارية إذا سجلت رصيدًا مملوكًا لك في حسابك: '+money(visa)+' مبدئيًا، منه '+money(seed)+' للطوارئ و'+money(Math.max(0,visa-seed))+' للسيولة. لا توجد افتراضات عن دخلك أو حسابك البنكي.</p>'+
       '<div class="pro-stat-grid">'+box("رصيد البنك المسجل",visaBalance,"يتغير بعد كل معاملة")+
       box("رصيد الطوارئ المسجل",emergencyBalance,"من الحسابات الفعلية")+
       box("البداية المستهدفة للطوارئ",seed,"جزء من رصيد الفيزا")+
@@ -268,12 +264,15 @@
     var yearOne=items.slice(0,12).reduce(function(a,x){return a+x.investment},0);
     var twoYears=total+initialVisa;
     var html='<div class="pro-hero"><div><small>خطة فلوسي × ثاندر</small><div class="pro-major">24 شهرًا</div><span>الأمان المالي أولًا، ثم زيادة الاستثمار على مراحل</span></div><span class="pro-hero-icon">◎</span></div>';
-    html+='<div class="pro-note">الخطة بعد تحديث رصيد الفيزا المبلغ عنه: '+money(initialVisa)+' كبداية (منها '+money(seed)+' تُخصص للطوارئ و'+money(buffer)+' تبقى سيولة تشغيلية)، ثم توزيع فائض شهري مقداره 8,000 جنيه إذا استمر الدخل 17,000 والمصروفات 9,000. <strong>الرصيد الافتتاحي في الخطة ليس معاملة مالية ولا يُضاف إلى الحسابات تلقائيًا.</strong></div>';
+    html+='<div class="pro-note">هذه خطة قابلة للتخصيص بالكامل: الرصيد الأولي الذي تُدخله '+money(initialVisa)+
+ '، الطوارئ الأولية '+money(seed)+'، والسيولة التشغيلية '+money(buffer)+
+ '. الفائض الشهري المقدر من إعداداتك الحالية هو '+money(Math.max(0,planSave))+
+ '؛ لا تُنفذ المخصصات حتى تؤكد أن أموالك والتزاماتك حقيقية. <strong>الرصيد الافتتاحي الافتراضي لا يُسجل كمعاملة.</strong></div>';
     html+='<div class="pro-stat-grid">'+box("إجمالي المخصصات خلال 24 شهرًا",twoYears,"رصيد بداية + مخصصات شهرية")+
       box("صندوق الطوارئ بنهاية الخطة",emergency+seed,"مع احتساب التخصيص الأولي")+
       box("ثاندر — مساهمات 24 شهرًا",investments,"سنة أولى "+money(yearOne))+
       box("الاحتياطي غير المنتظم",reserves,"+ "+money(buffer)+" سيولة تشغيلية")+'</div>';
-    if(planSave<8000)html+='<div class="pro-alert">⚠ الفائض الحالي المحسوب من ميزانيتك '+money(planSave)+' أقل من مثال الخطة الأصلية البالغ 8,000 جنيه. راجع التخصيصات قبل الالتزام.</div>';
+    if(planSave<=0)html+='<div class="pro-alert">سجّل دخلك والتزاماتك الواقعية أولًا. لا يوجد فائض آمن يُفترض من بيانات غير مكتملة.</div>';
     html+='<div class="pro-card"><div class="pro-head"><h3>تخصيص مراحل الادخار</h3><span class="pro-meta">القيم قابلة للتعديل حسب دخلك</span></div>'+
       '<form id="proPlanForm" class="pro-grid-fields">'+
       '<label>بداية الخطة<input name="startMonth" type="month" required value="'+esc(p.startMonth)+'"></label>'+
