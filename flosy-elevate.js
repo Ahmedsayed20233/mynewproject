@@ -28,7 +28,7 @@ function EGP(v){return '<span dir="ltr">'+money(v)+'</span>'}
 function monthSummary(date=new Date()){
  const m=monthKey(date),list=transactions().filter(t=>t.date.slice(0,7)===m);
  const sum=type=>list.filter(t=>t.type===type).reduce((a,t)=>a+n(t.amount),0);
- const expenseCategories={};
+ const expenseCategories=Object.create(null);
  for(const t of list)if(t.type==="expense")
   expenseCategories[t.category||"غير مصنف"]=(expenseCategories[t.category||"غير مصنف"]||0)+n(t.amount);
  return {key:m,income:sum("income"),expense:sum("expense"),transfer:sum("transfer"),
@@ -45,7 +45,7 @@ function suggestions(date=new Date()){
  const usable=hist.filter(h=>h.rows.length);
  // At least two months of real spending history, never assume missing months were zero.
  if(usable.length<2)return [];
- const categories=[...new Set(usable.flatMap(h=>h.rows.map(t=>String(t.category||"غير مصنف").slice(0,70))))];
+ const categories=[...new Set(usable.flatMap(h=>h.rows.map(t=>String(t.category||"غير مصنف").slice(0,70))))].filter(x=>!["__proto__","constructor","prototype"].includes(x));
  return categories.map(category=>{
   const amounts=usable.map(h=>h.rows.filter(t=>String(t.category||"غير مصنف").slice(0,70)===category)
    .reduce((a,t)=>a+n(t.amount),0));
@@ -228,6 +228,7 @@ function budgetPage(){
  '<p class="u-disclaimer">الحدود دي للتنبيه والمتابعة فقط؛ لا تضاعف خصم الإيجار والفواتير من Safe to Spend ولا تغير ميزانيتك الأساسية تلقائيًا.</p>';
 }
 function acceptBudget(category){
+ if(["__proto__","constructor","prototype"].includes(category))return false;
  const suggestion=suggestions().find(x=>x.category===category);
  if(!suggestion)return false;
  C.mutate(s=>{
@@ -349,6 +350,7 @@ document.addEventListener("submit",event=>{
  if(!f?.hasAttribute?.("data-u-budget-form"))return;
  event.preventDefault();
  const cat=f.getAttribute("data-u-budget-form"),value=Number(new FormData(f).get("amount"));
+ if(["__proto__","constructor","prototype"].includes(cat))return C.toast("اسم الفئة غير مسموح");
  if(!Number.isFinite(value)||value<50||value>1000000)return C.toast("سقف الفئة يجب أن يكون بين 50 ومليون جنيه");
  C.mutate(s=>{if(!s.elevate)s.elevate={};if(!s.elevate.categoryBudgets)s.elevate.categoryBudgets={};
   s.elevate.categoryBudgets[cat]={amount:Math.round(value),updatedAt:new Date().toISOString(),source:"user"};
