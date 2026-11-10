@@ -95,14 +95,48 @@ function parseVoice(text){
    accountId:matched?.id||cash()[0]?.id||"",subcategory:"",source:"voice_reviewed"};
 }
 function parseReceipt(text){
- const src=digits(text),lines=src.split(/[\r\n]+/).map(x=>x.trim()).filter(Boolean);
- // Prefer a subtotal/total currency-bearing line; never assume the largest printed number is the total.
- const totals=lines.filter(x=>/(TOTAL|الإجمالي|اجمالي|المجموع|amount\s*due|صافي|المطلوب)/i.test(x));
- const amount=totals.map(amountFrom).find(x=>x!==null)||lines.map(amountFrom).find(x=>x!==null);
- if(amount===undefined||amount===null)throw Error("تعذر التعرف على مبلغ واضح؛ اكتب المبلغ بنفسك بعد مراجعة الإيصال.");
- const merchant=lines.find(x=>x.length>2&&!/\d{5,}/.test(x)&&!/(tax|vat|إجمالي|total)/i.test(x))||"إيصال";
- const c=cat(lines.join(" "));
- return {id:uuid(),type:"expense",date:dateLocal(),amount,category:c,
+ const src=digits(String(text||"").slice(0,12000));
+ const lines=src.split(/[\r\n]+/).map(x=>x.trim()).filter(Boolean);
+ const totalLine=/\bgrand\s*total\b|\btotal\b|الإجمالي|الاجمالي|إجمالي\s*الفاتورة|المجموع|amount\s*due|المطلوب/i;
+ const excludedLine=/subtotal|sub total|ضريبة|tax|vat|خصم|discount|كاش\s*باك/i;
+ // Only infer the total from an explicitly labeled line, never from the largest
+ // numeral (invoice number/phone/loyalty points can be larger than the total).
+ const getLineAmount=line=>{
+   const withCurrency=amountFrom(line);
+   if(withCurrency!==null)return withCurrency;
+   const afterLabel=line.replace(/^.*?(?:grand\s*total|total|الإجمالي|الاجمالي|إجمالي\s*الفاتورة|المجموع|amount\s*due|المطلوب)\s*[:：\-]?\s*/i,"");
+   const m=afterLabel.match(/(?:EGP|ج\.م|جم|جنيه)?\s*(\d[\d,.\s]{0,18})/i);
+   if(!m)return null;
+   let raw=m[1].replace(/\s/g,"").replace(/[,.]$/,"");
+   const comma=raw.lastIndexOf(","),dot=raw.lastIndexOf(".");
+   if(comma>=0&&dot>=0)raw=comma>dot?raw.replace(/\./g,"").replace(",","."):raw.replace(/,/g,"");
+   else if(comma>=0){const parts=raw.split(",");raw=parts.length===2&&parts[1].length!==3?parts.join("."):parts.join("")}
+   else if(dot>=0){const parts=raw.split(".");if(parts.length===2&&parts[1].length===3)raw=parts.join("")}
+   const n=Number(raw);
+   return Number.isFinite(n)&&n>0&&n<1e9?n:null;
+ };
+ const totals=lines.filter(line=>totalLine.test(line)&&!excludedLine.test(line));
+ const amount=[...totals].reverse().map(getLineAmount).find(x=>x!==null);
+ if(amount===undefined||amount===null)throw Error("لم أجد إجمالي فاتورة واضحًا؛ أدخل المبلغ يدويًا بعد مراجعة الإيصال.");
+ // Receipt dates are optional; invalid/ambiguous dates remain today's date and
+ // must be reviewed in the confirmation form.
+ let receiptDate=dateLocal();
+ for(const line of lines){
+   let found=line.match(/\b(20\d{2})[-\/.](\d{1,2})[-\/.](\d{1,2})\b/);
+   if(found){
+     const y=+found[1],m=+found[2],d=+found[3],check=new Date(y,m-1,d);
+     if(check.getFullYear()===y&&check.getMonth()+1===m&&check.getDate()===d)
+       {receiptDate=[y,String(m).padStart(2,"0"),String(d).padStart(2,"0")].join("-");break}
+   }
+   found=line.match(/\b([0-3]?\d)[-\/.]([01]?\d)[-\/.](20\d{2})\b/);
+   if(found){
+     const y=+found[3],m=+found[2],d=+found[1],check=new Date(y,m-1,d);
+     if(check.getFullYear()===y&&check.getMonth()+1===m&&check.getDate()===d)
+       {receiptDate=[y,String(m).padStart(2,"0"),String(d).padStart(2,"0")].join("-");break}
+   }
+ }
+ const merchant=lines.find(x=>x.length>2&&!/\d{5,}/.test(x)&&!totalLine.test(x)&&!/(tax|vat|ضريبة|الهاتف)/i.test(x))||"إيصال";
+ return {id:uuid(),type:"expense",date:receiptDate,amount,category:cat(lines.join(" ")),
   description:"إيصال — "+merchant.slice(0,60),accountId:cash()[0]?.id||"",subcategory:"",source:"receipt_reviewed"};
 }
 function isDuplicate(d){

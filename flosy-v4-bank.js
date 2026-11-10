@@ -7,6 +7,7 @@ const $=id=>document.getElementById(id),num=x=>Number(x)||0;
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const uuid=()=>crypto.randomUUID?crypto.randomUUID():"csv-"+Math.random().toString(36).slice(2);
 let header=[],rows=[],prepared=[],message="",filename="",loaded=false,selectedAccount="";
+let excluded=new Set(); // Selected rows only: human review before import.
 const fhash=(s)=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return(h>>>0).toString(16)};
 function csvRecords(text){
  let content=String(text||"").replace(/^\uFEFF/,"");
@@ -55,6 +56,7 @@ function matchedHeader(search){
  search==="debit"?["debit","withdrawal","money out","الخصم","مدين","سحب"]:
  search==="credit"?["credit","deposit","money in","الدائن","دائن","إيداع","ايداع"]:
  search==="direction"?["type","transaction type","نوع","حركة","direction"]:
+ search==="reference"?["reference","transaction id","transaction no","transaction reference","ref no","trace","رقم العملية","رقم الحركة","المرجع","مرجع"]:
  ["amount","value","المبلغ","المبلغ بالجنيه"];
  return header.findIndex(h=>terms.some(k=>h.trim().toLowerCase().includes(k)));
 }
@@ -79,6 +81,7 @@ function uploadForm(){
  mappingSelect("credit","عمود الإضافة",optional)+
  mappingSelect("amount","المبلغ الموحد (لو مفيش خصم/إضافة)",optional)+
  mappingSelect("direction","نوع المعاملة (اختياري)",optional)+
+ mappingSelect("reference","رقم مرجعي من البنك (اختياري؛ لمنع التكرار)",optional)+
  '<label class="full">معنى المبلغ الموجب<select name="positiveMeans" required><option value="">حدد طريقة الإشارة حسب كشف البنك</option><option value="income">موجب = دخل / سالب = مصروف</option><option value="expense">موجب = مصروف / سالب = دخل</option><option value="explicit">عمود نوع مستقل يحدد الاتجاه</option></select></label>'+
  '<button class="v4-btn full">تحليل وعرض المعاملات</button></form>':'<div class="v4-empty">اختار ملفًا أولًا علشان تحدد الأعمدة الموجودة فيه.</div>')+
  '</div><div class="v4-surface v4-full"><h3>3. راجع واعتمد الدفعة</h3><div id="v4-bankpreview"></div></div></div>';
@@ -86,35 +89,36 @@ function uploadForm(){
 function render(){
  const root=$("v4-bank");if(!root)return;root.innerHTML=uploadForm();
  if(selectedAccount&&$("v4-importAccount"))$("v4-importAccount").value=selectedAccount;
- if(loaded){const frm=$("v4-mapcsv");for(const key of ["date","description","debit","credit","amount","direction"]){
+ if(loaded){const frm=$("v4-mapcsv");for(const key of ["date","description","debit","credit","amount","direction","reference"]){
    const ix=matchedHeader(key);const item=frm.elements.namedItem(key);if(item)item.value=ix<0?"":String(ix);
   }}
  const target=$("v4-bankpreview");if(target){
  target.innerHTML=(message?'<div class="v4-note">'+esc(message)+'</div>':'')+
  (!prepared.length?'<div class="v4-empty">لا توجد معاملات للمراجعة.</div>':
- '<div class="v4-note">تم اكتشاف '+prepared.length+' معاملة بعد استبعاد التكرارات. يمكنك مراجعة الملف كاملًا بالتمرير.</div>'+
- '<div class="v4-table-wrap" style="max-height:360px;overflow:auto"><table class="v4-table"><thead><tr><th>التاريخ</th><th>الوصف</th><th>القيمة</th><th>التصنيف</th></tr></thead><tbody>'+
- prepared.map(x=>'<tr><td>'+esc(x.date)+'</td><td>'+esc(x.description)+'</td><td>'+esc(x.type==="expense"?"−":"+")+num(x.amount).toFixed(2)+'</td><td>'+esc(x.category)+'</td></tr>').join("")+
+ '<div class="v4-note">تم تحليل '+prepared.length+' معاملة. اختر ما تريد حفظه؛ المعاملات المتشابهة قد تكون عمليات حقيقية منفصلة.</div>'+
+ '<div class="v4-table-wrap" style="max-height:390px;overflow:auto"><table class="v4-table"><thead><tr><th>حفظ؟</th><th>التاريخ</th><th>الوصف</th><th>القيمة</th><th>التصنيف</th></tr></thead><tbody>'+
+ prepared.map((x,i)=>'<tr><td><input type="checkbox" aria-label="حفظ معاملة رقم '+(i+1)+'" data-bank-row="'+i+'" '+(excluded.has(i)?'':'checked')+'></td><td>'+esc(x.date)+'</td><td>'+esc(x.description)+'</td><td>'+esc(x.type==="expense"?"−":"+")+num(x.amount).toFixed(2)+'</td><td>'+esc(x.category)+'</td></tr>').join("")+
  '</tbody></table></div>'+
+ '<p id="v4-bank-count" class="v4-fineprint">المحدد للحفظ: '+(prepared.length-excluded.size)+' من '+prepared.length+'. طابق الرصيد مع كشف البنك بعد الاستيراد.</p>'+
  '<div class="v4-chips" style="margin-top:14px"><button type="button" class="v4-btn" data-bank="commit">تأكيد حفظ الدفعة</button><button class="v4-btn secondary" type="button" data-bank="cancel">تجاهلها</button></div>');
  }}
 async function loadCSV(file){
  if(!file||file.size>1048576||file.size===0||!(/\.csv$/i.test(file.name)||file.type==="text/csv"))throw Error("الملف لازم يكون CSV وأقل من 1MB");
  let data=csvRecords(await file.text());
  if(data.length<2||data.length>1001)throw Error("يلزم وجود عناوين أعمدة و1 إلى 1000 معاملة.");
- header=data.shift().map(x=>String(x).trim());rows=data;loaded=true;prepared=[];filename=file.name;
+ header=data.shift().map(x=>String(x).trim());rows=data;loaded=true;prepared=[];excluded.clear();filename=file.name;
  message="تم تحميل "+rows.length+" صف. راجع تعيين الأعمدة.";
  render();
 }
 function translate(rows,opts,accountId){
  if(!(C.getState().accounts||[]).some(a=>a.id===accountId))throw Error("اختر حسابًا صحيحًا");
  const find=key=>opts[key]===""?-1:Number(opts[key]);
- const d=find("date"),desc=find("description"),debit=find("debit"),credit=find("credit"),amount=find("amount"),direction=find("direction");
+ const d=find("date"),desc=find("description"),debit=find("debit"),credit=find("credit"),amount=find("amount"),direction=find("direction"),reference=find("reference");
  const positiveMeans=String(opts.positiveMeans||"");
  if(d<0||((debit<0||credit<0)&&amount<0))throw Error("حدد عمود التاريخ وعمود المبلغ أو الخصم والإضافة");
  if(!(debit>=0&&credit>=0)&&((direction<0&&!["income","expense"].includes(positiveMeans))||(direction>=0&&positiveMeans!=="explicit")))throw Error("حدد طريقة تفسير إشارة المبلغ أو اختر وجود عمود مستقل لنوع المعاملة.");
  const ids=new Set((C.getState().transactions||[]).map(x=>x.sourceHash).filter(Boolean));
- const duplicates=new Set(),out=[];
+ const duplicates=new Set(),occurrence=new Map(),refSeen=new Map(),out=[];
  for(const [i,r] of rows.entries()){
   if(r.every(x=>!String(x).trim()))continue;
   try{
@@ -135,10 +139,25 @@ function translate(rows,opts,accountId){
       }
       value=Math.abs(a);
     }
-    if(!(value>0&&value<=1e8))continue;
+    if(!(value>0&&value<=1e8))throw Error("المبلغ غير صالح أو صفر");
     const basis=[accountId,date,type,value.toFixed(2),description.toLowerCase()].join("|");
-    const fp="bank4-"+fhash(basis);
-    if(ids.has(fp)||duplicates.has(fp))continue;duplicates.add(fp);
+    // Bank reference is preferred; a row occurrence index preserves real repeated
+    // same-day purchases when the bank did not provide one.
+    const bankRef=reference>=0?String(r[reference]||"").trim().toLowerCase():"";
+    const seq=(occurrence.get(basis)||0)+1;occurrence.set(basis,seq);
+    const refKey=accountId+"|"+date+"|"+bankRef;
+    if(bankRef){
+      const priorBasis=refSeen.get(refKey);
+      if(priorBasis&&priorBasis!==basis)throw Error("نفس مرجع البنك له معاملات متعارضة؛ راجع الكشف الأصلي");
+      refSeen.set(refKey,basis);
+    }
+    const stable=bankRef?"ref|"+refKey:"position|"+basis+"|"+seq;
+    const fp="bank4-"+fhash(stable)+"-"+fhash(stable.split("").reverse().join(""));
+    const legacyFp="bank4-"+fhash(basis);
+    // Importers before Pearl used only the day/amount/description fingerprint.
+    // Keep a legacy match for the first occurrence to avoid importing it twice.
+    if(ids.has(fp)||duplicates.has(fp)||(seq===1&&ids.has(legacyFp)))continue;
+    duplicates.add(fp);
     out.push({id:crypto.randomUUID?crypto.randomUUID():"bank"+Date.now()+i,date,type,
       amount:value,description,accountId,sourceHash:fp,category:type==="income"?"دخل آخر":(global.FLOSY_CAPTURE?.cat(description)||"مشتريات"),
       source:"bank_csv_reviewed",createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
@@ -154,10 +173,18 @@ document.addEventListener("submit",e=>{
  if(e.target.id!=="v4-mapcsv")return;e.preventDefault();
  try{const f=new FormData(e.target),options=Object.fromEntries(f.entries());
  selectedAccount=$("v4-importAccount")?.value||"";
- prepared=translate(rows,options,selectedAccount);
+ prepared=translate(rows,options,selectedAccount);excluded.clear();
  message=prepared.length?"تمت المعاينة. افحص الصفوف والمبالغ قبل الضغط على حفظ.":"لم أجد معاملات جديدة أو جميع الصفوف مكررة.";
  render();
  }catch(err){message=err.message;prepared=[];render()}
+});
+document.addEventListener("change",e=>{
+ const index=e.target?.dataset?.bankRow;
+ if(index===undefined)return;
+ const i=Number(index);if(!Number.isInteger(i)||i<0||i>=prepared.length)return;
+ if(e.target.checked)excluded.delete(i);else excluded.add(i);
+ const count=$("v4-bank-count");
+ if(count)count.textContent="المحدد للحفظ: "+(prepared.length-excluded.size)+" من "+prepared.length+". طابق الرصيد مع كشف البنك بعد الاستيراد.";
 });
 document.addEventListener("click",e=>{
  const b=e.target.closest("[data-bank]");if(!b)return;
@@ -166,9 +193,10 @@ document.addEventListener("click",e=>{
   if(!prepared.length)return;
   if(!confirm("تأكيد إضافة "+prepared.length+" معاملة من كشف البنك؟ لن تُضاف أي معاملة بدون موافقتك."))return;
   const prior=new Set((C.getState().transactions||[]).map(x=>x.sourceHash).filter(Boolean));
-  const save=prepared.filter(x=>!prior.has(x.sourceHash));
+  const save=prepared.filter((x,i)=>!excluded.has(i)&&!prior.has(x.sourceHash));
+  if(!save.length){C.toast("لا توجد معاملات جديدة محددة للحفظ");return;}
   if(save.length)C.mutate(s=>s.transactions.push(...save));
-  prepared=[];message="تم تسجيل "+save.length+" معاملة بعد استبعاد المكررات. راجع رصيد الحساب.";
+  prepared=[];excluded.clear();message="تم تسجيل "+save.length+" معاملة بعد استبعاد غير المحدد والمكرر. طابق الرصيد مع كشف البنك.";
   render();C.toast("تم استيراد "+save.length+" معاملة");
  }
 });

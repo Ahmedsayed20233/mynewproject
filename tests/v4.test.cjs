@@ -115,3 +115,118 @@ test("Offline service worker precaches every local script and stylesheet referen
  assert.ok(files.length>=10,"Expected a full offline app shell");
  for(const file of files) assert.ok(sw.includes("./"+file),"Not precached: "+file);
 });
+
+
+test("Egyptian CSV keeps identical same-day purchases as separate real rows",()=>{
+ const c=context();load("flosy-v4-bank.js",c);
+ const b=c.window.FLOSY_BANK_CSV;
+ const rows=[["10/11/2026","CAFÉ", "125.00"],["10/11/2026","CAFÉ", "125.00"]];
+ const mapping={date:"0",description:"1",debit:"",credit:"",amount:"2",direction:"",reference:"",positiveMeans:"expense"};
+ const result=b.translate(rows,mapping,"bank");
+ assert.equal(result.length,2,"Repeated real transactions must not be silently dropped");
+ assert.notEqual(result[0].sourceHash,result[1].sourceHash);
+ c.data.transactions.push(...result);
+ assert.equal(b.translate(rows,mapping,"bank").length,0,"Reimporting the same source is idempotent");
+});
+
+test("Egyptian bank reference makes different statements idempotent",()=>{
+ const c=context();load("flosy-v4-bank.js",c);
+ const b=c.window.FLOSY_BANK_CSV;
+ const mapping={date:"0",description:"1",debit:"2",credit:"3",amount:"",direction:"",reference:"4",positiveMeans:""};
+ const first=b.translate([["2026-11-10","CIB card", "350","", "TXN-1001"]],mapping,"bank");
+ assert.equal(first.length,1);
+ c.data.transactions.push(...first);
+ const imported=b.translate([["2026-11-10","CIB card","","350","TXN-1001"]],mapping,"bank");
+ assert.equal(imported.length,0,"Bank reference wins over changing export narratives/amount columns");
+});
+
+test("Egyptian receipt parser reads labeled total and date; never infers from invoice number",()=>{
+ const c=context();load("flosy-v4-capture.js",c);
+ const p=c.window.FLOSY_CAPTURE.parseReceipt;
+ const receipt=p("كافيه الجامعة\\nرقم الفاتورة: 104857\\nالاجمالي 1,234.50\\nالتاريخ: 10/11/2026");
+ assert.equal(receipt.amount,1234.5);
+ assert.equal(receipt.date,"2026-11-10");
+ assert.equal(receipt.source,"receipt_reviewed");
+ assert.throws(()=>p("رقم الفاتورة: 99999\\nكافيه الجامعة\\nضريبة 12.50"),/إجمالي/);
+});
+
+test("Pearl command center stays in white mode, updates from validated local data, and has real buttons",()=>{
+ const c=context();c.window.FLOSY_PHASE1={calculate:()=>({daily:150,days:12})};
+ c.window.FLOSY_SYNC_V3={getStatus:()=>({status:"متزامن",revision:7,dirty:false})};
+ c.window.FLOSY_REMINDERS={upcoming:()=>[{days:1,paid:false,linked:false}]};
+ c.window.FLOSY_BRIDGE.getSession=()=>({user:{id:"dev-user"}});
+ load("flosy-v5-command.js",c);
+ assert.match(c.elems.flosyV5Command.innerHTML,/١٥٠|150/);
+ assert.match(c.elems.flosyV5Command.innerHTML,/إصدار 7/);
+ assert.match(c.elems.flosyV5Command.innerHTML,/data-v5-go="v4-bank"/);
+ const css=fs.readFileSync("flosy-v5-pearl.css","utf8");
+ assert.match(css,/color-scheme:light!important/);
+ const index=fs.readFileSync("index.html","utf8");
+ assert.ok(index.includes("flosy-v5-pearl.css"));
+ assert.ok(index.includes("flosy-v5-command.js"));
+});
+
+test("Calendar export contains explicit due dates, not personal amounts or accounts",()=>{
+ const c=context();
+ c.window.FLOSY_PHASE1={occurrences:()=>[
+  {id:"internet",key:"bill/internet/2026-11",date:"2026-11-20",name:"Internet",amount:1250,paid:false,linked:false},
+  {id:"paid",key:"bill/paid/2026-11",date:"2026-11-22",name:"Secret",amount:9999,paid:true,linked:false}
+ ]};
+ load("flosy-v4-reminders.js",c);
+ const ics=c.window.FLOSY_REMINDERS.calendarText();
+ assert.match(ics,/BEGIN:VCALENDAR/);
+ assert.match(ics,/BEGIN:VEVENT/);
+ assert.match(ics,/DTSTART;VALUE=DATE:20261120/);
+ assert.doesNotMatch(ics,/1250|9999|Secret|Internet/);
+});
+
+
+test("Encrypted off-device backup round-trips and rejects a wrong password without mutation",async()=>{
+ const c=context();
+ c.ctx.crypto=require("node:crypto").webcrypto;
+ c.ctx.TextEncoder=TextEncoder;c.ctx.TextDecoder=TextDecoder;
+ c.ctx.atob=atob;c.ctx.btoa=btoa;
+ load("flosy-v5-private-backup.js",c);
+ const app=c.window.FLOSY_V5_BACKUP;
+ const original={accounts:[{id:"bank",opening:1000}],transactions:[{id:"t1",type:"expense",amount:77}],settings:{salary:17000}};
+ const encrypted=await app.seal(original,"very-long-private-phrase","the-user");
+ assert.equal(encrypted.format,"flosy-aesgcm-v1");
+ assert.equal(encrypted.cipher,"AES-256-GCM");
+ assert.equal(encrypted.iterations,250000);
+ assert.equal(JSON.stringify(encrypted).includes('"salary":17000'),false,"No readable financial amounts in backup");
+ const restored=await app.unseal(encrypted,"very-long-private-phrase");
+ assert.equal(restored.ownerId,"the-user");
+ assert.equal(JSON.stringify(restored.payload),JSON.stringify(original));
+ await assert.rejects(app.unseal(encrypted,"incorrect-password"),/كلمة المرور/);
+ assert.equal(c.data.transactions.length,0,"Unit test never changes active finance state");
+});
+
+test("Old Flosy bank fingerprint survives upgrades without duplicate historical spending",()=>{
+ const c=context();load("flosy-v4-bank.js",c);
+ const basis="bank|2026-11-10|expense|125.00|cafe";
+ let hash=2166136261;
+ for(const ch of basis){hash^=ch.charCodeAt(0);hash=Math.imul(hash,16777619)}
+ c.data.transactions.push({id:"old-import",sourceHash:"bank4-"+(hash>>>0).toString(16)});
+ const options={date:"0",description:"1",amount:"2",debit:"",credit:"",direction:"",reference:"",positiveMeans:"expense"};
+ const imported=c.window.FLOSY_BANK_CSV.translate([
+  ["2026-11-10","Cafe","125"],
+  ["2026-11-10","Cafe","125"]
+ ],options,"bank");
+ assert.equal(imported.length,1,"Previously imported first row is skipped but second genuine payment is retained");
+});
+
+test("Conflicting amounts sharing the same bank reference require review, never silent import",()=>{
+ const c=context();load("flosy-v4-bank.js",c);
+ const options={date:"0",description:"1",amount:"2",debit:"",credit:"",direction:"",reference:"3",positiveMeans:"expense"};
+ assert.throws(()=>c.window.FLOSY_BANK_CSV.translate([
+  ["2026-11-10","Cafe","125","ref-55"],
+  ["2026-11-10","Cafe","250","ref-55"]
+ ],options,"bank"),/مرجع البنك/);
+});
+
+test("Even the first unstyled HTML shell defaults to light; no dark startup flash",()=>{
+ const html=fs.readFileSync("index.html","utf8");
+ assert.match(html,/:root\{color-scheme:light;/);
+ assert.doesNotMatch(html,/--bg:#081422|background:linear-gradient\(180deg,#0b1c30/);
+ assert.match(html,/<body class="light">/);
+});
