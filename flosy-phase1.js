@@ -182,7 +182,9 @@ function render(){
 function makePayment(key,paid){
  C.mutate(s=>{
   s.phase1.payments=s.phase1.payments||[];
+  const removed=s.phase1.payments.filter(x=>x.key===key);
   s.phase1.payments=s.phase1.payments.filter(x=>x.key!==key);
+  if(removed.length){s.deletedIds=s.deletedIds||[];removed.forEach(x=>s.deletedIds.push("payments/"+x.id))}
   if(paid)s.phase1.payments.push({id:uid(),key,status:"paid",updatedAt:now()});
  });
 }
