@@ -93,7 +93,7 @@ function renderPrivacy(){
  (devices.length?'<div class="v4-table-wrap"><table class="v4-table"><thead><tr><th>اسم الجهاز</th><th>آخر نشاط</th><th></th></tr></thead><tbody>'+
  devices.map(x=>'<tr><td>'+esc(x.label)+'</td><td>'+new Date(x.last_seen_at).toLocaleDateString("ar-EG")+'</td><td><button type="button" class="v4-btn secondary" data-v4-private="forget" data-id="'+esc(x.device_id)+'">حذف من القائمة</button></td></tr>').join("")+'</tbody></table></div>':'')+
  '<p>حذف جهاز من القائمة ليس إلغاءً لرمز تسجيل الدخول. زر «تسجيل خروج باقي الأجهزة» يلغي رموز تحديث الجلسات الأخرى عبر Supabase، وقد تستمر رموز الوصول حتى انتهاء صلاحيتها.</p>','v4-half')+
- card("حذف البيانات نهائيًا",'<div class="v4-note v4-warning">تحذير: حذف بياناتك الشخصية من Supabase يتضمن المعاملات والنسخ الاحتياطية القديمة. لا يمكن استرجاعها. لا يحذف حساب تسجيل الدخول ولا بيانات المجموعات المشتركة تلقائيًا.</div>'+
+ card("حذف البيانات نهائيًا",'<div class="v4-note v4-warning">تحذير: حذف بياناتك الشخصية من Supabase يتضمن المعاملات والنسخ الاحتياطية القديمة. لا يمكن استرجاعها. سيحذف مصروفاتك العائلية التي أضفتها، وسيحذف أي مجموعة عائلية أنت مالكها بما فيها بيانات بقية الأعضاء؛ لا يحذف حساب تسجيل الدخول.</div>'+
  '<form id="v4-deleteForm" class="v4-form"><label class="full">اكتب النص التالي حرفيًا: <code>DELETE FLOSY DATA</code><input type="text" name="confirmation" autocomplete="off" required placeholder="DELETE FLOSY DATA"></label>'+
  '<button class="v4-btn danger full" type="submit">حذف بيانات Flosy الشخصية نهائيًا</button></form>','v4-half')+'</div>';
 }
@@ -147,7 +147,7 @@ document.addEventListener("submit",async e=>{
   if(e.target.id==="v4-deleteForm"){
    const confirmation=String(f.get("confirmation")||"");
    if(confirmation!=="DELETE FLOSY DATA")throw Error("نص التأكيد غير مطابق");
-   if(!confirm("هذه الخطوة ستحذف معاملاتك وحساباتك ونسخك الاحتياطية من Flosy. هل أنت متأكد نهائيًا؟"))return;
+   if(!confirm("هذه الخطوة ستحذف معاملاتك وحساباتك ونسخك التاريخية، ومصروفاتك المشتركة وأي مجموعة عائلية تملكها. هل أنت متأكد نهائيًا؟"))return;
    if(!confirm("الفرصة الأخيرة: سيتم حذف سجلاتك الشخصية نهائيًا. هل تنفذ الآن؟"))return;
    if(w.FLOSY_SYNC_V3?.getStatus?.().dirty)throw Error("عندك تغييرات محلية لم تتزامن. احفظ نسخة JSON أولًا");
    const id=user();
