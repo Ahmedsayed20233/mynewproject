@@ -12,6 +12,10 @@ on:
       - 'flosy-v5-pearl.css'
       - 'flosy-v5-command.js'
       - 'flosy-v5-private-backup.js'
+      - 'flosy-elevate.js'
+      - 'flosy-elevate.css'
+      - 'finance-pro.js'
+      - 'tests/browser-smoke.cjs'
       - 'flosy-repair.js'
       - 'flosy-assistant-bridge.js'
       - 'flosy-ai.js'
@@ -48,6 +52,7 @@ jobs:
           node --check flosy-v4-reminders.js
           node --check flosy-v5-command.js
           node --check flosy-v5-private-backup.js
+          node --check flosy-elevate.js
           node --check flosy-repair.js
           node --check flosy-assistant-bridge.js
           node --check service-worker.js
