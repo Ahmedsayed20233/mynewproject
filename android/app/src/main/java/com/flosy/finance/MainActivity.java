@@ -33,6 +33,20 @@ import android.os.CancellationSignal;
 import android.os.Build;
 import android.content.pm.PackageManager;
 import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
+import android.speech.RecognitionListener;
+import android.media.MediaRecorder;
+import android.provider.MediaStore;
+import android.content.ClipData;
+import android.os.Handler;
+import android.os.Looper;
+import java.io.File;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import androidx.core.content.FileProvider;
+import androidx.webkit.WebViewCompat;
+import androidx.webkit.WebViewFeature;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.text.TextRecognizer;
 import com.google.mlkit.vision.text.TextRecognition;
@@ -51,6 +65,9 @@ public class MainActivity extends Activity {
     private static final int REQ_READ_SMS = 72;
     private static final int REQ_VOICE = 73;
     private static final int REQ_OCR = 74;
+    private static final int REQ_CAMERA = 75;
+    private static final int REQ_AUDIO = 76;
+    private static final int REQ_SAVE_RECEIPT = 77;
     private WebView webView;
     private ProgressBar loadingBar;
     private ValueCallback<Uri[]> selectedFiles;
@@ -59,6 +76,12 @@ public class MainActivity extends Activity {
     private boolean pageReady = false;
     private String pendingNativeReceiptText = null;
     private String pendingVoiceText = null;
+    private SpeechRecognizer speechRecognizer = null;
+    private boolean speechBusy = false;
+    private boolean webMessageReady = false;
+    private Uri photoUri = null;
+    private File photoFile = null;
+    private String pendingReceiptExport = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -101,6 +124,35 @@ public class MainActivity extends Activity {
         // Keep the native WebView canvas white, including startup before CSS loads.
         webView.setBackgroundColor(Color.WHITE);
 
+        // Modern Android WebView origin-restricted bridge. Never expose Java JS interfaces to iframes.
+        // This avoids fragile custom-scheme top-level navigations on recent WebView versions.
+        if(WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)){
+            WebViewCompat.addWebMessageListener(webView,"FlosyNative",
+                Collections.singleton("https://ahmedsayed20233.github.io"),
+                (view,message,sourceOrigin,isMainFrame,replyProxy)->{
+                    if(!isMainFrame || sourceOrigin==null ||
+                        !"https".equalsIgnoreCase(sourceOrigin.getScheme()) ||
+                        !HOME_HOST.equalsIgnoreCase(sourceOrigin.getHost()) ||
+                        view.getUrl()==null || !view.getUrl().startsWith(HOME))return;
+                    String raw=message.getData();
+                    if(raw==null || raw.length()>16000)return;
+                    try{
+                        JSONObject msg=new JSONObject(raw);
+                        final String action=msg.optString("action","");
+                        view.post(()->{
+                            if("voice".equals(action))startEgyptianVoice();
+                            else if("receipt-ocr".equals(action))pickNativeReceipt();
+                            else if("receipt-camera".equals(action))captureReceiptPhoto();
+                            else if("receipt-export".equals(action)){
+                                String receipt=msg.optString("text","");
+                                if(!receipt.isEmpty() && receipt.length()<=12000)
+                                    exportReceiptText(receipt);
+                            }
+                        });
+                    }catch(Exception ignored){}
+                });
+            webMessageReady=true;
+        }
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onProgressChanged(WebView view, int progress) {
@@ -157,6 +209,11 @@ public class MainActivity extends Activity {
                         view.post(() -> pickNativeReceipt());
                     return true;
                 }
+                if ("flosyapp".equalsIgnoreCase(scheme) && "receipt-camera".equalsIgnoreCase(host)) {
+                    if (request.isForMainFrame() && view.getUrl()!=null && view.getUrl().startsWith(HOME))
+                        view.post(()->captureReceiptPhoto());
+                    return true;
+                }
                 if ("flosyapp".equalsIgnoreCase(scheme) && "sms-scan".equalsIgnoreCase(host)) {
                     if (request.isForMainFrame() && view.getUrl() != null
                         && view.getUrl().startsWith(HOME)) {
@@ -198,6 +255,7 @@ public class MainActivity extends Activity {
                         + (BuildConfig.FLAVOR.equals("sms") ? "true" : "false") + ";"
                         + "window.FLOSY_NATIVE_VOICE_AVAILABLE=true;"
                         + "window.FLOSY_NATIVE_OCR_AVAILABLE=true;"
+                        + "window.FLOSY_NATIVE_BRIDGE_AVAILABLE="+(webMessageReady ? "true" : "false")+";"
                         + "window.FLOSY_NATIVE_BIOMETRIC_AVAILABLE="
                         + (Build.VERSION.SDK_INT >= 28 ? "true" : "false") + ";"
                         + "if(window.FLOSY_NEXT)window.FLOSY_NEXT.render();"
