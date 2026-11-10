@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#081526">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#FFFFFF">
 <title>فلوسي — إدارة مالية شخصية</title><meta name="description" content="لوحة تحكم عربية ذكية لإدارة الدخل والمصروفات والأهداف المالية">
 <link rel="stylesheet" href="finance-pro.css?v=130"><link rel="stylesheet" href="flosy-next.css?v=202"><link rel="stylesheet" href="flosy-ai.css?v=210"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -144,8 +144,9 @@
 }
 @media print{.mobile-dock,.mobile-more-shade,.network-banner{display:none!important}}
 </style>
+<link rel="stylesheet" href="flosy-v4-white.css?v=400">
 </head>
-<body>
+<body class="light">
 <div class="shell">
 <aside class="sidebar"><div class="logo"><em>↗</em><div>فلوسي<small>إدارة مالية بذكاء ووضوح</small></div></div><nav class="nav" id="nav">
 <button data-page="dashboard" class="active"><span class="ico">◫</span><span class="label">لوحة التحكم</span></button>
@@ -157,6 +158,12 @@
 <button data-page="plan"><span class="ico">◈</span><span class="label">الخطة المالية 24 شهرًا</span></button>
 <button data-page="risk"><span class="ico">♧</span><span class="label">حماية من الأزمات</span></button>
 <button data-page="phase1"><span class="ico">◉</span><span class="label">الآمن للصرف والتوقعات</span></button>
+<button data-page="v4-capture"><span class="ico">🎙</span><span class="label">صوت وصور الإيصالات</span></button>
+<button data-page="v4-bank"><span class="ico">⇵</span><span class="label">استيراد كشف البنك</span></button>
+<button data-page="v4-wealth"><span class="ico">◈</span><span class="label">الثروة المصرية</span></button>
+<button data-page="v4-crisis"><span class="ico">♢</span><span class="label">مختبر الأزمات</span></button>
+<button data-page="v4-family"><span class="ico">♡</span><span class="label">ميزانية العيلة</span></button>
+<button data-page="v4-privacy"><span class="ico">▢</span><span class="label">الخصوصية والأجهزة</span></button>
 <button data-page="smart"><span class="ico">✦</span><span class="label">رؤى وميزانية مرنة</span></button>
 <button data-page="recurring"><span class="ico">◷</span><span class="label">الفواتير المتكررة</span></button>
 <button data-page="rules"><span class="ico">☷</span><span class="label">قواعد التصنيف</span></button>
@@ -189,6 +196,12 @@
 <section class="page" id="page-plan"><div id="proPlan"></div></section>
 <section class="page" id="page-risk"><div id="proRisk"></div></section>
 <section class="page" id="page-phase1"><div id="phase1Root"></div></section>
+<section class="page" id="page-v4-capture"><div id="v4-capture"></div></section>
+<section class="page" id="page-v4-bank"><div id="v4-bank"></div></section>
+<section class="page" id="page-v4-wealth"><div id="v4-wealth"></div></section>
+<section class="page" id="page-v4-crisis"><div id="v4-crisis"></div></section>
+<section class="page" id="page-v4-family"><div id="v4-family"></div></section>
+<section class="page" id="page-v4-privacy"><div id="v4-privacy"></div></section>
 <section class="page" id="page-smart"><div id="f2-smart"></div></section>
 <section class="page" id="page-recurring"><div id="f2-recurring"></div></section>
 <section class="page" id="page-rules"><div id="f2-rules"></div></section>
@@ -231,6 +244,12 @@
 <button data-go="plan" type="button"><span>◈</span><strong>الخطة المالية</strong><small>تخصيصات 24 شهرًا</small></button>
 <button data-go="risk" type="button"><span>♧</span><strong>الأزمات</strong><small>الطوارئ والتنبيهات</small></button>
 <button data-go="phase1" type="button"><span>◉</span><strong>آمن للصرف</strong><small>فواتير وأقساط وتوقعات</small></button>
+<button data-go="v4-capture" type="button"><span>🎙</span><strong>صوت وإيصالات</strong><small>إدخال سريع</small></button>
+<button data-go="v4-bank" type="button"><span>⇵</span><strong>كشف البنك</strong><small>استيراد CSV</small></button>
+<button data-go="v4-wealth" type="button"><span>◈</span><strong>ثروتي</strong><small>ذهب ودولار وجمعية</small></button>
+<button data-go="v4-crisis" type="button"><span>♢</span><strong>سيناريو أزمة</strong><small>البطالة والتضخم</small></button>
+<button data-go="v4-family" type="button"><span>♡</span><strong>ميزانية العيلة</strong><small>حسابات مشتركة</small></button>
+<button data-go="v4-privacy" type="button"><span>▢</span><strong>الخصوصية</strong><small>الأجهزة وإخفاء الأرصدة</small></button>
 <button data-go="smart" type="button"><span>✦</span><strong>الرؤى</strong><small>ميزانية مرنة</small></button>
 <button data-go="recurring" type="button"><span>◷</span><strong>الفواتير</strong><small>المواعيد الدورية</small></button>
 <button data-go="import" type="button"><span>↧</span><strong>رسائل البنك</strong><small>استيراد ومراجعة</small></button>
@@ -314,8 +333,12 @@ $('storageChip').textContent=session?(lastSync?'☁ آخر مزامنة':'☁ ح
 $('saveStatusCard').innerHTML='<h3>💾 حالة حفظ بياناتك</h3><p class="callout"><strong>الحفظ على الجهاز: مفعّل تلقائيًا.</strong> يتم حفظ كل معاملة وإعداد على هذا الجهاز داخل التطبيق أو المتصفح. لا تحذف التطبيق قبل التأكد من المزامنة أو تنزيل نسخة احتياطية.</p><p><strong>المزامنة السحابية:</strong> '+(session?'تم تسجيل الدخول إلى '+safe(session.user?.email||'حسابك'):'غير مفعّلة بعد — سجّل الدخول أسفل الصفحة')+'</p><p class="muted">آخر مزامنة ناجحة: '+safe(syncLabel)+'</p><div class="buttonbar"><button class="btn" type="button" id="saveStatusSyncButton">☁ مزامنة الآن</button><button class="btn" type="button" id="saveStatusExportButton">⬇ نسخة احتياطية JSON</button></div>';
 $('saveStatusSyncButton').onclick=()=>{if(!session){toast('سجّل الدخول لتفعيل المزامنة السحابية');return}sync()};
 $('saveStatusExportButton').onclick=()=>$('exportJSON').click();
-if(page==='reports')renderDetailedReportPreview();if(window.FLOSY_PRO)window.FLOSY_PRO.render();if(window.FLOSY_NEXT)window.FLOSY_NEXT.render();if(window.FLOSY_AI)window.FLOSY_AI.render();if(window.FLOSY_PHASE1)window.FLOSY_PHASE1.render();}
-function goto(p){page=p;setMobileMore(false);document.querySelectorAll('.page').forEach(e=>e.classList.toggle('active',e.id==='page-'+p));document.querySelectorAll('[data-page]').forEach(e=>e.classList.toggle('active',e.dataset.page===p));$('dockMoreButton').classList.toggle('active',['budget','goals','settings','wealth','portfolio','plan','risk','phase1','smart','recurring','rules','import','recovery','ai'].includes(p));const titles={dashboard:'مرحبًا بك في فلوسي 👋',transactions:'معاملاتك المالية',budget:'الميزانية الشهرية',goals:'أهدافك المالية',reports:'تقارير وتحليلات',wealth:'كل أموالي وصافي الثروة',portfolio:'استثماراتي على ثاندر',plan:'الخطة المالية لمدة 24 شهرًا',risk:'الحماية من الأزمات',phase1:'الآمن للصرف والتدفق النقدي',smart:'مركز الرؤى المالية',recurring:'الالتزامات المتكررة',rules:'قواعد التصنيف',import:'استيراد رسائل البنك',recovery:'حماية بياناتك',ai:'مساعد فلوسي الذكي',settings:'الإعدادات والخصوصية'};$('pageTitle').textContent=titles[p];render();window.scrollTo({top:0,behavior:'smooth'})}
+if(page==='reports')renderDetailedReportPreview();if(window.FLOSY_PRO)window.FLOSY_PRO.render();if(window.FLOSY_NEXT)window.FLOSY_NEXT.render();if(window.FLOSY_AI)window.FLOSY_AI.render();if(window.FLOSY_PHASE1)window.FLOSY_PHASE1.render();
+ if(window.FLOSY_CAPTURE)window.FLOSY_CAPTURE.render();
+ if(window.FLOSY_BANK_CSV)window.FLOSY_BANK_CSV.render();
+ if(window.FLOSY_V4_WEALTH)window.FLOSY_V4_WEALTH.render();
+ if(window.FLOSY_V4_FAMILY)window.FLOSY_V4_FAMILY.render();}
+function goto(p){page=p;setMobileMore(false);document.querySelectorAll('.page').forEach(e=>e.classList.toggle('active',e.id==='page-'+p));document.querySelectorAll('[data-page]').forEach(e=>e.classList.toggle('active',e.dataset.page===p));$('dockMoreButton').classList.toggle('active',['budget','goals','settings','wealth','portfolio','plan','risk','phase1','smart','recurring','rules','import','recovery','ai','v4-capture','v4-bank','v4-wealth','v4-crisis','v4-family','v4-privacy'].includes(p));const titles={dashboard:'مرحبًا بك في فلوسي 👋',transactions:'معاملاتك المالية',budget:'الميزانية الشهرية',goals:'أهدافك المالية',reports:'تقارير وتحليلات',wealth:'كل أموالي وصافي الثروة',portfolio:'استثماراتي على ثاندر',plan:'الخطة المالية لمدة 24 شهرًا',risk:'الحماية من الأزمات',phase1:'الآمن للصرف والتدفق النقدي', 'v4-capture':'تسجيل المصروف بالصوت والإيصال', 'v4-bank':'استيراد كشف البنك', 'v4-wealth':'الثروة المصرية', 'v4-crisis':'مختبر الأزمات', 'v4-family':'ميزانية العيلة المشتركة', 'v4-privacy':'مركز الخصوصية والأجهزة',smart:'مركز الرؤى المالية',recurring:'الالتزامات المتكررة',rules:'قواعد التصنيف',import:'استيراد رسائل البنك',recovery:'حماية بياناتك',ai:'مساعد فلوسي الذكي',settings:'الإعدادات والخصوصية'};$('pageTitle').textContent=titles[p];render();window.scrollTo({top:0,behavior:'smooth'})}
 
 function setMobileMore(open){
  const shade=$('mobileMoreShade');
@@ -324,7 +347,7 @@ function setMobileMore(open){
  shade.classList.toggle('open',active);
  shade.setAttribute('aria-hidden',String(!active));
  $('dockMoreButton').setAttribute('aria-expanded',String(active));
- $('dockMoreButton').classList.toggle('active',active||['budget','goals','settings','wealth','portfolio','plan','risk','phase1','smart','recurring','rules','import','recovery','ai'].includes(page));
+ $('dockMoreButton').classList.toggle('active',active||['budget','goals','settings','wealth','portfolio','plan','risk','phase1','smart','recurring','rules','import','recovery','ai','v4-capture','v4-bank','v4-wealth','v4-crisis','v4-family','v4-privacy'].includes(page));
  if(active){updateMobileSync();} 
 }
 function updateMobileSync(){
@@ -356,7 +379,7 @@ function updateNetworkBanner(){$('netBanner').hidden=navigator.onLine}
 window.addEventListener('online',updateNetworkBanner);window.addEventListener('offline',updateNetworkBanner);updateNetworkBanner();
 function openModal(type='expense'){$('modalback').classList.add('open');$('txnForm').reset();$('formType').value=type;$('txnForm').elements.date.value=new Date().toLocaleDateString('en-CA');categoryOptions();$('txnForm').elements.amount.focus()}
 function closeModal(){$('modalback').classList.remove('open')}
-document.addEventListener('click',e=>{const nav=e.target.closest('[data-page]');if(nav)goto(nav.dataset.page);const go=e.target.closest('[data-go]');if(go)goto(go.dataset.go);const quick=e.target.closest('[data-quick]');if(quick)openModal(quick.dataset.quick);const del=e.target.closest('[data-delete]');if(del&&confirm('هل تريد حذف هذه المعاملة؟')){state.transactions=state.transactions.filter(t=>t.id!==del.dataset.delete);state.deletedIds.push('transactions/'+del.dataset.delete);save();toast('تم حذف المعاملة');syncIfReady()}});$('addBtn').onclick=()=>openModal();$('closeModal').onclick=$('cancelModal').onclick=closeModal;$('modalback').onclick=e=>{if(e.target===$('modalback'))closeModal()};$('formType').onchange=categoryOptions;$('formCategory').onchange=subcategoryOptions;$('searchTxn').oninput=render;$('typeTxn').onchange=render;$('monthChip').onclick=()=>{const m=prompt('اختر الشهر بصيغة YYYY-MM',selectedMonth);if(m&&/^\d{4}-(0[1-9]|1[0-2])$/.test(m)){selectedMonth=m;render()}};$('storageChip').onclick=()=>goto('settings');$('themeBtn').onclick=()=>{document.body.classList.toggle('light');localStorage.setItem('flosy_theme',document.body.classList.contains('light')?'light':'dark')};if(localStorage.getItem('flosy_theme')!=='dark')document.body.classList.add('light');
+document.addEventListener('click',e=>{const nav=e.target.closest('[data-page]');if(nav)goto(nav.dataset.page);const go=e.target.closest('[data-go]');if(go)goto(go.dataset.go);const quick=e.target.closest('[data-quick]');if(quick)openModal(quick.dataset.quick);const del=e.target.closest('[data-delete]');if(del&&confirm('هل تريد حذف هذه المعاملة؟')){state.transactions=state.transactions.filter(t=>t.id!==del.dataset.delete);state.deletedIds.push('transactions/'+del.dataset.delete);save();toast('تم حذف المعاملة');syncIfReady()}});$('addBtn').onclick=()=>openModal();$('closeModal').onclick=$('cancelModal').onclick=closeModal;$('modalback').onclick=e=>{if(e.target===$('modalback'))closeModal()};$('formType').onchange=categoryOptions;$('formCategory').onchange=subcategoryOptions;$('searchTxn').oninput=render;$('typeTxn').onchange=render;$('monthChip').onclick=()=>{const m=prompt('اختر الشهر بصيغة YYYY-MM',selectedMonth);if(m&&/^\d{4}-(0[1-9]|1[0-2])$/.test(m)){selectedMonth=m;render()}};$('storageChip').onclick=()=>goto('settings');document.body.classList.add('light');localStorage.setItem('flosy_theme','light');$('themeBtn').style.display='none';
 $('txnForm').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target),v=Number(f.get('amount'));if(!Number.isFinite(v)||v<=0)return toast('أدخل مبلغًا صحيحًا');
 const from=String(f.get('accountId')||''),to=String(f.get('targetAccountId')||''),typ=String(f.get('type'));
 if(!state.accounts.some(x=>x.id===from))return toast('اختر حسابًا صحيحًا');
@@ -633,4 +656,9 @@ try{let s=JSON.parse(sessionStorage.getItem('flosy_session'));if(s&&s.refresh_to
 <script src="flosy-ai.js?v=210"></script>
 <script src="flosy-phase1.js?v=311"></script>
 <script src="flosy-sync-v3.js?v=302"></script>
+<script src="flosy-v4-capture.js?v=400"></script>
+<script src="flosy-v4-bank.js?v=400"></script>
+<script src="flosy-v4-wealth.js?v=400"></script>
+<script src="flosy-v4-family-privacy.js?v=400"></script>
+<script src="flosy-v4-sw-register.js?v=400"></script>
 </body></html>
