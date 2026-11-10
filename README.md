@@ -82,3 +82,41 @@ The same Supabase \`flosy_data\` JSONB table and ownership-based Row-Level Secur
 
 ### Expense categories update (2026-11-10)
 The New Transaction form now supports **الهدايا** as a standalone expense category, and separate optional expense subcategory selectors for: **طعام ومشروبات** → فطار، غداء، عشاء، مطعم، كافية الجامعة، أخرى; **ترفيه** → القهوة، كافية الجامعة، أخرى. A subcategory is required when either parent is selected. Existing records remain readable, and grouped expense budgets remain based on the parent category. The itemized expense report, printed PDF and CSV export include the subcategory. This is a live website update; the Android WebView app uses the same published site and does not need to be reinstalled. Restart the app if its cached page is stale.
+
+
+## Flosy 2.0 Beta — November 10, 2026
+
+**Live:** https://ahmedsayed20233.github.io/mynewproject/
+**Android:** GitHub Releases → \`flosy-android-v2.0.0\` debug APK.
+
+### What is implemented
+- New personal-finance command center with a separate premium light layout (optional dark mode), cash-flow trends, budget utilization, net worth and recommendations derived from your entered records.
+- Manual recurring bills and due-date calendar. Bills are **never charged automatically**.
+- Flexible expenses budget, optional indicative month-to-month rollover, and deterministic budget alerts.
+- User-defined text-based categorization rules for imported transaction descriptions.
+- Privacy-first transaction import: a selected text message from Android's Share menu or manual paste; a limited bank CSV template; user must review date, amount, type, account, category and description **before** any saving.
+- Transaction fingerprints for message import; duplicate checks for existing imported transactions and within one CSV batch.
+- New append-only \`flosy_backups\` table in Supabase, protected by user-owned RLS. Synchronization takes snapshots of the old and new data, and the new Recovery page lists and restores snapshots after explicit confirmation. Previous cloud record was also snapshotted once before redesign.
+- Existing accounts, Thndr holdings entered manually, 24-month planning, expense subcategories, and printable reports remain available.
+- Android v2.0.0 can receive explicitly shared text via ACTION_SEND without requesting READ_SMS or access to the full SMS inbox.
+
+### What is NOT implemented
+- Automatic access to all phone SMS / inbox scanning; READ_SMS is sensitive, subject to policy exception review, and is **not** requested.
+- Automatic bank, wallet, credit-card or Thndr synchronization, direct trading, live market prices.
+- A third-party LLM or autonomous AI that reads your financial data; the insights are deterministic local calculations.
+- Household collaboration with multi-user access, subscription paywalls/payment gateways, receipt OCR, iOS native app, background push notifications, real-time data aggregation, or regulated financial advice.
+- Production-grade disaster recovery, independent security certification, or tested multi-device conflict resolution.
+
+### Safeguards, limitations and upgrade steps
+1. Before uninstalling any prior APK, sign in and confirm successful cloud sync, then export JSON to a **separate location**; reinstallation clears Android WebView local data.
+2. A snapshot in the same Supabase project protects against application mistakes but is NOT an independent offsite disaster recovery copy. Free-plan platform backups differ from paid plans.
+3. The opt-in SMS parser only handles selected message shapes and can misunderstand amounts/direction. **Always review** every proposed transaction; do not paste OTPs, PINs, full card numbers or passwords.
+4. Only import CSV in template \`date,description,amount,type\`, up to 500 rows / 500KB per batch. The app rejects unsupported formats.
+5. Debug APK is not Play Store signed; its certificate may change on rebuild. Back up before uninstalling old versions.
+6. Supabase security advisor still indicates **Leaked Password Protection Disabled**; enable it if the project plan/features allow in Auth security settings, and complete a security review before public launch.
+
+### Recommended next stages
+P0: real-device and two-device synchronization tests, backups/restore and failure simulations.
+P1: bank-specific CSV templates, more robust consent-driven statement import, reconciliation and categorization.
+P2: detailed rollover per category, cash-flow forecasts, automatic recurring detection.
+P3: optional opt-in AI insights, secure family permissions, payment support, authorized bank/broker APIs, after legal/security due diligence.
