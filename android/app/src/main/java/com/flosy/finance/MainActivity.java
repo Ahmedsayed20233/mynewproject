@@ -35,6 +35,7 @@ public class MainActivity extends Activity {
     private ValueCallback<Uri[]> selectedFiles;
     private long lastBackPressTime = 0L;
     private String pendingSharedMessage = null;
+    private boolean pageReady = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -99,6 +100,12 @@ public class MainActivity extends Activity {
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
+            public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                pageReady = false;
+            }
+
+            @Override
             public boolean shouldOverrideUrlLoading(WebView view,
                                                     WebResourceRequest request) {
                 Uri uri = request.getUrl();
@@ -132,6 +139,7 @@ public class MainActivity extends Activity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 if (url != null && url.startsWith(HOME)) {
+                    pageReady = true;
                     view.evaluateJavascript("window.FLOSY_NATIVE_ANDROID=true;", null);
                     deliverPendingSharedMessage();
                 }
@@ -195,7 +203,7 @@ public class MainActivity extends Activity {
     }
 
     private void deliverPendingSharedMessage() {
-        if (webView == null || pendingSharedMessage == null) return;
+        if (webView == null || !pageReady || pendingSharedMessage == null) return;
         String safeJson = JSONObject.quote(pendingSharedMessage);
         String script = "if (window.FLOSY_NEXT && window.FLOSY_NEXT.receiveSharedText) {"
                 + "window.FLOSY_NEXT.receiveSharedText(" + safeJson + ");"
