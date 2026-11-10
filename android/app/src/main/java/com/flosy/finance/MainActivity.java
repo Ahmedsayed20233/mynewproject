@@ -138,6 +138,23 @@ public class MainActivity extends Activity {
                             if("voice".equals(action))startEgyptianVoice();
                             else if("receipt-ocr".equals(action))pickNativeReceipt();
                             else if("receipt-camera".equals(action))captureReceiptPhoto();
+                            else if("relay-pair".equals(action))pairAutomate();
+                            else if("relay-status".equals(action))sendRelayStatus();
+                            else if("relay-configure".equals(action)){
+                                AutoRelayStore.configure(this,msg.optString("senders",""),msg.optString("apps",""));
+                                sendRelayStatus();
+                            }
+                            else if("relay-pending".equals(action))sendRelayPending();
+                            else if("relay-dismiss".equals(action)){
+                                AutoRelayStore.remove(this,msg.optString("id",""));
+                                sendRelayPending();
+                            }
+                            else if("relay-clear".equals(action)){
+                                AutoRelayStore.clear(this);sendRelayPending();
+                            }
+                            else if("relay-stop".equals(action)){
+                                AutoRelayStore.stop(this);sendRelayStatus();
+                            }
                             else if("receipt-export".equals(action)){
                                 String receipt=msg.optString("text","");
                                 if(!receipt.isEmpty() && receipt.length()<=12000)
@@ -241,15 +258,18 @@ public class MainActivity extends Activity {
                     view.evaluateJavascript("window.FLOSY_NATIVE_ANDROID=true;"
                         + "window.FLOSY_NATIVE_SMS_AVAILABLE="
                         + "false;"
+                        + "window.FLOSY_NATIVE_RELAY_AVAILABLE=true;"
                         + "window.FLOSY_NATIVE_VOICE_AVAILABLE=true;"
                         + "window.FLOSY_NATIVE_OCR_AVAILABLE=true;"
                         + "window.FLOSY_NATIVE_BRIDGE_AVAILABLE="+(webMessageReady ? "true" : "false")+";"
                         + "window.FLOSY_NATIVE_BIOMETRIC_AVAILABLE="
                         + (Build.VERSION.SDK_INT >= 28 ? "true" : "false") + ";"
                         + "if(window.FLOSY_NEXT)window.FLOSY_NEXT.render();"
+                        + "if(window.FLOSY_AUTOMATE_RELAY)window.FLOSY_AUTOMATE_RELAY.render();"
                         + "if(window.FLOSY_REPAIR)window.FLOSY_REPAIR.render();", null);
                     deliverPendingSharedMessage();
                     deliverNativePending();
+                    sendRelayStatus();
                 }
             }
 
@@ -367,6 +387,51 @@ public class MainActivity extends Activity {
         readSharedText(intent);
     }
 
+
+    // Trusted GitHub Pages page may call these methods through the origin-restricted
+    // AndroidX WebMessageListener. Pairing secrets never appear in any network call.
+    private void relayWebEvent(String method,JSONObject payload){
+        if(webView==null||!pageReady||webView.getUrl()==null||!webView.getUrl().startsWith(HOME))return;
+        webView.evaluateJavascript(
+            "if(window.FLOSY_AUTOMATE_RELAY&&window.FLOSY_AUTOMATE_RELAY."+method+")"+
+            "window.FLOSY_AUTOMATE_RELAY."+method+"("+payload.toString()+");",null);
+    }
+    private void pairAutomate(){
+        new android.app.AlertDialog.Builder(this)
+            .setTitle("توصيل Automate بفلوسي")
+            .setMessage("الرمز خاص بجهازك ويفتح قناة محلية للمعاملات المالية التي اخترتها في Automate فقط. "+
+                "لا ترسله لأي شخص، ولا تستخدمه في مواقع خارجية. عند إنشاء رمز جديد "+
+                "يتم إيقاف الرمز القديم ومسح قائمة الانتظار السابقة.")
+            .setNegativeButton("إلغاء",(d,w)->{})
+            .setPositiveButton("إنشاء رمز اقتران",(d,w)->{
+                String token=AutoRelayStore.createPair(this);
+                try{
+                    JSONObject result=new JSONObject();
+                    result.put("token",token);
+                    relayWebEvent("nativePair",result);
+                    sendRelayStatus();
+                }catch(Exception ignored){}
+            }).show();
+    }
+    private void sendRelayStatus(){
+        try{
+            JSONObject data=new JSONObject();
+            data.put("paired",AutoRelayStore.paired(this));
+            data.put("senders",AutoRelayStore.senders(this));
+            data.put("apps",AutoRelayStore.apps(this));
+            data.put("pending",AutoRelayStore.pending(this).length());
+            data.put("packageName",getPackageName());
+            relayWebEvent("nativeStatus",data);
+        }catch(Exception ignored){}
+    }
+    private void sendRelayPending(){
+        try{
+            JSONObject data=new JSONObject();
+            data.put("items",AutoRelayStore.pending(this));
+            relayWebEvent("nativePending",data);
+            sendRelayStatus();
+        }catch(Exception ignored){}
+    }
 
     // Only the microphone, upon an explicit voice-entry tap, needs runtime consent.
     @Override
@@ -698,6 +763,12 @@ public class MainActivity extends Activity {
                         Toast.LENGTH_SHORT).show();
                 }
             });
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        if(webView!=null&&pageReady)webView.post(this::sendRelayStatus);
     }
 
     @Override
