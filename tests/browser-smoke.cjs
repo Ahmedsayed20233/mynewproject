@@ -111,6 +111,16 @@ async function startLocal(){
    "No fictitious historical wealth chart with one snapshot");
   await page.evaluate(()=>window.FLOSY_BRIDGE.goto("dashboard"));
   assert.ok(await page.locator("#flosyElevateDashboard").isVisible());
+  const advanced=page.locator("#page-dashboard details.u-deep-dive");
+  assert.equal(await advanced.count(),1);
+  assert.equal(await advanced.getAttribute("open"),null,
+   "Advanced dashboard should be collapsed by default, not hide financial data permanently");
+  await advanced.locator("summary").click();
+  assert.ok(await advanced.evaluate(x=>x.open));
+  assert.ok(await page.locator("#recentTable").isVisible());
+  await advanced.locator("summary").click();
+  assert.equal(await advanced.evaluate(x=>x.open),false);
+
   fs.mkdirSync("tests/_artifacts",{recursive:true});
   await page.screenshot({path:"tests/_artifacts/elevate-dashboard.png",fullPage:true});
   // Mobile RTL smoke test: all new cards must fit a 390px Android viewport.
