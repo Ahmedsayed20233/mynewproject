@@ -410,10 +410,16 @@ public class MainActivity extends Activity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
                                            int[] results) {
         super.onRequestPermissionsResult(requestCode,permissions,results);
-        if (requestCode != REQ_READ_SMS) return;
-        if (results.length>0 && results[0]==PackageManager.PERMISSION_GRANTED) {
+        if(requestCode==REQ_AUDIO){
+            if(results.length>0&&results[0]==PackageManager.PERMISSION_GRANTED)
+                startEgyptianVoice();
+            else notifyVoiceFailure("تم رفض إذن الميكروفون. افتح إعدادات Flosy وفعّل إذن الميكروفون للتسجيل الصوتي.");
+            return;
+        }
+        if(requestCode!=REQ_READ_SMS)return;
+        if(results.length>0 && results[0]==PackageManager.PERMISSION_GRANTED){
             scanFinancialSms();
-        } else {
+        }else{
             Toast.makeText(this,"لم يتم منح إذن قراءة SMS. يمكن استخدام مشاركة الرسالة بدلًا منه.",
                 Toast.LENGTH_LONG).show();
         }
@@ -589,7 +595,22 @@ public class MainActivity extends Activity {
                 "window.FLOSY_REPAIR.nativeVoiceError("+JSONObject.quote(message)+");",null);
     }
 
-    private void startEgyptianVoice() {
+    private void sendVoiceStatus(String message){
+        if(webView!=null && pageReady && webView.getUrl()!=null && webView.getUrl().startsWith(HOME))
+            webView.evaluateJavascript(
+                "if(window.FLOSY_REPAIR&&window.FLOSY_REPAIR.nativeVoiceStatus)"+
+                "window.FLOSY_REPAIR.nativeVoiceStatus("+JSONObject.quote(message)+");",null);
+    }
+
+    private void releaseSpeech(){
+        if(speechRecognizer!=null){
+            try{speechRecognizer.destroy();}catch(Exception ignored){}
+            speechRecognizer=null;
+        }
+        speechBusy=false;
+    }
+
+    private void launchSystemVoice(){
         try {
             Intent intent=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
             intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
@@ -597,9 +618,78 @@ public class MainActivity extends Activity {
             intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE,"ar-EG");
             intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"قول مثلًا: دفعت 75 جنيه قهوة من الفيزا");
             intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,1);
+            speechBusy=true;
             startActivityForResult(intent,REQ_VOICE);
         }catch(Exception ex){
-            notifyVoiceFailure("لا توجد خدمة تعرف صوتي جاهزة على الهاتف. حدّث تطبيق Google وخدمة التعرف على الكلام، أو استخدم الإدخال النصي.");
+            speechBusy=false;
+            notifyVoiceFailure("لا توجد خدمة تعرف صوتي على الهاتف. ثبّت خدمة Speech Services من متجر الهاتف، أو اكتب المصروف يدويًا.");
+        }
+    }
+
+    // Free Android SpeechRecognizer. On Android 12+ prefer device-only recognition
+    // when the system has a downloadable language model; otherwise use the
+    // configured Android recognition service. Requires user-granted RECORD_AUDIO.
+    private void startEgyptianVoice(){
+        if(speechBusy)return;
+        if(Build.VERSION.SDK_INT>=23 &&
+            checkSelfPermission(Manifest.permission.RECORD_AUDIO)!=PackageManager.PERMISSION_GRANTED){
+            sendVoiceStatus("السماح بالميكروفون مطلوب لهذا التسجيل فقط. اختر سماح.");
+            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO},REQ_AUDIO);
+            return;
+        }
+        if(!SpeechRecognizer.isRecognitionAvailable(this)){
+            launchSystemVoice();
+            return;
+        }
+        try{
+            final boolean offline=Build.VERSION.SDK_INT>=31 &&
+                SpeechRecognizer.isOnDeviceRecognitionAvailable(this);
+            speechRecognizer=offline?
+                SpeechRecognizer.createOnDeviceSpeechRecognizer(this):
+                SpeechRecognizer.createSpeechRecognizer(this);
+            speechBusy=true;
+            speechRecognizer.setRecognitionListener(new RecognitionListener(){
+                @Override public void onReadyForSpeech(Bundle params){sendVoiceStatus("الميكروفون جاهز، اتكلم بالمصري.");}
+                @Override public void onBeginningOfSpeech(){sendVoiceStatus("بسجل كلامك الآن…");}
+                @Override public void onRmsChanged(float rmsdB){}
+                @Override public void onBufferReceived(byte[] buffer){}
+                @Override public void onEndOfSpeech(){sendVoiceStatus("انتهى الكلام؛ جارٍ تحويله إلى نص.");}
+                @Override public void onError(int code){
+                    releaseSpeech();
+                    // Let system's visible speech UI retry when on-device language is absent.
+                    if(code==SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED ||
+                       code==SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE ||
+                       code==SpeechRecognizer.ERROR_CLIENT ||
+                       code==SpeechRecognizer.ERROR_SERVER ||
+                       code==SpeechRecognizer.ERROR_NETWORK ||
+                       code==SpeechRecognizer.ERROR_NETWORK_TIMEOUT){
+                        sendVoiceStatus("المحرك المحلي غير متاح لهذه اللغة. هحاول خدمة الصوت في الهاتف.");
+                        launchSystemVoice();
+                    }else notifyVoiceFailure("لم يكتمل التسجيل ("+code+"). راجع الإذن واتكلم بوضوح، أو جرّب زر التسجيل مجددًا.");
+                }
+                @Override public void onResults(Bundle results){
+                    ArrayList<String> phrases=results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    releaseSpeech();
+                    if(phrases!=null&&!phrases.isEmpty()&&phrases.get(0)!=null&&!phrases.get(0).trim().isEmpty()){
+                        pendingVoiceText=phrases.get(0).substring(0,Math.min(320,phrases.get(0).length()));
+                        deliverNativePending();
+                        sendVoiceStatus("تم التعرف على الكلام. راجع قيمة المصروف ثم أكد الحفظ.");
+                    }else notifyVoiceFailure("لم يتعرف على الكلام. جرّب الجملة مرة أخرى.");
+                }
+                @Override public void onPartialResults(Bundle partialResults){}
+                @Override public void onEvent(int eventType,Bundle params){}
+            });
+            Intent intent=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE,"ar-EG");
+            intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,false);
+            intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,1);
+            if(offline)intent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE,true);
+            sendVoiceStatus(offline?"جاري تشغيل التسجيل المحلي المجاني…":"جاري تشغيل خدمة الكلام المتاحة على هاتفك…");
+            speechRecognizer.startListening(intent);
+        }catch(Exception ex){
+            releaseSpeech();
+            launchSystemVoice();
         }
     }
 
@@ -627,12 +717,33 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==REQ_SAVE_RECEIPT){
+            String payload=pendingReceiptExport;
+            pendingReceiptExport=null;
+            if(resultCode==RESULT_OK && data!=null && data.getData()!=null && payload!=null){
+                try(OutputStream out=getContentResolver().openOutputStream(data.getData())){
+                    if(out==null)throw new IllegalStateException("No output stream");
+                    out.write(payload.getBytes(StandardCharsets.UTF_8));
+                    Toast.makeText(this,"تم حفظ نص الإيصال بنجاح.",Toast.LENGTH_LONG).show();
+                }catch(Exception ex){
+                    Toast.makeText(this,"فشل تصدير الإيصال. اختر مكان حفظ آخر.",Toast.LENGTH_LONG).show();
+                }
+            }
+            return;
+        }
+        if(requestCode==REQ_CAMERA){
+            final Uri uri=photoUri;
+            if(resultCode==RESULT_OK && uri!=null)recognizeReceipt(uri);
+            else cleanupPhoto();
+            return;
+        }
         if(requestCode == REQ_OCR) {
             if(resultCode == RESULT_OK && data != null && data.getData()!=null)
                 recognizeReceipt(data.getData());
             return;
         }
         if (requestCode == REQ_VOICE) {
+            speechBusy=false;
             if (resultCode == RESULT_OK && data != null) {
                 ArrayList<String> results=data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                 if(results!=null && !results.isEmpty() && results.get(0)!=null &&
@@ -682,6 +793,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        releaseSpeech();cleanupPhoto();
         if (webView != null) {
             webView.destroy();
             webView = null;
