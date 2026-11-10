@@ -22,6 +22,15 @@
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/flosy_file_paths" />
         </provider>
+        <!-- Only the user's paired automation app can submit a valid 192-bit token.
+             Android broadcasts must explicitly name the Flosy package/class. -->
+        <receiver
+            android:name=".AutoRelayReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.flosy.finance.REVIEW_EXTERNAL_FINANCIAL_EVENT" />
+            </intent-filter>
+        </receiver>
         <activity
             android:name=".MainActivity"
             android:exported="true"
