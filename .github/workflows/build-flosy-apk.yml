@@ -60,7 +60,7 @@ jobs:
               android/app/src/main/java/com/flosy/finance/MainActivity.java; then
             echo "Blocked: retired broad SMS/notification scanner still referenced"; exit 1
           fi
-          grep -Fq 'versionName '\''3.1.0'\''' android/app/build.gradle
+          grep -Fq "versionName '3.1.0'" android/app/build.gradle
           grep -Fq 'private static final String HOME = "https://ahmedsayed20233.github.io/mynewproject/"' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'receiveNativeReceiptImage' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'AUTO_RELAY_QUEUE_UPDATED' android/app/src/main/java/com/flosy/finance/AutoRelayReceiver.java
