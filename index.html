@@ -227,7 +227,7 @@
 <div id="reportPreview" class="report-preview"></div>
 </div></section>
 <section class="page" id="page-settings"><div id="flosyStudioSettings"></div><div id="saveStatusCard" class="card" style="margin-bottom:15px"></div><div class="grid settinggrid"><div class="card"><h3>الإعدادات المالية</h3><p class="muted">الأرقام خطط وليست معاملات مسجلة.</p><form id="settingsForm" class="formgrid"><div class="field"><label>الدخل الشهري المخطط</label><input name="salary" type="number" min="0" required></div><div class="field"><label>الإيجار</label><input name="rent" type="number" min="0" required></div><div class="field"><label>الفواتير</label><input name="bills" type="number" min="0" required></div><div class="field"><label>المعيشة</label><input name="living" type="number" min="0" required></div><div class="field"><label>هدف الطوارئ</label><input name="emergencyTarget" type="number" min="0" required></div><div class="field"><label>هدف الاستثمار</label><input name="investmentTarget" type="number" min="0" required></div><div class="field"><label>رصيد الطوارئ الابتدائي</label><input name="emergencyOpening" type="number" min="0" required></div><div class="field"><label>قيمة الاستثمار الحالية الابتدائية</label><input name="investmentOpening" type="number" min="0" required></div><div class="field"><label>رصيد الاحتياطي الابتدائي</label><input name="reserveOpening" type="number" min="0" required></div><div class="field"><label>هدف الاحتياطي</label><input name="reserveTarget" type="number" min="0" required></div><div class="buttonbar" style="grid-column:1/-1"><button type="submit" class="btn primary">حفظ الميزانية</button></div></form></div>
-<div class="card"><h3>خصوصية البيانات والنسخ الاحتياطي</h3><p class="callout"><strong>💾 الحفظ المحلي مفعّل تلقائيًا:</strong> تُحفظ المعاملات على نفس الجهاز داخل مساحة بيانات تطبيق فلوسي أو المتصفح المستخدم، ولا تُرسل إلى GitHub. هذا التخزين ليس نسخة احتياطية؛ قد تفقد بياناته عند حذف التطبيق أو مسح بياناته أو تغيير الهاتف. <strong>☁ المزامنة السحابية:</strong> بعد تسجيل الدخول إلى حساب فلوسي، استخدم «مزامنة الآن» لحفظ المعاملات في Supabase واسترجاعها من جهاز آخر. نزّل نسخة JSON احتياطية بانتظام، خصوصًا قبل حذف التطبيق.</p><div class="buttonbar"><button class="btn" id="exportJSON">تنزيل نسخة JSON</button><button class="btn" id="importJSON">استيراد نسخة</button><input class="fileinput" id="importFile" type="file" accept=".json,application/json"></div><hr style="border:0;border-top:1px solid var(--outline);margin:24px 0"><h3>مزامنة Supabase المجانية (اختياري)</h3><p class="muted">قاعدة بيانات سحابية بحساب مستخدم وصلاحيات RLS. لا تضع مفتاح service_role هنا، استخدم Publishable / anon key فقط.</p><form id="cloudConfig" class="field"><label>Project URL</label><input name="url" placeholder="https://project.supabase.co" autocomplete="off"><label>Publishable / anon key</label><input name="key" type="password" placeholder="sb_publishable_..." autocomplete="off"><div class="buttonbar"><button class="btn" type="submit">حفظ إعدادات الاتصال</button></div></form><form id="cloudAuth" class="field" style="margin-top:12px"><label>البريد الإلكتروني</label><input name="email" type="email" placeholder="you@example.com" required autocomplete="email"><label>كلمة المرور (لحساب التطبيق السحابي)</label><input name="password" type="password" minlength="8" required autocomplete="current-password"><div class="buttonbar"><button class="btn primary" type="submit">تسجيل الدخول</button><button class="btn" type="button" id="signUp">إنشاء حساب</button><button class="btn" type="button" id="syncNow">مزامنة الآن</button><button class="btn" type="button" id="signOut">خروج</button></div></form><p class="footnote" id="cloudStatus">قاعدة البيانات جاهزة. سجّل حسابًا داخل فلوسي وفعّل المزامنة.</p></div></div></section>
+<div class="card"><h3>خصوصية البيانات والنسخ الاحتياطي</h3><p class="callout"><strong>💾 الحفظ المحلي مفعّل تلقائيًا:</strong> تُحفظ المعاملات على نفس الجهاز داخل مساحة بيانات تطبيق فلوسي أو المتصفح المستخدم، ولا تُرسل إلى GitHub. هذا التخزين ليس نسخة احتياطية؛ قد تفقد بياناته عند حذف التطبيق أو مسح بياناته أو تغيير الهاتف. <strong>☁ المزامنة السحابية:</strong> بعد تسجيل الدخول إلى حساب فلوسي، استخدم «مزامنة الآن» لحفظ المعاملات في Supabase واسترجاعها من جهاز آخر. نزّل نسخة JSON احتياطية بانتظام، خصوصًا قبل حذف التطبيق.</p><div class="buttonbar"><button class="btn" id="exportJSON">تنزيل نسخة JSON</button><button class="btn" id="importJSON">استيراد نسخة</button><input class="fileinput" id="importFile" type="file" accept=".json,application/json"></div><hr style="border:0;border-top:1px solid var(--outline);margin:24px 0"><h3>مزامنة Supabase المجانية (اختياري)</h3><p class="muted">قاعدة بيانات سحابية بحساب مستخدم وصلاحيات RLS. لا تضع مفتاح service_role هنا، استخدم Publishable / anon key فقط.</p><form id="cloudConfig" class="field"><label>Project URL</label><input name="url" placeholder="https://project.supabase.co" autocomplete="off"><label>Publishable / anon key</label><input name="key" type="password" placeholder="sb_publishable_..." autocomplete="off"><div class="buttonbar"><button class="btn" type="submit">حفظ إعدادات الاتصال</button></div></form><form id="cloudAuth" class="field" style="margin-top:12px"><label>البريد الإلكتروني</label><input name="email" type="email" placeholder="you@example.com" required autocomplete="email"><label>كلمة المرور (لحساب التطبيق السحابي)</label><input name="password" type="password" minlength="8" required autocomplete="current-password"><label style="display:flex;align-items:flex-start;gap:9px;line-height:1.6;margin:9px 0"><input id="flosyRememberSession" name="remember_session" type="checkbox" style="margin-top:5px;min-width:17px;min-height:17px"> <span><strong>تذكر تسجيل الدخول على هذا الجهاز الشخصي</strong><small style="display:block;color:var(--muted)">يحفظ جلسة Flosy محليًا حتى بعد قفل التطبيق. لا تفعّل الخيار على هاتف مشترك.</small></span></label><div class="buttonbar"><button class="btn primary" type="submit">تسجيل الدخول</button><button class="btn" type="button" id="signUp">إنشاء حساب</button><button class="btn" type="button" id="syncNow">مزامنة الآن</button><button class="btn" type="button" id="signOut">خروج</button></div></form><p class="footnote" id="cloudStatus">قاعدة البيانات جاهزة. سجّل حسابًا داخل فلوسي وفعّل المزامنة.</p></div></div></section>
 </main></div>
 <nav id="mobileDock" class="mobile-dock" aria-label="التنقل الرئيسي للموبايل">
 <button type="button" data-page="dashboard" class="dock-item active" aria-label="لوحة التحكم"><span class="dock-icon">⌂</span><span>الرئيسية</span></button>
@@ -279,7 +279,34 @@
 const STORE='flosy_data_v1', CLOUD='flosy_cloud_v1';const def={salary:0,rent:0,bills:0,living:0,emergencyTarget:0,investmentTarget:0,reserveTarget:0,emergencyOpening:0,investmentOpening:0,reserveOpening:0};const billCategories=['فواتير','فاتورة الإنترنت','فاتورة شحن رصيد','فاتورة الكهرباء','فاتورة الأنبوبة','فاتورة صيانة الشقة'];const expenses=['إيجار',...billCategories,'طعام ومشروبات','مواصلات','مشتريات','صحة','ترفيه','الهدايا','تعليم','معيشة أخرى'];
 const expenseSubcategories={'طعام ومشروبات':['فطار','غداء','عشاء','مطعم','كافية الجامعة','أخرى'],
 'ترفيه':['القهوة','كافية الجامعة','أخرى']};const transfers=['الطوارئ','الاستثمار','الاحتياطي'];const colors=['#32dfb6','#428ffc','#af84fb','#f0b85e','#f47286','#56d8e6','#80a2ff','#b4ca77','#8fbbce'];
-let state=load(),cloud={url:"https://vzuitcaarklesgehznha.supabase.co",key:"sb_publishable_g3aHnf_b3m_HSCfWQIRtVg_vUzlMOJa",...loadCloud()},session=null,page='dashboard';let selectedMonth=new Date().toISOString().slice(0,7);let saving=false,syncPending=false;const $=id=>document.getElementById(id);const fmt=n=>new Intl.NumberFormat('en-US',{maximumFractionDigits:0}).format(Number(n)||0)+' ج.م';const amount=n=>new Intl.NumberFormat('en-US',{maximumFractionDigits:0}).format(Number(n)||0);const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const ym=d=>String(d||'').slice(0,7);const monthLabel=ymv=>new Date(ymv+'-01T12:00:00').toLocaleDateString('ar-EG',{month:'long',year:'numeric'});const uid=()=>crypto.randomUUID?crypto.randomUUID():('t'+Date.now()+Math.random());
+let state=load(),cloud={url:"https://vzuitcaarklesgehznha.supabase.co",key:"sb_publishable_g3aHnf_b3m_HSCfWQIRtVg_vUzlMOJa",...loadCloud()},session=null,page='dashboard';
+ // Default is session-only. Only remember signed-in devices after opt-in.
+ // Never store passwords. Signing out clears all local auth tokens.
+ const REMEMBER_AUTH_KEY='flosy_auth_persistent_v1';
+ const AUTH_SESSION_KEY='flosy_session';
+ function rememberAuthEnabled(){return Boolean(document.getElementById('flosyRememberSession')?.checked)}
+ function saveAuthSession(next){
+  if(!next||!next.access_token||!next.refresh_token)return;
+  try{sessionStorage.setItem(AUTH_SESSION_KEY,JSON.stringify(next))}catch{}
+  try{
+   if(rememberAuthEnabled())localStorage.setItem(REMEMBER_AUTH_KEY,JSON.stringify(next));
+   else localStorage.removeItem(REMEMBER_AUTH_KEY);
+  }catch{}
+ }
+ function clearAuthSession(){
+  session=null;
+  try{sessionStorage.removeItem(AUTH_SESSION_KEY)}catch{}
+  try{localStorage.removeItem(REMEMBER_AUTH_KEY)}catch{}
+ }
+ function loadAuthSession(){
+  let data=null;
+  try{data=JSON.parse(sessionStorage.getItem(AUTH_SESSION_KEY))}catch{}
+  if(!data||!data.refresh_token){try{data=JSON.parse(localStorage.getItem(REMEMBER_AUTH_KEY))}catch{}}
+  if(data&&data.access_token&&data.refresh_token&&data.user?.id)session=data;
+  else clearAuthSession();
+  try{document.getElementById('flosyRememberSession').checked=Boolean(localStorage.getItem(REMEMBER_AUTH_KEY))}catch{}
+ }
+let selectedMonth=new Date().toISOString().slice(0,7);let saving=false,syncPending=false;const $=id=>document.getElementById(id);const fmt=n=>new Intl.NumberFormat('en-US',{maximumFractionDigits:0}).format(Number(n)||0)+' ج.م';const amount=n=>new Intl.NumberFormat('en-US',{maximumFractionDigits:0}).format(Number(n)||0);const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const ym=d=>String(d||'').slice(0,7);const monthLabel=ymv=>new Date(ymv+'-01T12:00:00').toLocaleDateString('ar-EG',{month:'long',year:'numeric'});const uid=()=>crypto.randomUUID?crypto.randomUUID():('t'+Date.now()+Math.random());
 function normalizeData(d){
  const v=d&&typeof d==='object'?d:{};
  return {...v,settings:{...def,...(v.settings||{})},
@@ -585,7 +612,11 @@ function printDetailedReport(){
 // Supabase REST integration: user data is protected by auth.uid()=user_id RLS rules from schema.sql.
 function api(path,opts={}){if(!cloud.url||!cloud.key)throw Error('أدخل إعدادات Supabase أولًا');const headers={'apikey':cloud.key,'Content-Type':'application/json',...(session?{'Authorization':'Bearer '+session.access_token}:{})};return fetch(cloud.url.replace(/\/$/,'')+path,{...opts,headers:{...headers,...opts.headers}}).then(async r=>{const txt=await r.text();let data;try{data=txt?JSON.parse(txt):null}catch{data=txt}if(!r.ok)throw Error(typeof data==='object'?(data.msg||data.message||data.error_description||data.error||r.status):String(data));return data})}
 $('cloudConfig').onsubmit=e=>{e.preventDefault();let f=new FormData(e.target),url=String(f.get('url')).trim(),key=String(f.get('key')).trim();if(url&&!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url))return toast('تحقق من رابط مشروع Supabase');cloud={url,key};localStorage.setItem(CLOUD,JSON.stringify(cloud));render();toast('تم حفظ إعدادات الاتصال محليًا')};$('cloudConfig').elements.url.value=cloud.url||'';$('cloudConfig').elements.key.value=cloud.key||'';
-async function auth(signup=false){let f=new FormData($('cloudAuth')),email=String(f.get('email')).trim(),password=String(f.get('password'));try{const data=await api(signup?'/auth/v1/signup':'/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});if(signup&&!data.access_token){toast('تم إنشاء الحساب. تحقق من بريدك لتأكيده ثم سجّل الدخول.');return}session=data;sessionStorage.setItem('flosy_session',JSON.stringify(session));toast('تم الاتصال بقاعدة البيانات');render();await sync()}catch(err){toast('فشل الاتصال: '+err.message)}}$('cloudAuth').onsubmit=e=>{e.preventDefault();auth()};$('signUp').onclick=()=>auth(true);$('signOut').onclick=()=>{session=null;sessionStorage.removeItem('flosy_session');render();toast('تم تسجيل الخروج')};$('syncNow').onclick=sync;
+async function auth(signup=false){let f=new FormData($('cloudAuth')),email=String(f.get('email')).trim(),password=String(f.get('password'));try{const data=await api(signup?'/auth/v1/signup':'/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});if(signup&&!data.access_token){toast('تم إنشاء الحساب. تحقق من بريدك لتأكيده ثم سجّل الدخول.');return}session=data;saveAuthSession(session);toast('تم الاتصال بقاعدة البيانات');render();
+ window.dispatchEvent(new CustomEvent('flosy:auth-state-change',{detail:{signedIn:true}}));await sync()}catch(err){toast('فشل الاتصال: '+err.message)}}$('cloudAuth').onsubmit=e=>{e.preventDefault();auth()};$('signUp').onclick=()=>auth(true);$('signOut').onclick=()=>{clearAuthSession();render();
+ window.dispatchEvent(new CustomEvent('flosy:auth-state-change',{detail:{signedIn:false}}));
+ toast('تم تسجيل الخروج من هذا الجهاز')};
+ $('flosyRememberSession').onchange=()=>{if(session)saveAuthSession(session)};;$('syncNow').onclick=sync;
 
 function mergeRecords(remoteItems,localItems,kind,deleted){
  const map=new Map();
@@ -632,15 +663,19 @@ function mergeFinanceData(remote,local){
 async function ensureSession(){
  if(!session)return false;
  if(Number(session.expires_at||0)>Date.now()/1000+40)return true;
- if(!session.refresh_token){session=null;sessionStorage.removeItem('flosy_session');return false}
+ if(!session.refresh_token){clearAuthSession();return false}
  const response=await fetch(cloud.url.replace(/\/$/,'')+'/auth/v1/token?grant_type=refresh_token',{
    method:'POST',headers:{apikey:cloud.key,'Content-Type':'application/json'},
    body:JSON.stringify({refresh_token:session.refresh_token})
  });
  const data=await response.json();
- if(!response.ok||!data.access_token)throw Error('انتهت جلسة الدخول. سجّل الدخول مرة أخرى');
+ if(!response.ok||!data.access_token){
+   clearAuthSession();render();
+   window.dispatchEvent(new CustomEvent('flosy:auth-state-change',{detail:{signedIn:false}}));
+   throw Error('انتهت جلسة الدخول. سجّل الدخول مرة أخرى');
+  }
  session=data;
- sessionStorage.setItem('flosy_session',JSON.stringify(data));
+ saveAuthSession(data);
  return true;
 }
 async function cloudBackupSnapshot(payload,source){
@@ -667,7 +702,7 @@ window.FLOSY_BRIDGE={
  persistInitial:()=>{try{localStorage.setItem(STORE,JSON.stringify(state))}catch{}},
  mutate:(fn)=>{fn(state);save();syncIfReady()}
 };
-try{let s=JSON.parse(sessionStorage.getItem('flosy_session'));if(s&&s.refresh_token)session=s}catch{}categoryOptions();render();})();
+loadAuthSession();categoryOptions();render();})();
 </script>
 <script src="finance-pro.js?v=1001"></script>
 <script src="flosy-next.js?v=3102"></script>
