@@ -511,7 +511,7 @@ test("Capture has one clear voice/receipt studio, review-only and a dedicated im
  assert.match(repair,/data-repair="open-import"/);
  assert.match(repair,/id="flosyRepairOCRText"/);
  assert.match(cap,/id="v4-capture-review"/);
- assert.match(html,/flosy-capture-v10\.css\?v=1001/);
+ assert.match(html,/flosy-capture-v10\.css\?v=3102/);
  assert.ok(html.indexOf('id="flosyRepairRoot"')<html.indexOf('id="v4-capture"></div>'));
 });
 
@@ -593,9 +593,9 @@ test("Automate relay passes authenticated native request and never auto-saves de
 test("Automate web component and cache have matching version without SMS permissions",()=>{
  const index=fs.readFileSync("index.html","utf8");
  const sw=fs.readFileSync("service-worker.js","utf8");
- assert.match(index,/flosy-automate-relay\.js\?v=2901/);
+ assert.match(index,/flosy-automate-relay\.js\?v=3102/);
  assert.match(index,/flosy-automate-relay\.css\?v=2901/);
- assert.match(sw,/flosy-automate-relay\.js\?v=2901/);
+ assert.match(sw,/flosy-automate-relay\.js\?v=3102/);
  assert.match(sw,/flosy-automate-relay\.css\?v=2901/);
  assert.match(index,/id="flosyAutomateRelayRoot"/);
 });
