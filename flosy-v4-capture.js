@@ -94,7 +94,7 @@ function amountFrom(s){
  const value=digits(s).replace(/\u00a0/g," ");
  const matches=[
  ...value.matchAll(/(?:بمبلغ|بقيمة|المبلغ|amount|amt)\s*[:\-]?\s*(?:EGP|جنيه|جم|ج\.م)?\s*([0-9][0-9.,]{0,18})/gi),
- ...value.matchAll(/([0-9][0-9.,]{0,18})\s*(?:EGP|جنيه(?:اً|ا)?|جنيهات|جم|ج\.\s*م\.?|L\.E\.?)\b/gi),
+ ...value.matchAll(/([0-9][0-9.,]{0,18})\s*(?:EGP|جنيه(?:اً|ا)?|جنيهات|جم|ج\.\s*م\.?|L\.E\.?)/gi),
  ...value.matchAll(/(?:EGP|جنيه(?:اً|ا)?|جم|ج\.م|L\.E\.?)\s*[:\-]?\s*([0-9][0-9.,]{0,18})/gi),
  ...value.matchAll(/(?:دفعت|صرفت|اشتريت|حولت|حوّلت|استلمت|قبضت|جالي|دفع|purchase|paid)\s*(?:بـ?|بمبلغ)?\s*([0-9][0-9.,]{0,18})/gi)
  ];
@@ -178,7 +178,7 @@ function parseReceipt(text){
  const getLineAmount=line=>{
    const withCurrency=amountFrom(line);
    if(withCurrency!==null)return withCurrency;
-   const afterLabel=line.replace(/^.*?(?:grand\s*total|total|الإجمالي|الاجمالي|إجمالي\s*الفاتورة|المجموع|amount\s*due|المطلوب)\s*[:：\-]?\s*/i,"");
+   const afterLabel=line.replace(/^.*?(?:grand\s*total|total|net\s*amount|to\s*pay|الإجمالي|الاجمالي|إجمالي\s*الفاتورة|المجموع|الصافي|صافى|المستحق|القيمة\s*النهائية|amount\s*due|المطلوب)\s*[:：\-]?\s*/i,"");
    const m=afterLabel.match(/(?:EGP|ج\.م|جم|جنيه)?\s*(\d[\d,.\s]{0,18})/i);
    if(!m)return null;
    let raw=m[1].replace(/\s/g,"").replace(/[,.]$/,"");
@@ -201,12 +201,13 @@ function parseReceipt(text){
  // Receipt dates are optional; invalid/ambiguous dates remain today's date and
  // must be reviewed in the confirmation form.
  let receiptDate=dateLocal();
+ let printedDateFound=false;
  for(const line of lines){
    let found=line.match(/\b(20\d{2})[-\/.](\d{1,2})[-\/.](\d{1,2})\b/);
    if(found){
      const y=+found[1],m=+found[2],d=+found[3],check=new Date(y,m-1,d);
      if(check.getFullYear()===y&&check.getMonth()+1===m&&check.getDate()===d)
-       {receiptDate=[y,String(m).padStart(2,"0"),String(d).padStart(2,"0")].join("-");break}
+       {receiptDate=[y,String(m).padStart(2,"0"),String(d).padStart(2,"0")].join("-");printedDateFound=true;break}
    }
    found=line.match(/\b([0-3]?\d)[-\/.]([01]?\d)[-\/.](20\d{2})\b/);
    if(found){
@@ -219,7 +220,7 @@ function parseReceipt(text){
  return {id:uuid(),type:"expense",date:receiptDate,amount,category:cat(lines.join(" ")),
   description:"إيصال — "+merchant.slice(0,60),accountId:resolvedAccount(""),subcategory:"",source:"receipt_reviewed",
   sourceHash:"receipt-auto-"+hash(lines.join("|").toLowerCase()),
-  autoQuality:totals.length>0&&lines.length>=2&&merchant!=="إيصال"&&!!resolvedAccount("")};
+  autoQuality:totals.length>0&&lines.length>=2&&printedDateFound&&merchant!=="إيصال"&&!!resolvedAccount("")};
 }
 function isDuplicate(d){
  return (C.getState().transactions||[]).some(x=>
