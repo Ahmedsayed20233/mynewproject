@@ -1,0 +1,34 @@
+/* Flosy 2.9 free Play-installed Automate local relay; white only, RTL. */
+.f29-panel{direction:rtl;background:#FFF;border:1px solid #DCEAE4;border-radius:20px;padding:21px;margin:0 0 18px;color:#234B4E;box-shadow:0 7px 25px rgba(19,67,61,.04)}
+.f29-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.f29-overline{font-size:10px;letter-spacing:1px;color:#108574;font-weight:900}
+.f29-head h2{font-size:21px;font-weight:900;margin:6px 0;color:#1B4848;line-height:1.6}
+.f29-head p{font-size:12px;color:#607D80;line-height:1.9;margin:0 0 13px}
+.f29-pill{flex:none;font-size:11px;font-weight:900;background:#EAF6F0;color:#12705E;padding:8px 11px;border-radius:10px}
+.f29-disclosure{border:1px solid #E4E0C4;background:#FFFDF3;border-radius:13px;padding:14px;margin:8px 0 16px}
+.f29-disclosure strong{font-size:12px;color:#8F7948}
+.f29-disclosure p{font-size:11px;line-height:1.95;color:#796E50;margin:4px 0 0}
+.f29-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.f29-step{background:#FBFDFC;border:1px solid #E2EDEA;border-radius:16px;padding:17px;min-width:0}
+.f29-num{display:grid;place-items:center;width:36px;height:36px;border-radius:11px;background:#E7F6EF;color:#0D826B;font-size:13px;font-weight:900}
+.f29-step h3{font-size:14px;color:#28565A;font-weight:900;margin:12px 0 6px}
+.f29-step p,.f29-small{font-size:11px;color:#647F82;line-height:1.95;margin:7px 0}
+.f29-step label{font-size:11px;color:#356B66;display:block;font-weight:850;margin:10px 0}
+.f29-step input{display:block;width:100%;padding:11px;border-radius:10px;background:#FFF!important;color:#214D49!important;border:1px solid #D1E4DC;min-height:45px;margin-top:7px;font-size:12px}
+.f29-primary,.f29-secondary,.f29-danger{border-radius:10px;min-height:43px;padding:10px 13px;cursor:pointer;font-weight:900;font-size:11px;border:1px solid}
+.f29-primary{background:#087E72;color:#FFF;border-color:#087E72}
+.f29-secondary{background:#FFF;color:#117567;border-color:#B6D7CB}
+.f29-danger{background:#FFF4F1;color:#AB5B47;border-color:#EDD0C8}
+.f29-link{font-size:11px;font-weight:900;display:inline-block;padding:11px 12px;border-radius:10px;color:#116A5F;background:#EAF7F1;text-decoration:none}
+.f29-token{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#EFF8F5;border-radius:10px;padding:10px;margin-top:10px}
+.f29-token code{font-size:12px;color:#1B625A;overflow-wrap:anywhere;min-width:0;flex:1;direction:ltr;text-align:left}
+.f29-instructions{display:grid;grid-template-columns:100px minmax(0,1fr);gap:7px;margin-top:10px}
+.f29-instructions span{font-size:11px;color:#7B9190}
+.f29-instructions code{font-size:10px;direction:ltr;text-align:left;overflow-wrap:anywhere;color:#0E665F}
+.f29-controls{background:#F7FAF9;border:1px solid #E3EDEA;border-radius:15px;padding:17px;margin-top:13px}
+.f29-controls strong{font-size:13px;font-weight:900}
+.f29-controls p{font-size:11px;line-height:1.9;color:#66817E}
+.f29-buttons{display:flex;flex-wrap:wrap;gap:8px}
+.f29-feedback{padding:12px 13px;border-radius:10px;border:1px solid #CFEBE0;background:#F1FBF7;font-size:11px;color:#13735E}
+.f29-panel button:focus-visible,.f29-panel a:focus-visible{outline:3px solid #62B9AA;outline-offset:2px}
+@media(max-width:700px){.f29-panel{padding:14px;border-radius:16px}.f29-grid{grid-template-columns:1fr}.f29-head{flex-wrap:wrap}.f29-head h2{font-size:19px}.f29-buttons button{flex:1;min-width:120px}}

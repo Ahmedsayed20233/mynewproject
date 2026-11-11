@@ -7,6 +7,8 @@ on:
       - 'flosy-sync-v3.js'
       - 'flosy-phase1.js'
       - 'flosy-next.js'
+      - 'flosy-automate-relay.js'
+      - 'flosy-automate-relay.css'
       - 'flosy-v4-*.js'
       - 'flosy-v4-white.css'
       - 'flosy-v5-pearl.css'
@@ -49,6 +51,7 @@ jobs:
           node --check flosy-sync-v3.js
           node --check flosy-phase1.js
           node --check flosy-next.js
+          node --check flosy-automate-relay.js
           node --check flosy-ai.js
           node --check flosy-v4-capture.js
           node --check flosy-v4-bank.js
