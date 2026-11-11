@@ -26,6 +26,7 @@ function render(){
  if(!enabled()){root.innerHTML="";return}
  const s=info||{},pkg=s.packageName||"com.flosy.finance",paired=s.paired===true;
  const relayReasons={
+  unsupported:"نسخة Flosy Android الحالية لا توفر تشخيص استقبال Broadcast؛ يلزم تحديث نسخة Android المتوافقة.",
   none:"لم تُسجل هذه النسخة أي رسالة Broadcast حتى الآن. تحقق من Package وReceiver class ورمز الاقتران.",
   invalid_pair_token:"وصل Broadcast، لكن رمز الاقتران غير مطابق. أنشئ رمزًا جديدًا وحدّثه في Automate.",
   sender_not_allowed:"وصل Broadcast، لكن المصدر أو اسم المرسل غير موجود بقائمة السماح في Flosy.",
@@ -40,12 +41,12 @@ function render(){
   invalid_extras:"وصل Broadcast لكن صيغة الحقول Extras غير صالحة.",
   accepted_candidate:"وصل Broadcast وقُبل كمرشح مالي؛ افتح قائمة المراجعة."
  };
- const lastCode=String(s.lastDeliveryCode||"none");
+ const lastCode=String(s.lastDeliveryCode||"unsupported");
  const diagnosis=relayReasons[lastCode]||"وصل Broadcast؛ لم يتعرف التطبيق على حالة التشخيص.";
 
  root.innerHTML='<section class="f29-panel"><div class="f29-head"><div><span class="f29-overline">FLOSY • LOCAL AUTOMATION</span>'+
  '<h2>استيراد تلقائي مجاني — من هاتفك لفلوسي</h2><p>اربط Automate من Google Play مع Flosy من غير مفتاح API أو حساب مطوّر أو تعطيل Play Protect.</p></div>'+
- '<span class="f29-pill">'+(paired?"متصل محليًا":"غير مقترن")+'</span></div>'+
+ '<span class="f29-pill">'+(paired?"رمز محلي جاهز":"غير مقترن")+'</span></div>'+
  '<div class="f29-disclosure"><strong>كيف يعمل؟</strong><p>Automate هو التطبيق الذي يقرأ SMS أو إشعارات التطبيقات التي تسمح بها في Android. Flosy لا يحصل على صلاحية قراءة صندوق رسائلك؛ يستقبل فقط أحداثًا محددة برمز سري ويضعها في قائمة مشفّرة للمراجعة. استخدام Automate يتطلب منحه الصلاحيات التي تختارها، وهو تطبيق خارجي.</p></div>'+
  '<div class="f29-grid">'+
  '<div class="f29-step"><span class="f29-num">01</span><h3>ثبّت Automate مجانًا</h3>'+
@@ -86,7 +87,7 @@ function nativeStatus(s){
  info={paired:!!s.paired,senders:String(s.senders||"").slice(0,400),
  apps:String(s.apps||"").slice(0,400),pending:Number(s.pending)||0,
  packageName:String(s.packageName||"com.flosy.finance").slice(0,100),
- lastDeliveryCode:String(s.lastDeliveryCode||"none").slice(0,50),
+ lastDeliveryCode:String(s.lastDeliveryCode||"unsupported").slice(0,50),
  lastDeliveryAt:Number(s.lastDeliveryAt)||0};
  render();
 }
