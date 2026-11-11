@@ -180,7 +180,7 @@ function parseSMS(raw,options={}){
  if(/فشلت|فشل|لم تتم|تم رفض|pending|failed|declined|cancelled|canceled/i.test(normalized))
   throw Error("هذه رسالة فشل أو عملية لم تكتمل، وليست حركة مالية مؤكدة");
  const instapay=/insta[\s-]?pay|انستا\s*باي|إنستا\s*باي/i.test(normalized)||options.source==="instapay";
- const out=/(?:خصم|سحب|شراء|عملية شراء|دفع|تم إرسال|تم ارسال|تم التحويل إلى|تم التحويل الي|تم تحويل.+(?:إلى|الي)|تحويل صادر|تمت عملية تحويل|debited|withdrawn|paid|purchased|spent|sent|transfer to)/i.test(normalized);
+ const out=/(?:خصم|سحب|شراء|عملية شراء|دفع|تم إرسال|تم ارسال|تم التحويل إلى|تم التحويل الي|تم تحويل.+(?:إلى|الي)|تحويل صادر|تمت عملية تحويل|تم تنفيذ تحويل لحظي من حساب(?:كم|ك)?|تم تنفيذ حوالة من حساب(?:كم|ك)?|تحويل لحظي من حساب(?:كم|ك)?|debited|withdrawn|paid|purchased|spent|sent|transfer to)/i.test(normalized);
  const inc=/(?:إيداع|ايداع|إضافة|تم إضافة|استلام|تم استلام|وصلتك|وارد|تم التحويل من|تحويل وارد|credited|received|deposited|salary|transfer from)/i.test(normalized);
  if(out&&inc)throw Error("اتجاه العملية غير واضح (إرسال/استلام). راجعها وأضفها يدويًا");
  if(!out&&!inc)throw Error("لا توجد عملية خصم أو استلام مؤكدة؛ استخدم الإدخال اليدوي");
@@ -216,7 +216,7 @@ function parseSMS(raw,options={}){
   const dm=normalized.match(/\b([0-3]?\d)[/.-]([01]?\d)[/.-](20\d{2})\b/);
   if(dm){const dt=new Date(+dm[3],+dm[2]-1,+dm[1]);if(dt.getFullYear()===+dm[3]&&dt.getMonth()+1===+dm[2]&&dt.getDate()===+dm[1])day=dateISO(dt)}
  }
- const ref=normalized.match(/(?:reference|ref(?:erence)?\s*(?:no|number)?|رقم\s*(?:المرجع|العملية|التحويل)|الرقم\s*المرجعي)\s*[:#\-]?\s*([A-Z0-9-]{6,36})/i)?.[1]||"";
+ const ref=normalized.match(/(?:reference|ref(?:erence)?\s*(?:no|number)?|رقم\s*(?:مرجعي|المرجع|العملية|التحويل)|الرقم\s*المرجعي)\s*[:#\-]?\s*([A-Z0-9-]{6,36})/i)?.[1]||"";
  const type=out?"expense":"income";
  return {id:uid(),sourceHash:ref?fingerprint("transaction-ref|"+ref.toLowerCase()+"|"+amount+"|"+type):fingerprint(normalized),
   amount,type,date:day,category:out?categoryFromText(normalized):"دخل آخر",
@@ -258,9 +258,9 @@ function renderImport(){
  'نسخة الويب وSafe Import لا تقرأ صندوق SMS أو إشعارات التطبيقات؛ استورد رسالة تختارها بنفسك.')+
  ' لن يسجل أي معاملة إلا بعد مراجعتك الصريحة.</p>'+
  '<div class="f2-privacy">ارفض مشاركة رموز OTP أو PIN أو أرقام البطاقات. لو مشاركة InstaPay غير متاحة، أدخل العملية يدويًا أو استورد CSV من البنك.</div>',"12")+
- (smsCandidates.length?card('<div class="f2-head"><h3>معاملات تلقائية تحتاج مراجعة</h3>'+
+ (smsCandidates.length?card('<div class="f2-head"><h3>رسائل مستوردة تحتاج مراجعة</h3>'+
  '<span class="f2-tag">لا حفظ تلقائي</span></div>'+
- '<p>يتم استخراج هذه الرسائل محليًا من مصادر سمحت بها؛ اختر كل معاملة وراجع المبلغ والحساب والاتجاه.</p>'+
+ '<p>قد تشمل الرسائل المستوردة تنبيهات غير مالية. اختر الرسالة ثم راجع المبلغ والحساب والاتجاه؛ لن تُسجل كمعاملة إلا بعد تأكيدك.</p>'+
  smsCandidates.map((m,i)=>'<div class="f2-list-item"><div><strong>'+
  (m.source==="instapay"?"إشعار InstaPay":m.source==="bank_notification"?"إشعار بنك":"رسالة بنك")+" · "+
  esc(new Date(m.date).toLocaleDateString("ar-EG"))+'</strong><small>'+

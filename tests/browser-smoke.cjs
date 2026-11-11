@@ -66,6 +66,18 @@ async function startLocal(){
   assert.equal(await page.locator('#f2ReviewForm').count(),1);
   assert.equal(await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length),beforeShared,
     "Sharing a message cannot create a transaction without explicit review");
+  // Synthetic Egyptian instant transfer wording: amount is 1.00 EGP,
+  // never the masked account, reference or bank hotline.
+  await page.evaluate(()=>window.FLOSY_NEXT.receiveSharedText(
+    "تم تنفيذ تحويل لحظي من حسابكم رقم 0000 بمبلغ 1.00 جم إلى عميل رقم مرجعي 123456789012 يوم 11-11 الساعة 14:23"));
+  await page.locator('#f2SMSForm button[type="submit"]').click();
+  assert.equal(await page.locator('#f2ReviewForm').count(),1);
+  assert.equal(await page.locator('#f2ReviewForm [name="amount"]').inputValue(),"1");
+  assert.equal(await page.locator('#f2ReviewForm [name="type"]').inputValue(),"expense");
+  assert.equal(await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length),beforeShared,
+    "An imported instant transfer is never committed without review");
+  console.log("PASS: Egyptian instant transfer detection and safe draft for review");
+
   console.log("PASS: neutral setup, privacy and permission-light shared-message review");
 
   // v28: Auto-import controls are invisible on normal web / safe Android wrapper.

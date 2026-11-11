@@ -39,7 +39,7 @@ function render(){
   duplicate_candidate:"وصل Broadcast لكنه يطابق مرشحًا سبق استقباله.",
   encrypted_queue_error:"وصل Broadcast لكن حدثت مشكلة في التخزين المشفّر على الهاتف.",
   invalid_extras:"وصل Broadcast لكن صيغة الحقول Extras غير صالحة.",
-  accepted_candidate:"وصل Broadcast وقُبل كمرشح مالي؛ افتح قائمة المراجعة."
+  accepted_candidate:"وصلت الرسالة من مصدر موثوق واتحفظت في قائمة المراجعة المشفرة، ولم تُسجل كمعاملة بعد."
  };
  const lastCode=String(s.lastDeliveryCode||"unsupported");
  const diagnosis=relayReasons[lastCode]||"وصل Broadcast؛ لم يتعرف التطبيق على حالة التشخيص.";
@@ -80,7 +80,7 @@ function render(){
  '<button class="f29-secondary" type="button" data-f29="clear">مسح المرشحات</button>'+
  '<button class="f29-danger" type="button" data-f29="stop">إلغاء الاقتران والتوقف</button></div></div>'+
  (message?'<p class="f29-feedback" role="status">'+escapeHTML(message)+'</p>':"")+
- '<p class="f29-small">الاستيراد التلقائي يلتقط الرسائل الجديدة بعد بدء التدفقات، لا سجل SMS القديم. لا تنس ضبط البطارية لـAutomate كي لا يوقفه نظام الهاتف. المراجعة داخل Flosy إلزامية قبل إضافة المصروف أو الدخل.</p></section>';
+ '<p class="f29-small">الاستيراد التلقائي يلتقط الرسائل الجديدة فقط من المرسلين الذين سمحت لهم، ويستبعد رموز التحقق الحساسة. الرسائل غير المالية قد تُعرض للمراجعة لكنها لا تُحفظ كمعاملات. لا يقرأ سجل SMS القديم. لا تنس ضبط البطارية لـAutomate كي لا يوقفه نظام الهاتف. المراجعة داخل Flosy إلزامية قبل إضافة المصروف أو الدخل.</p></section>';
 }
 function nativeStatus(s){
  if(!s||typeof s!=="object")return;
@@ -103,8 +103,8 @@ function nativePending(data){
   /^[0-9a-f]{32}$/.test(String(x.id||""))&&
   ["sms","instapay","bank_notification"].includes(x.source)&&
   typeof x.text==="string"&&x.text.length<=650&&Number.isFinite(Number(x.date))).slice(0,60):[];
- message=items.length?"تم عرض "+items.length+" مرشحات داخل مركز استيراد المعاملات. راجع كل عملية.":
- "لا توجد رسائل مالية معلقة.";
+ message=items.length?"تم عرض "+items.length+" رسائل/إشعارات في مركز الاستيراد. راجع كل رسالة قبل تسجيل أي معاملة.":
+ "لا توجد رسائل في قائمة المراجعة.";
  if(items.length && w.FLOSY_NEXT?.receiveScannedSMS){
   w.FLOSY_NEXT.receiveScannedSMS(items);
   C.goto("import");
