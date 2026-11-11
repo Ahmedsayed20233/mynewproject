@@ -198,7 +198,13 @@ function parseReceipt(text){
  const ml=global.FLOSY_RECEIPT_ML;
  if(ml?.extract){
   const info=ml.extract(text);
-  const accountId=resolvedAccount("");
+  const namedCash=cash().filter(a=>a?.id&&/كاش|نقد|cash|محفظة/i.test(a.name||""));
+  const namedCard=cash().filter(a=>a?.id&&/فيزا|كارت|بطاقة|visa|card/i.test(a.name||""));
+  const matchAccount=info.paymentMethod==="cash"?(namedCash.length===1?namedCash[0]:null):
+    info.paymentMethod==="card"?(namedCard.length===1?namedCard[0]:null):null;
+  // Prefer the explicitly configured auto account; otherwise use one unique
+  // payment-method-matching account. Ambiguous accounts stop auto-save.
+  const accountId=resolvedAccount("")||matchAccount?.id||"";
   const normalized=(info.description||"إيصال").toLowerCase();
   const category=/كوتشي|كوئشي|حذاء|جزمة|ملابس|shoe|sneaker|\bZINC\b/i.test(info.description||"")?
      "مشتريات":cat(normalized);
