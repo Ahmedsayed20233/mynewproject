@@ -137,26 +137,58 @@ function findReceiptNo(lines){
 function extractItems(lines){
  const items=[],seen=new Set();
  const descriptions=/كوتشي|كوئشي|كو.شي|حذاء|جزمة|ملابس|قميص|تيشيرت|بنطلون|جاكيت|بلوفر|shoe|sneaker|shirt|jeans|\bitem\b|\bproduct\b/i;
+ const header=/الصنف|الاصناف|الأصناف|المنتج|اسم\s*السلعة|الوصف|البيان|\bitems?\b|description|product\s*name/i;
+ let inTable=false;
  for(const line of lines){
   let text=trim(line);
-  if(!descriptions.test(text)||meta.test(text)||/العميل|customer|phone/i.test(text))continue;
-  // A product SKU such as R.7 is not a quantity: strip SKU before reading numbers.
+  if(header.test(text)&&(/سعر|الكمية|الكود|price|qty|code|description/i.test(text))&&
+      numbers(text).length===0){inTable=true;continue}
+  if(sub.test(text)||net.test(text)||total.test(text)||paid.test(text)||change.test(text)){
+   // Item table ends before the invoice's totals section.
+   if(!descriptions.test(text))inTable=false;
+   if(!descriptions.test(text))continue;
+  }
+  if(meta.test(text)||invoice.test(text)||/العميل|customer|phone|mobile/i.test(text))continue;
+  // Generic items from a clear table are supported, not just clothing keywords.
+  // Outside tables require a recognizable item name plus a numeric value.
+  if(!inTable&&!descriptions.test(text))continue;
   text=text.replace(/\b[A-Za-z][.,-]\d{1,6}\b/g," ").replace(/\s+/g," ").trim();
-  const vals=numbers(text);
+  const vals=numbers(text);if(vals.length===0)continue;
   let name=text.replace(/\d{1,3}(?:[, ]\d{3})+(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?/g," ")
-    .replace(/\b[A-Z][.,-]\d+\b/gi," ").replace(/[|_:;\-]+/g," ").replace(/\s+/g," ").trim();
+    .replace(/[|_:;\-]+/g," ").replace(/\s+/g," ").trim();
   if(/كوئشي|كو.شي/.test(name))name=name.replace(/كوئشي|كو.شي/g,"كوتشي");
-  if(name.length<2||name.length>90)continue;
-  const priceCandidates=vals.filter(x=>x.amount>=2&&x.amount<10000000);
-  const price=priceCandidates.length?priceCandidates[priceCandidates.length-1].amount:null;
-  // Quantity is only inferred from an explicit 1-100 value beside a price.
-  const qtyCandidate=price!==null?vals.find(x=>x.amount>=1&&x.amount<=100&&x.amount!==price):null;
-  const qty=qtyCandidate?qtyCandidate.amount:1;
-  const key=name.toLowerCase()+"|"+String(price);
+  if(name.length<2||name.length>90||/^[\W_]+$/u.test(name))continue;
+  // Determine unit price, quantity, line total by checking their arithmetic.
+  // Do not treat SKU R.7 as a quantity or multiply line totals twice.
+  const nums=vals.map(x=>x.amount).filter(x=>x>=0&&x<10000000);
+  let qty=1,unitPrice=null,lineTotal=null;
+  let found=false;
+  for(let i=0;i<nums.length&&!found;i++){
+   if(!Number.isInteger(nums[i])||nums[i]<1||nums[i]>100)continue;
+   for(let j=0;j<nums.length&&!found;j++){
+    if(i===j||nums[j]<=0)continue;
+    for(let k=0;k<nums.length;k++){
+     if(k===i||k===j)continue;
+     if(Math.abs(nums[i]*nums[j]-nums[k])<=0.02){
+      qty=nums[i];unitPrice=nums[j];lineTotal=nums[k];found=true;break;
+     }
+    }
+   }
+  }
+  if(!found){
+   const positive=nums.filter(x=>x>=.01);
+   if(!positive.length)continue;
+   unitPrice=positive[positive.length-1];lineTotal=unitPrice;
+   if(positive.length>=2&&positive[0]>=1&&positive[0]<=100&&Number.isInteger(positive[0])&&positive[0]!==unitPrice){
+    qty=positive[0];lineTotal=+(qty*unitPrice).toFixed(2);
+   }
+  }
+  const key=name.toLowerCase()+"|"+String(unitPrice)+"|"+String(qty);
   if(seen.has(key))continue;
   seen.add(key);
-  items.push({name:name.slice(0,80),quantity:qty,unitPrice:price,total:price?+(qty*price).toFixed(2):null});
-  if(items.length>=20)break;
+  items.push({name:name.slice(0,80),quantity:qty,unitPrice,
+    total:lineTotal===null?null:+lineTotal.toFixed(2)});
+  if(items.length>=25)break;
  }
  return items;
 }
