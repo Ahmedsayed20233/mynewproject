@@ -135,7 +135,7 @@ function parseBankSMS(source){
  const debit=/(?:خصم|سحب|شراء|دفع|تم\s*التحويل\s*من|debit|withdraw|paid|purchase|spent|payment|pos\s*purchase)/i.test(low);
  const credit=/(?:إيداع|ايداع|استلام|اضافه|إضافة|تم\s*التحويل\s*إلى|credit|received|deposit|salary)/i.test(low);
  if(!debit&&!credit)throw Error("الرسالة لا تحتوي اتجاه معاملة واضح (خصم أو إيداع).");
- const amount=amountFrom(str);if(amount===null)throw Error("لم أجد مبلغًا مؤكدًا بعملة EGP في الرسالة.");
+ const amount=amountFrom(str)??spokenEgyptianAmount(str);if(amount===null)throw Error("لم أجد مبلغًا مؤكدًا بعملة EGP في الرسالة.");
  const dateMatch=str.match(/\b([0-3]?\d)[\/-]([01]?\d)[\/-](20\d{2})\b/);
  let dt=dateLocal();
  if(dateMatch){let d=new Date(+dateMatch[3],+dateMatch[2]-1,+dateMatch[1]);if(d.getDate()===+dateMatch[1]&&d.getMonth()+1===+dateMatch[2])dt=[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")}
@@ -144,6 +144,30 @@ function parseBankSMS(source){
   category:debit?cat(str):"دخل آخر",subcategory:"",accountId:cash()[0]?.id||"",
   description:merchant+" — معاملة رسالة بنكية تحتاج مراجعة",
   sourceHash:"sms4-"+hash(str.trim().replace(/\s+/g," ").toLowerCase()),source:"sms_reviewed",confidence:"مراجعة مطلوبة"};
+}
+function spokenEgyptianAmount(text){
+ const normalized=digits(String(text||"")).replace(/[أإآ]/g,"ا").replace(/ة/g,"ه")
+  .replace(/[\u064B-\u065F]/g,"");
+ const words={
+  "واحد":1,"واحده":1,"اتنين":2,"اثنين":2,"اثنان":2,"تنين":2,"تلاته":3,"ثلاثه":3,
+  "اربعه":4,"خمسه":5,"سته":6,"سبعه":7,"تمانيه":8,"ثمانيه":8,"تسعه":9,
+  "عشره":10,"عشر":10,"حداشر":11,"احداشر":11,"اتناشر":12,"اثناشر":12,
+  "عشرين":20,"تلاتين":30,"ثلاثين":30,"اربعين":40,"خمسين":50,"ستين":60,
+  "سبعين":70,"تمانين":80,"ثمانين":80,"تسعين":90,"ميه":100,"مائه":100,
+  "ميتين":200,"مئتين":200,"الف":1000,"الفين":2000,"نص":0.5
+ };
+ const source=normalized.split(/(?:جنيه(?:ات)?|جم|جنيها)/)[0];
+ const tokens=source.trim().split(/\s+/).slice(-9);
+ let values=[];
+ for(let i=tokens.length-1;i>=0;i--){
+  const raw=tokens[i],token=Object.prototype.hasOwnProperty.call(words,raw)?raw:
+    (raw.startsWith("و")?raw.slice(1):raw);
+  if(!Object.prototype.hasOwnProperty.call(words,token))break;
+  values.unshift(words[token]);
+ }
+ if(!values.length)return null;
+ const amount=values.reduce((sum,n)=>sum+n,0);
+ return validAmount(amount)?amount:null;
 }
 function parseVoice(text){
  const str=digits(String(text||"").trim());
