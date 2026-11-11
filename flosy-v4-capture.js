@@ -216,7 +216,7 @@ function parseReceipt(text){
        {receiptDate=[y,String(m).padStart(2,"0"),String(d).padStart(2,"0")].join("-");printedDateFound=true;break}
    }
  }
- const merchant=lines.find(x=>x.length>2&&!/\d{5,}/.test(x)&&!totalLine.test(x)&&!/(tax|vat|ضريبة|الهاتف)/i.test(x))||"إيصال";
+ const merchant=lines.find(x=>x.length>2&&!/\d{5,}/.test(x)&&!totalLine.test(x)&&!/(tax|vat|ضريبة|الهاتف|^date|^time|التاريخ|الوقت|رقم\s*الفاتورة|invoice\s*(?:no|number))/i.test(x))||"إيصال";
  return {id:uuid(),type:"expense",date:receiptDate,amount,category:cat(lines.join(" ")),
   description:"إيصال — "+merchant.slice(0,60),accountId:resolvedAccount(""),subcategory:"",source:"receipt_reviewed",
   sourceHash:"receipt-auto-"+hash(lines.join("|").toLowerCase()),
