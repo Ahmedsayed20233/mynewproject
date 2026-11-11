@@ -224,7 +224,7 @@ document.addEventListener("submit",e=>{
  if(e.target?.id!=="flosyAiForm")return;
  e.preventDefault();ask($("flosyAiQuestion")?.value);
 });
-window.addEventListener("flosy:auth-state-change",e=>{
+w.addEventListener?.("flosy:auth-state-change",e=>{
  if(e.detail?.signedIn&&returnAfterLogin){returnAfterLogin=false;C.goto("ai")}
  else view();
 });
