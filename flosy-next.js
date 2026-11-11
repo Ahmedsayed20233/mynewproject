@@ -421,14 +421,51 @@ async function restoreBackup(id){
   await loadBackups();
  }catch(e){C.toast("تعذر الاسترجاع دون استبدال البيانات: "+e.message)}
 }
+function tryAutoSMS(row){
+ const cap=window.FLOSY_CAPTURE;
+ if(row?.source!=="sms"||!cap?.autoEnabled?.("sms")||!cap?.autoRecord)return false;
+ try{
+  // Bank SMS may be non-financial or contain an authentication code. No ledger
+  // write unless both debit/credit direction and transaction amount are explicit.
+  const text=String(row.text||"");
+  if(/\b(?:OTP|PIN|CVV)\b|verification|security.?code|رمز.{0,12}(التحقق|السري|التفعيل)|كود.{0,12}التحقق/i.test(text))return false;
+  if(!/(?:EGP|جنيه|ج\.?\s*م\.?|L\.?E\.?)/i.test(text))return false;
+  if(!/(?:بمبلغ|مبلغ|القيمة|amount|amt|تم خصم|تم استلام|تم إرسال|تم تحويل)/i.test(text))return false;
+  const d=parseSMS(text,{source:row.source,date:row.date});
+  if(!/(?:خصم|سحب|شراء|دفع|تحويل|debited|withdrawn|paid|sent|received|credited|إيداع|استلام)/i.test(text))return false;
+  // Extra guard: bank notifications are not bank ledger transactions if ambiguous.
+  d.accountId=cap.resolvedAccount("");
+  d.autoQuality=Boolean(d.accountId)&&Boolean(d.sourceHash)&&Number.isFinite(d.amount)&&d.amount>0;
+  if(duplicate(d)){
+   // This candidate has already been booked; acknowledge only after matching fingerprint.
+   return "duplicate";
+  }
+  return cap.autoRecord(d,"sms")===true;
+ }catch(error){return false}
+}
 function receiveScannedSMS(items){
- smsCandidates=Array.isArray(items)?items.slice(0,60).filter(x=>x&&typeof x.text==="string"&&x.text.length<=1200&&
+ const safeItems=Array.isArray(items)?items.slice(0,60).filter(x=>x&&typeof x.text==="string"&&x.text.length<=1200&&
  Number.isFinite(Number(x.date))&&(x.source==="instapay"||x.source==="bank_notification"||x.source===undefined||x.source==="sms"))
  .map(x=>({id:/^[0-9a-f]{32}$/.test(String(x.id||""))?x.id:"",
- date:Number(x.date),source:x.source==="instapay"?"instapay":x.source==="bank_notification"?"bank_notification":"sms",text:x.text.slice(0,1200)})):[];
- draft=null;csvDrafts=[];
- importStatus=smsCandidates.length?"تم العثور على "+smsCandidates.length+" رسائل/إشعارات. اختر المعاملة لمراجعتها؛ لم يُحفظ شيء.":"لم نعثر على رسائل أو إشعارات مكتملة ومتاحة الآن. يمكنك مشاركة رسالة من التطبيق يدويًا.";
- C.goto("import");renderImport();
+ date:Number(x.date),source:x.source==="instapay"?"instapay":x.source==="bank_notification"?"bank_notification":"sms",
+ text:x.text.slice(0,1200)})):[];
+ let saved=0,duplicates=0;
+ const outstanding=[];
+ for(const item of safeItems){
+  const outcome=tryAutoSMS(item);
+  if(outcome===true){saved++;
+   if(item.id)window.FLOSY_AUTOMATE_RELAY?.ack?.(item.id);
+  }else if(outcome==="duplicate"){duplicates++;
+   if(item.id)window.FLOSY_AUTOMATE_RELAY?.ack?.(item.id);
+  }else outstanding.push(item);
+ }
+ smsCandidates=outstanding;draft=null;csvDrafts=[];
+ importStatus=(saved?"تم الحفظ تلقائيًا: "+saved+" معاملة. ":"")+
+  (duplicates?"تم تجاهل "+duplicates+" مكررات. ":"")+
+  (outstanding.length?"توجد "+outstanding.length+" رسائل تحتاج مراجعة.":"لا توجد رسائل أخرى بانتظار المراجعة.");
+ if(outstanding.length){C.goto("import");renderImport();}
+ else if(saved||duplicates)C.toast(importStatus);
+ return {saved,duplicates,pending:outstanding.length};
 }
 function receiveSharedText(message){
  if(typeof message!=="string")return;

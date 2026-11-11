@@ -10,10 +10,21 @@ function status(id,message){const x=el(id);if(x)x.textContent=message;return mes
 function render(){
  const host=el("flosyRepairRoot");if(!host)return;
  const nativeOCR=Boolean(w.FLOSY_NATIVE_OCR_AVAILABLE);
+ const p=w.FLOSY_CAPTURE?.autoPrefs?.()||{voice:false,sms:false,receipt:false,accountId:""};
+ const accounts=(C.getState().accounts||[]).filter(a=>a&&a.id);
+ const accountChoices='<option value="">الحساب الوحيد أو اكتشاف الحساب من النص</option>'+
+  accounts.map(a=>'<option value="'+esc(a.id)+'" '+(p.accountId===a.id?'selected':'')+'>'+esc(a.name)+'</option>').join("");
+
  host.innerHTML='<div class="f10-capture" aria-label="تسجيل الصوت ومسح الإيصالات">'+
  '<div class="f10-hero"><span class="f10-overline">FLOSY CAPTURE · SIMPLE & SECURE</span>'+
- '<h2>سجّل فلوسك في ثواني</h2><p>قول المصروف بالمصري أو صوّر الإيصال. هنحوّله لمعاملة للمراجعة فقط — مش حفظ تلقائي.</p>'+
- '<div class="f10-mini-pills"><span>◉ يدعم العامية المصرية</span><span>▣ بياناتك تحت سيطرتك</span><span>◷ مراجعة قبل الحفظ</span></div></div>'+
+ '<h2>سجّل فلوسك في ثواني</h2><p>فعّل الحفظ التلقائي مرة واحدة. المعاملات الواضحة تُحفظ فورًا، والحالات الغامضة تُترك للتصحيح.</p>'+
+ '<div class="f10-mini-pills"><span>◉ يدعم العامية المصرية</span><span>▣ بياناتك تحت سيطرتك</span><span>◷ منع التكرار والتراجع</span></div>'+
+ '<div class="f10-auto-settings" aria-label="إعدادات تسجيل المعاملات تلقائيا">'+
+ '<label><input type="checkbox" data-repair-auto="voice" '+(p.voice?'checked':'')+'> حفظ الصوت مباشرة</label>'+
+ '<label><input type="checkbox" data-repair-auto="receipt" '+(p.receipt?'checked':'')+'> حفظ الفواتير الواضحة مباشرة</label>'+
+ '<label><input type="checkbox" data-repair-auto="sms" '+(p.sms?'checked':'')+'> حفظ SMS المالية الواضحة مباشرة</label>'+
+ '<label>حساب التسجيل التلقائي<select id="flosyAutoCaptureAccount">'+accountChoices+'</select></label>'+
+ '<small>يعمل فقط عند وجود مبلغ واتجاه موثوقين. كل الرسائل غير المالية وأكواد التحقق لا تُضاف إلى الرصيد، وعدم وضوح الحساب يوقف الحفظ التلقائي.</small></div></div>'+
  '<div class="f10-two">'+
  '<section class="f10-card voice" aria-labelledby="f10VoiceTitle">'+
  '<div class="f10-cardtitle"><span class="f10-step">01</span><div><h3 id="f10VoiceTitle">سجّل بالصوت</h3><p>مثال: «دفعت 75 جنيه قهوة من الكاش»</p></div></div>'+
@@ -22,7 +33,7 @@ function render(){
  '<p class="f10-live" id="flosyVoiceStatus" role="status" aria-live="polite">جاهز. اضغط الزر واسمح للميكروفون لو طلب.</p>'+
  '<form id="v4-voice-text" class="f10-mini-form"><label for="f10Spoken">أو اكتب جملتك لو الميكروفون غير متاح</label>'+
  '<textarea id="f10Spoken" name="spoken" rows="2" maxlength="280" required placeholder="اشتريت حاجات للبيت بـ 120 جنيه امبارح"></textarea>'+
- '<button class="f10-secondary" type="submit">حلّل الجملة للمراجعة</button></form>'+
+ '<button class="f10-secondary" type="submit">تسجيل الجملة</button></form>'+
  '<small class="f10-privacy">Flosy لا يخزّن تسجيلات صوتية. محرك التعرف الصوتي قد يحتاج خدمات جهازك.</small></section>'+
  '<section class="f10-card receipt" aria-labelledby="f10ReceiptTitle">'+ '<div class="f10-cardtitle"><span class="f10-step">02</span>'+
  '<div><h3 id="f10ReceiptTitle">استخرج بيانات الإيصال</h3><p>صوّر الإيصال بوضوح أو اختار صورة محفوظة</p></div></div>'+
@@ -31,7 +42,7 @@ function render(){
  '<button type="button" class="f10-secondary" data-repair="native-ocr">اختيار صورة</button>':'')+
  '<label class="f10-file">اختار صورة إيصال <input id="v4-ocr-file" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" aria-label="صورة إيصال" /></label>'+
  '<button type="button" class="f10-secondary" data-v4-import="ocr">استخراج النص من الصورة</button></div>'+
- '<p class="f10-live" id="flosyOcrStatus" role="status" aria-live="polite">JPEG أو PNG أو WebP، بحد أقصى 8 ميجابايت. راجع الإجمالي والتاريخ.</p>'+
+ '<p class="f10-live" id="flosyOcrStatus" role="status" aria-live="polite">JPEG أو PNG أو WebP بحد أقصى 8 ميجابايت. الفاتورة الواضحة تُحفظ تلقائيًا عند تفعيل الخيار.</p>'+
  '<small class="f10-privacy">على Android: OCR محلي للأرقام والنص اللاتيني؛ المتصفح يدعم العربية مع تنزيل نموذج Tesseract.</small></section>'+
  '</div>'+
  '<section class="f10-extracted"><div class="f10-section-heading"><div><span class="f10-overline">EXTRACTED TEXT</span>'+
@@ -60,8 +71,12 @@ function proposeReceipt(text,engine){
  if(!C4?.parseReceipt||!C4?.parseReview){status("flosyOcrStatus","لم يتم تحميل أداة مراجعة المعاملات بعد.");return false}
  try{
   const suggested=C4.parseReceipt(raw);
-  C4.parseReview(suggested,"تم تحليل الإيصال باستخدام "+receiptEngine+". راجع التاجر والإجمالي والتاريخ والحساب ثم أكد الحفظ.");
-  status("flosyOcrStatus","تم استخراج الإجمالي والتاريخ المقترح من الصورة؛ راجع البيانات أدناه.");
+  if(C4.autoRecord?.(suggested,"receipt")){
+   status("flosyOcrStatus","تم حفظ إجمالي "+suggested.amount+" جنيه مباشرة (يمكنك التراجع من أسفل الصفحة).");
+  }else{
+   C4.parseReview(suggested,"تم استخراج الإيصال، لكن البيانات غير مكتملة أو التسجيل التلقائي مغلق. راجع الحقول أدناه.");
+   status("flosyOcrStatus","تم استخراج الإجمالي والتاريخ. راجع البيانات أدناه، أو فعّل الحفظ التلقائي وحدد حسابًا.");
+  }
   return true;
  }catch(err){
   status("flosyOcrStatus","تم استخراج نص، لكن إجمالي الفاتورة غير مؤكد: "+err.message+" — صحح النص أدناه.");
@@ -70,6 +85,33 @@ function proposeReceipt(text,engine){
  }
 }
 function receiveNativeReceipt(text){return proposeReceipt(text,"Android ML Kit (Latin/EGP)")}
+async function receiveNativeReceiptImage(imageDataUrl,latinText){
+ const latin=String(latinText||"").slice(0,12000);
+ // Fast path: keep the bundled offline OCR when it finds a reliable total.
+ if(latin&&proposeReceipt(latin,"Android ML Kit Latin"))return true;
+ if(typeof imageDataUrl!=="string"||!/^data:image\/jpeg;base64,[a-zA-Z0-9+/=]+$/.test(imageDataUrl)
+    ||imageDataUrl.length>750000){
+  status("flosyOcrStatus","OCR اللاتيني لم يحدد إجمالي الفاتورة؛ استخدم اختيار صورة + استخراج النص بالعربي.");
+  return false;
+ }
+ if(busyOCR)return false;
+ busyOCR=true;
+ status("flosyOcrStatus","القراءة اللاتينية لم تتعرف على الإجمالي. جاري تجربة محرك OCR عربي/إنجليزي محليًا...");
+ let worker=null;
+ try{
+  const lib=await loadOCR();
+  worker=await lib.createWorker(["ara","eng"]);
+  const ocr=await worker.recognize(imageDataUrl);
+  const text=String(ocr?.data?.text||"");
+  return proposeReceipt(text||latin,"Tesseract Arabic/English (Android image)");
+ }catch(e){
+  status("flosyOcrStatus","تعذر إكمال OCR العربي: "+String(e.message||e)+". اختر صورة أوضح أو صحّح النص المستخرج.");
+  return false;
+ }finally{
+  if(worker)try{await worker.terminate()}catch{}
+  busyOCR=false;
+ }
+}
 function nativeAction(action,fallback,text=""){
  try{
   if(w.FlosyNative&&typeof w.FlosyNative.postMessage==="function"){
@@ -88,7 +130,7 @@ function nativeVoiceError(message){
 }
 function nativeVoiceStatus(message){status("flosyVoiceStatus",String(message||"التسجيل جارٍ…"))}
 function nativeVoiceResult(text){
- status("flosyVoiceStatus",text?"تم التقاط الصوت. راجع العملية في الأسفل قبل الحفظ.":"لم يتم التقاط نص واضح.");
+ status("flosyVoiceStatus",text?"تم التقاط الصوت. إذا كانت العملية واضحة والحفظ التلقائي مفعل، سُجلت بالفعل.":"لم يتم التقاط نص واضح.");
 }
 
 async function loadOCR(){
@@ -133,7 +175,8 @@ async function scanReceipt(){
   worker=await lib.createWorker(["ara","eng"]);
   const result=await worker.recognize(file);
   const text=String(result?.data?.text||"");
-  if(!proposeReceipt(text,"Tesseract Arabic/English"))throw Error("تعذر تحديد إجمالي مؤكد؛ راجع النص يدويًا");
+  if(!proposeReceipt(text,"Tesseract Arabic/English"))
+   throw Error("تعذر تحديد إجمالي مؤكد؛ جرّب صورة أوضح أو صحح إجمالي الفاتورة");
  }catch(err){
   status("flosyOcrStatus","تعذر التحليل الآلي: "+String(err.message||err)+". يمكنك لصق النص وتصحيحه ثم تحليله.");
  }finally{
@@ -154,7 +197,7 @@ function startVoice(){
   voice.onstart=()=>status("flosyVoiceStatus","🎤 الميكروفون مفتوح؛ اتكلم بالمصري...");
   voice.onresult=e=>{
    const spoken=e.results?.[0]?.[0]?.transcript||"";
-   if(spoken){w.FLOSY_CAPTURE?.receiveNativeVoice(spoken);status("flosyVoiceStatus","تم تحويل الكلام إلى نص. راجع المعاملة المقترحة أدناه.")}
+   if(spoken){w.FLOSY_CAPTURE?.receiveNativeVoice(spoken);status("flosyVoiceStatus","تم تحويل الكلام إلى نص وتطبيق إعداد الحفظ التلقائي.")}
    else status("flosyVoiceStatus","لم يظهر نص واضح. جرب الكلام ببطء.");
   };
   voice.onerror=e=>{busyVoice=false;status("flosyVoiceStatus","خطأ في التسجيل: "+String(e.error||"unknown")+". راجع إذن الميكروفون وخدمة التعرف الصوتي.")};
@@ -162,6 +205,17 @@ function startVoice(){
   busyVoice=true;voice.start();
  }catch(err){busyVoice=false;status("flosyVoiceStatus","تعذر بدء الميكروفون: "+String(err.message||err))}
 }
+document.addEventListener("change",e=>{
+ const mode=e.target?.dataset?.repairAuto;
+ if(mode){
+  w.FLOSY_CAPTURE?.setAuto?.(mode,Boolean(e.target.checked));
+  status("flosyVoiceStatus",e.target.checked?"تم تفعيل الحفظ التلقائي لـ"+mode:"تم إيقاف الحفظ التلقائي لـ"+mode);
+ }
+ if(e.target?.id==="flosyAutoCaptureAccount"){
+  w.FLOSY_CAPTURE?.setAutoAccount?.(String(e.target.value||""));
+  status("flosyVoiceStatus","تم حفظ اختيار حساب التسجيل التلقائي.");
+ }
+});
 document.addEventListener("submit",e=>{
  const id=e.target?.id;if(!["flosyRepairOCRForm","flosyReceiptManualForm"].includes(id))return;
  e.preventDefault();
@@ -213,6 +267,6 @@ document.addEventListener("click",async e=>{
   catch{C.toast("حدد النص وانسخه يدويًا")}
  }
 });
-w.FLOSY_REPAIR={render,scanReceipt,startVoice,receiveNativeReceipt,proposeReceipt,nativeVoiceError,nativeVoiceResult,nativeVoiceStatus,nativeAction};
+w.FLOSY_REPAIR={render,scanReceipt,startVoice,receiveNativeReceipt,receiveNativeReceiptImage,proposeReceipt,nativeVoiceError,nativeVoiceResult,nativeVoiceStatus,nativeAction};
 render();
 })(window);

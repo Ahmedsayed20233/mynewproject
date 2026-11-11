@@ -324,7 +324,7 @@ test("Flosy AI defaults to free mode, API stays optional and offline shell is ve
  assert.match(ai,/answerFree/);
  assert.match(ai,/OpenAI API/);
  assert.ok(sw.includes("flosy-ai.js?v=700"));
- assert.ok(sw.includes("flosy-repair.js?v=1001"));
+ assert.ok(sw.includes("flosy-repair.js?v=3102"));
 });
 
 
@@ -511,7 +511,7 @@ test("Capture has one clear voice/receipt studio, review-only and a dedicated im
  assert.match(repair,/data-repair="open-import"/);
  assert.match(repair,/id="flosyRepairOCRText"/);
  assert.match(cap,/id="v4-capture-review"/);
- assert.match(html,/flosy-capture-v10\.css\?v=1001/);
+ assert.match(html,/flosy-capture-v10\.css\?v=3102/);
  assert.ok(html.indexOf('id="flosyRepairRoot"')<html.indexOf('id="v4-capture"></div>'));
 });
 
@@ -524,8 +524,8 @@ test("The protected SMS inbox UI is retired; one message can be pasted and revie
  assert.match(next,/استيراد رسالة SMS أو InstaPay بأمان/);
  const index=fs.readFileSync("index.html","utf8");
  const sw=fs.readFileSync("service-worker.js","utf8");
- assert.ok(index.includes("flosy-next.js?v=2901"));
- assert.ok(sw.includes("flosy-next.js?v=2901"));
+ assert.ok(index.includes("flosy-next.js?v=3102"));
+ assert.ok(sw.includes("flosy-next.js?v=3102"));
  const ctx=context();load("flosy-next.js",ctx);
  const tx=ctx.window.FLOSY_NEXT.parseSMS("InstaPay تم استلام مبلغ 500 EGP من محمد");
  assert.equal(tx.amount,500);
@@ -593,9 +593,9 @@ test("Automate relay passes authenticated native request and never auto-saves de
 test("Automate web component and cache have matching version without SMS permissions",()=>{
  const index=fs.readFileSync("index.html","utf8");
  const sw=fs.readFileSync("service-worker.js","utf8");
- assert.match(index,/flosy-automate-relay\.js\?v=2901/);
+ assert.match(index,/flosy-automate-relay\.js\?v=3102/);
  assert.match(index,/flosy-automate-relay\.css\?v=2901/);
- assert.match(sw,/flosy-automate-relay\.js\?v=2901/);
+ assert.match(sw,/flosy-automate-relay\.js\?v=3102/);
  assert.match(sw,/flosy-automate-relay\.css\?v=2901/);
  assert.match(index,/id="flosyAutomateRelayRoot"/);
 });
