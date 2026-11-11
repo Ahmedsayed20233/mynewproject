@@ -140,6 +140,8 @@ function extractItems(lines){
  for(const line of lines){
   let text=trim(line);
   if(!descriptions.test(text)||meta.test(text)||/العميل|customer|phone/i.test(text))continue;
+  // A product SKU such as R.7 is not a quantity: strip SKU before reading numbers.
+  text=text.replace(/\b[A-Za-z][.,-]\d{1,6}\b/g," ").replace(/\s+/g," ").trim();
   const vals=numbers(text);
   let name=text.replace(/\d{1,3}(?:[, ]\d{3})+(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?/g," ")
     .replace(/\b[A-Z][.,-]\d+\b/gi," ").replace(/[|_:;\-]+/g," ").replace(/\s+/g," ").trim();
