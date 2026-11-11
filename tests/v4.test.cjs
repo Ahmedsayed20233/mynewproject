@@ -204,6 +204,53 @@ test("ReceiptML distinguishes multi-line grand total from invoice number and tax
  assert.equal(data.receiptDetails.invoiceNumber,"898898");
  assert.equal(data.receiptDetails.tax,14);
  assert.ok(data.receiptDetails.confidence>=.8);
+ assert.equal(data.receiptDetails.arithmeticConsistent,true);
+});
+
+test("ReceiptML extracts grocery items without table headers and verifies arithmetic consistency",()=>{
+ const c=context();load("flosy-receipt-ml.js",c);load("flosy-v4-capture.js",c);
+ const input=[
+  "سوبر ماركت الإخوة",
+  "ب.ض: 123-456-789",
+  "س.ت: 55432",
+  "كاشير: محمد",
+  "لبن جهينة 1 لتر 38.00 1 38.00",
+  "جبنة دومتي 500 جم 45.00 1 45.00",
+  "شاي العروسة 250 جم 55.00 1 55.00",
+  "الإجمالي: 138.00",
+  "نقدي",
+  "Date: 2026-11-10"
+ ].join("\n");
+ const cap=c.window.FLOSY_CAPTURE;
+ cap.setAutoAccount("wallet");
+ const result=cap.parseReceipt(input);
+ assert.equal(result.amount,138);
+ assert.equal(result.receiptDetails.merchant,"سوبر ماركت الإخوة");
+ assert.equal(result.receiptDetails.items.length,3);
+ assert.equal(result.receiptDetails.itemsSum,138);
+ assert.equal(result.receiptDetails.arithmeticConsistent,true);
+ assert.equal(result.autoQuality,true);
+});
+
+test("ReceiptML detects arithmetic contradiction and forces manual review",()=>{
+ const c=context();load("flosy-receipt-ml.js",c);load("flosy-v4-capture.js",c);
+ const input=[
+  "متجر السلام",
+  "قميص رجالي 250.00 1 250.00",
+  "بنطلون جينز 400.00 1 400.00",
+  "الإجمالي: 950.00", // Contradicts 250 + 400 = 650 with no tax or discount
+  "نقدي",
+  "Date: 2026-11-10"
+ ].join("\n");
+ const cap=c.window.FLOSY_CAPTURE;
+ cap.setAutoAccount("wallet");
+ const result=cap.parseReceipt(input);
+ assert.equal(result.amount,950);
+ assert.equal(result.receiptDetails.items.length,2);
+ assert.equal(result.receiptDetails.itemsSum,650);
+ assert.equal(result.receiptDetails.arithmeticConsistent,false);
+ // Contradiction must prevent auto-posting
+ assert.equal(result.autoQuality,false,"Arithmetic contradiction must block auto-save");
 });
 
 test("Bank CSV quoted cells and separate debit/credit columns parse exactly once",()=>{

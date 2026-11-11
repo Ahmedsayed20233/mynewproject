@@ -27,9 +27,9 @@ const invoice=/مسلسل\s*البيع|رقم\s*(?:الفاتورة|الفاتو
 const unitprice=/سعر\s*(?:الوحدة|الوحده|القطعة|القطعه)|unit\s*price|price\s*each/i;
 const method=/نقدي|نقدا|كاش|\bcash\b|فيزا|فيزه|\bvisa\b|بطاقة|\bcard\b|فوري|instapay|mastercard|مدى/i;
 const currency=/EGP|جنيه|جنيهات|ج\.م|\bLE\b|\bج\s*م\b|\bجم\b|\$/i;
-const itemWord=/كوتشي|كوئشي|كو.شي|حذاء|جزمة|ملابس|قميص|تيشيرت|بنطلون|جاكيت|بلوفر|shoe|sneaker|t-shirt|shirt|jeans|جهاز|منتج|\bitem\b|\bproduct\b/i;
-const meta=/نسخة\s*العميل|اصل\s*فاتورة|إيصال\s*مبيعات|ايصال\s*مبيعات|مسلسل|الفاتورة|الرقم|تاريخ|طباعة|وقت|customer|\bdate\b|\btime\b|sales\s*receipt|best\s*wishes|thank\s*you|invoice|barcode|عدد\s*الأصناف|اجمالي\s*الكمية|إجمالي\s*الكمية/i;
-const numberRx=/(^|[^\d\w])(\d{1,3}(?:[, ]\d{3})+(?:\.\d{1,2})?|\d{1,9}(?:\.\d{1,2})?)(?!\d)/g;
+const itemWord=/كوتشي|كوئشي|كو.شي|حذاء|جزمة|ملابس|قميص|تيشيرت|بنطلون|جاكيت|بلوفر|فستان|شنطة|bag|dress|shoe|sneaker|t-shirt|shirt|jeans|لبن|حليب|جبنة|جبن|خبز|عيش|عصير|شاي|قهوة|قهوه|بن|سكر|زيت|سمن|مكرونة|مكرونه|أرز|ارز|رز|لحم|لحمة|دجاج|فراخ|سمك|بيض|مياه|ماء|مشروب|بيبس|كولا|شيبس|شوكولاتة|بسكويت|بسكوت|خضار|طماطم|فاكهة|تفاح|برتقال|milk|cheese|bread|juice|tea|coffee|sugar|oil|pasta|rice|meat|chicken|fish|eggs|water|cola|chocolate|biscuit|دواء|دوا|علاج|مرهم|كريم|شامبو|صابون|معجون|شاش|قطن|فيتامين|بنادول|مسكن|medicine|shampoo|soap|cream|vitamin|panadol|كشكول|دفتر|قلم|ورق|جهاز|منتج|\bitem\b|\bproduct\b/i;
+const meta=/نسخة\s*العميل|اصل\s*فاتورة|إيصال\s*مبيعات|ايصال\s*مبيعات|مسلسل|الفاتورة|الرقم|تاريخ|طباعة|وقت|customer|\bdate\b|\btime\b|sales\s*receipt|best\s*wishes|thank\s*you|invoice|barcode|عدد\s*الأصناف|اجمالي\s*الكمية|إجمالي\s*الكمية|س\.ت|ب\.ض|بطاقة\s*ضريبية|سجل\s*تجاري|كاشير|cashier|نقطة\s*بيع|\bpos\b|terminal|tax\s*id|cr\s*no|vat\s*reg|tax\s*card/i;
+const numberRx=/(^|[^\d\w])(\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?|\d{1,9}(?:\.\d{1,2})?)(?!\d)/g;
 function numbers(s){
  const out=[];numberRx.lastIndex=0;let match;
  while((match=numberRx.exec(toWestern(s)))!==null){
@@ -134,10 +134,12 @@ function findReceiptNo(lines){
  }
  return null;
 }
-function extractItems(lines){
+function extractItems(lines,merchant){
  const items=[],seen=new Set();
- const descriptions=/كوتشي|كوئشي|كو.شي|حذاء|جزمة|ملابس|قميص|تيشيرت|بنطلون|جاكيت|بلوفر|shoe|sneaker|shirt|jeans|\bitem\b|\bproduct\b/i;
+ const descriptions=itemWord;
  const header=/الصنف|الاصناف|الأصناف|المنتج|اسم\s*السلعة|الوصف|البيان|\bitems?\b|description|product\s*name/i;
+ const dateRx=/\b(?:20\d{2}[\/.\-]\d{1,2}[\/.\-]\d{1,2}|[0-3]?\d[\/.\-][01]?\d[\/.\-]20\d{2})\b/;
+ const timeRx=/\b(?:[01]?\d|2[0-3]):[0-5]\d\b/;
  let inTable=false;
  for(const line of lines){
   let text=trim(line);
@@ -148,16 +150,22 @@ function extractItems(lines){
    if(!descriptions.test(text))inTable=false;
    if(!descriptions.test(text))continue;
   }
-  if(meta.test(text)||invoice.test(text)||/العميل|customer|phone|mobile/i.test(text))continue;
+  if(meta.test(text)||invoice.test(text)||dateRx.test(text)||/العميل|customer|phone|mobile/i.test(text))continue;
   // Generic items from a clear table are supported, not just clothing keywords.
-  // Outside tables require a recognizable item name plus a numeric value.
-  if(!inTable&&!descriptions.test(text))continue;
+  // Outside tables accept recognized items or lines with valid text and numbers.
+  if(!inTable&&!descriptions.test(text)){
+   const valsCheck=numbers(text);
+   const cleanText=text.replace(/\b(?:EGP|LE|ج\.م|جم|جنيه|جنيهات)\b/gi,"").trim();
+   const hasAlpha=/[A-Za-z\u0621-\u064A]{2,}/u.test(cleanText);
+   if(!hasAlpha||valsCheck.length===0||timeRx.test(text))continue;
+  }
   text=text.replace(/\b[A-Za-z][.,-]\d{1,6}\b/g," ").replace(/\s+/g," ").trim();
   const vals=numbers(text);if(vals.length===0)continue;
   let name=text.replace(/\d{1,3}(?:[, ]\d{3})+(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?/g," ")
     .replace(/[|_:;\-]+/g," ").replace(/\s+/g," ").trim();
   if(/كوئشي|كو.شي/.test(name))name=name.replace(/كوئشي|كو.شي/g,"كوتشي");
   if(name.length<2||name.length>90||!/[A-Za-z\u0621-\u064A]/u.test(name))continue;
+  if(merchant&&name.toLowerCase()===merchant.toLowerCase())continue;
   // Determine unit price, quantity, line total by checking their arithmetic.
   // Do not treat SKU R.7 as a quantity or multiply line totals twice.
   const nums=vals.map(x=>x.amount).filter(x=>x>=0&&x<10000000);
@@ -210,8 +218,31 @@ function extract(text){
  const chosen=preferred||paidCandidate||null;
  if(!chosen||!(chosen.value>0&&chosen.value<1e9))throw Error("لم أجد إجماليًا أو مبلغًا مدفوعًا موثوقًا من الصورة");
  const hasZeroChange=(changeValue===0);
+ const items=extractItems(lines,merchant);
+ const itemsSum=items.length?+items.reduce((s,it)=>s+(Number(it.total)||0),0).toFixed(2):null;
+
+ // Field-level arithmetic consistency checks
+ let arithmeticConsistent=false;
+ let arithmeticContradiction=false;
+ if(items.length>0&&itemsSum!==null){
+  if(Math.abs(itemsSum-chosen.value)<=0.05){
+   arithmeticConsistent=true;
+  }else if(subtotal!==null&&Math.abs(itemsSum-subtotal)<=0.05){
+   arithmeticConsistent=true;
+  }else if(items.length>=2&&Math.abs(itemsSum-chosen.value)>2.0&&
+           (discount===null||discount===0)&&(tax===null||tax===0)){
+   arithmeticContradiction=true;
+  }
+ }
+ if(subtotal!==null&&tax!==null&&discount!==null){
+  const calcTotal=+(subtotal-discount+tax).toFixed(2);
+  if(Math.abs(calcTotal-chosen.value)<=0.05)arithmeticConsistent=true;
+ }
+
  let confidence=preferred?(preferred.strong?0.98:Math.max(0.82,Math.min(0.96,preferred.probability))):0.69;
  if(paidValue!==null&&Math.abs(paidValue-chosen.value)<=0.01)confidence=Math.min(0.99,confidence+0.03);
+ if(arithmeticConsistent)confidence=Math.min(0.99,confidence+0.04);
+ if(arithmeticContradiction)confidence=Math.max(0.50,confidence-0.20);
  if(!preferred&&hasZeroChange)confidence=0.74;
  if(!date)confidence=Math.min(confidence,0.68);
  if(!merchant)confidence=Math.min(confidence,0.65);
@@ -220,11 +251,11 @@ function extract(text){
  const receiptNumber=findReceiptNo(lines);
  const paymentMethod=lines.some(l=>/نقدي|نقدا|\bcash\b/i.test(l))?"cash":
    lines.some(l=>/فيزا|\bcard\b|بطاقة|\bvisa\b/i.test(l))?"card":null;
- const items=extractItems(lines);
  return {amount:chosen.value,merchant,date,time,receiptNumber,paymentMethod,
-   items,discount,tax,subtotal,paid:paidValue,change:changeValue,currency:"EGP",
+   items,itemsSum,arithmeticConsistent,arithmeticContradiction,
+   discount,tax,subtotal,paid:paidValue,change:changeValue,currency:"EGP",
    confidence:+confidence.toFixed(2),evidence:chosen.evidence,
-   autoQuality:!!preferred&&confidence>=0.86&&!!merchant&&!!date&&!!paymentMethod,
+   autoQuality:!!preferred&&confidence>=0.86&&!!merchant&&!!date&&!!paymentMethod&&!arithmeticContradiction,
    modelVersion:MODEL.version,
    // No photos, customer name, phone or unredacted OCR transcript in finance record.
    description:[merchant||"إيصال",items[0]?.name].filter(Boolean).join(" — ").slice(0,95)};
