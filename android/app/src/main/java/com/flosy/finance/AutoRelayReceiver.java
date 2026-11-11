@@ -26,8 +26,14 @@ public final class AutoRelayReceiver extends BroadcastReceiver {
             else if(raw instanceof String){
                 try{millis=Long.parseLong((String)raw);}catch(NumberFormatException ignored){}
             }
-            AutoRelayStore.accept(context.getApplicationContext(),
-                token,source,sender,text,millis);
+            if(AutoRelayStore.accept(context.getApplicationContext(),
+                token,source,sender,text,millis)){
+                // Wake only the active Flosy Activity; Android keeps the queue
+                // encrypted when the Activity is closed or in the background.
+                Intent ready=new Intent("com.flosy.finance.AUTO_RELAY_QUEUE_UPDATED");
+                ready.setPackage(context.getPackageName());
+                context.sendBroadcast(ready);
+            }
         } catch(Exception ignored){
             // Diagnostic code only; never log message text, sender, or secret.
             AutoRelayStore.invalidExtras(context.getApplicationContext());
