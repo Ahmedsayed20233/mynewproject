@@ -293,6 +293,25 @@ test("Free Flosy coach works without login, internet or OpenAI API key",async()=
  assert.match(c.elems.flosyAiRoot.innerHTML,/المجاني/);
  assert.doesNotMatch(c.elems.flosyAiRoot.innerHTML,/disabled>اسأل المساعد/);
 });
+test("Gemini Free personal assistant never uploads raw financial questions",()=>{
+ const c=context();const month=new Date().toISOString().slice(0,7);
+ c.data.transactions.push({id:"test-salary",type:"income",amount:10000,date:month+"-03"});
+ c.data.transactions.push({id:"test-cost",type:"expense",amount:2700,date:month+"-04",category:"طعام ومشروبات"});
+ load("flosy-ai.js",c);
+ const payload=c.window.FLOSY_AI.safeGeminiBody("ميزانيتي وحسابي PRIVATE_USER_00077 وكارت 123456789");
+ assert.deepEqual(Object.keys(payload).sort(),["expenseRatioBand","intent","task","topCategory"].sort());
+ assert.equal(payload.task,"coach");assert.equal(payload.intent,"budget");
+ assert.equal(payload.expenseRatioBand,30);
+ assert.equal(payload.topCategory,"طعام ومشروبات");
+ assert.doesNotMatch(JSON.stringify(payload),/PRIVATE_USER_00077|123456789|10000|2700/);
+ const proxy=fs.readFileSync("supabase/functions/flosy-gemini-parse/index.ts","utf8");
+ assert.match(proxy,/withSupabase\(\{auth:"user"\}/);
+ assert.match(proxy,/FLOSY_GEMINI_OWNER_UID/);
+ assert.match(proxy,/GEMINI_ENABLED/);
+ assert.match(proxy,/gemini-2\.5-flash-lite/);
+ assert.match(proxy,/flosy_ai_consume_quota/);
+ assert.doesNotMatch(proxy,/OPENAI_API_KEY/);
+});
 test("Android microphone and camera taps use origin-restricted native bridge if available",()=>{
  const c=context(),messages=[];
  c.window.FLOSY_NATIVE_VOICE_AVAILABLE=true;
