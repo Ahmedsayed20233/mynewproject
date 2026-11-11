@@ -360,7 +360,7 @@ function review(d,message){pending=d;staged=[];rawOutput="";notification=message
 function captureForm(){
  return '<section class="f10-review" aria-label="مراجعة المعاملة المالية">'+
   '<div class="f10-review-head"><span class="f10-step">03</span><div><h3>راجع العملية قبل حفظها</h3>'+
-  '<p>تقدر تعدّل الحساب، والمبلغ، والتصنيف، والتاريخ. لا يتم تسجيل أي حركة بدون تأكيد.</p></div></div>'+
+  '<p>تقدر تعدّل الحساب والمبلغ والفئة والتاريخ. الحفظ التلقائي للعمليات الواضحة اختياري، والعمليات غير المؤكدة للمراجعة.</p></div></div>'+
   '<div id="v4-capture-review"></div>'+
  '</section>';
 }
