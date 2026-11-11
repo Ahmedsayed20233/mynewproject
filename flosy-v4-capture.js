@@ -171,6 +171,45 @@ function spokenEgyptianAmount(text){
 }
 function parseVoice(text){
  const str=digits(String(text||"").trim());
+ const ml=global.FLOSY_VOICE_NLU;
+ if(ml?.classify){
+  if(/\b(?:OTP|PIN|CVV)\b|رمز.{0,12}(?:التحقق|السري)|كود\s*التحقق/i.test(str))
+   throw Error("لا يمكن تسجيل رمز تحقق أو رقم سري.");
+  const decision=ml.classify(str);
+  if(decision.intent==="transfer")
+   throw Error("ده يبدو تحويلًا بين حساباتك؛ سجله من صفحة التحويلات، مش كمصروف أو دخل.");
+  if(decision.intent==="none")
+   throw Error("الجملة مش معاملة مكتملة. قل «دفعت 75 جنيه قهوة» أو «قبضت 500 جنيه».");
+  const amount=amountFrom(str)??ml.spokenAmount(str)??spokenEgyptianAmount(str);
+  if(!validAmount(amount))throw Error("مش قادر أحدد المبلغ بشكل آمن. قل المبلغ بالجنيه.");
+  const type=decision.intent==="income"?"income":"expense";
+  const category=ml.category(str,type)|| (type==="income"?"دخل آخر":cat(str));
+  const now=new Date(),relative=/اول\s*امبارح|أول\s*أمس|قبل\s*امبارح/.test(str)?2:
+    /امبارح|أمس/.test(str)?1:0;
+  now.setDate(now.getDate()-relative);
+  let date=[now.getFullYear(),String(now.getMonth()+1).padStart(2,"0"),String(now.getDate()).padStart(2,"0")].join("-");
+  // An explicitly spoken full ISO date can be reviewed and used as the date.
+  const full=str.match(/\b(20\d{2})[\/.\-](\d{1,2})[\/.\-](\d{1,2})\b/);
+  if(full){const chk=new Date(+full[1],+full[2]-1,+full[3]);if(chk.getFullYear()===+full[1]&&chk.getMonth()+1===+full[2]&&chk.getDate()===+full[3])
+   date=[full[1],full[2].padStart(2,"0"),full[3].padStart(2,"0")].join("-")}
+  const accounts=cash().filter(x=>x&&x.id);
+  const normalized=str.replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").toLowerCase();
+  const named=accounts.find(a=>a.name&&normalized.includes(a.name.toLowerCase().replace(/[أإآ]/g,"ا").replace(/ة/g,"ه")));
+  const cashMatch=/كاش|نقد|محفظه|محفظة/.test(normalized)?
+   accounts.find(a=>/كاش|نقد|cash|محفظة|محفظه/i.test(a.name||"")):null;
+  const bankMatch=/فيزا|كارت|بنك|حساب/.test(normalized)?
+   accounts.find(a=>/فيزا|كارت|بنك|bank|visa|card|حساب/i.test(a.name||"")):null;
+  const accountId=named?.id||cashMatch?.id||bankMatch?.id||resolvedAccount("");
+  const fingerprint=str.toLowerCase().replace(/\s+/g," ").trim();
+  return {id:uuid(),type,date,amount,category,
+   // Do not persist raw transcripts or spoken personal names.
+   description:"صوت — "+(type==="income"?"دخل":"مصروف")+" — "+category,
+   accountId,subcategory:"",source:"voice_reviewed",
+   sourceHash:"voice-nlu-v1-"+hash(fingerprint+"|"+Math.floor(Date.now()/300000)),
+   voiceDetails:{intent:decision.intent,confidence:decision.confidence,modelVersion:decision.version},
+   autoQuality:decision.reliable===true&&!!accountId};
+ }
+
  if(/\b(?:OTP|PIN|CVV)\b|رمز.{0,12}(?:التحقق|السري)/i.test(str))
   throw Error("لا يمكن تسجيل رموز تحقق بالصوت");
  const amount=amountFrom(str)??spokenEgyptianAmount(str);
