@@ -324,7 +324,7 @@ test("Flosy AI defaults to free mode, API stays optional and offline shell is ve
  assert.match(ai,/answerFree/);
  assert.match(ai,/OpenAI API/);
  assert.ok(sw.includes("flosy-ai.js?v=700"));
- assert.ok(sw.includes("flosy-repair.js?v=1001"));
+ assert.ok(sw.includes("flosy-repair.js?v=3102"));
 });
 
 
@@ -524,8 +524,8 @@ test("The protected SMS inbox UI is retired; one message can be pasted and revie
  assert.match(next,/استيراد رسالة SMS أو InstaPay بأمان/);
  const index=fs.readFileSync("index.html","utf8");
  const sw=fs.readFileSync("service-worker.js","utf8");
- assert.ok(index.includes("flosy-next.js?v=2901"));
- assert.ok(sw.includes("flosy-next.js?v=2901"));
+ assert.ok(index.includes("flosy-next.js?v=3102"));
+ assert.ok(sw.includes("flosy-next.js?v=3102"));
  const ctx=context();load("flosy-next.js",ctx);
  const tx=ctx.window.FLOSY_NEXT.parseSMS("InstaPay تم استلام مبلغ 500 EGP من محمد");
  assert.equal(tx.amount,500);
