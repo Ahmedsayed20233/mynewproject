@@ -86,6 +86,21 @@ function answerFree(question){
  lines.push("طريقة الحساب واضحة ومبنية على بياناتك المسجلة فقط؛ لا يوجد وصول مباشر للبنوك أو استثمار أو تحويل تلقائي.");
  return lines.join("\n");
 }
+const GEMINI_CATEGORIES=new Set(["طعام ومشروبات","ترفيه","مواصلات","مشتريات","فواتير",
+"فاتورة الإنترنت","فاتورة الكهرباء","إيجار","صحة","تعليم","مرتب","دخل آخر","معيشة أخرى","غير مصنف"]);
+function safeGeminiBody(question){
+ const q=String(question||"").toLowerCase();
+ const intent=/طوار|أمان|أزمة/.test(q)?"emergency":/قسط|أقساط|ديون|قرض/.test(q)?"installments":
+   /safe|آمن|امن|اصرف|أصرف/.test(q)?"safe_to_spend":/توفير|ادخار|ادخر/.test(q)?"saving":
+   /صرف|مصروف|مشتري|فئات/.test(q)?"spending":/ميزان|تخطيط|خطط/.test(q)?"budget":"general";
+ const safe={task:"coach",intent};
+ const data=snapshot();
+ if(data.income>0)safe.expenseRatioBand=Math.max(0,Math.min(100,
+   Math.round(data.spending/data.income*10)*10));
+ const top=data.categories[0]?.[0];
+ if(GEMINI_CATEGORIES.has(top))safe.topCategory=top;
+ return safe; // Raw questions, personal identifiers and actual money amounts NEVER leave.
+}
 function view(){
  const root=$("flosyAiRoot");if(!root)return;
  const signed=Boolean(C.getSession());
