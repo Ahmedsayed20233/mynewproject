@@ -157,7 +157,7 @@ function extractItems(lines){
   let name=text.replace(/\d{1,3}(?:[, ]\d{3})+(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?/g," ")
     .replace(/[|_:;\-]+/g," ").replace(/\s+/g," ").trim();
   if(/كوئشي|كو.شي/.test(name))name=name.replace(/كوئشي|كو.شي/g,"كوتشي");
-  if(name.length<2||name.length>90||/^[\W_]+$/u.test(name))continue;
+  if(name.length<2||name.length>90||!/[A-Za-z\u0621-\u064A]/u.test(name))continue;
   // Determine unit price, quantity, line total by checking their arithmetic.
   // Do not treat SKU R.7 as a quantity or multiply line totals twice.
   const nums=vals.map(x=>x.amount).filter(x=>x>=0&&x<10000000);
