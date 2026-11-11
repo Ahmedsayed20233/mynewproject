@@ -1,7 +1,7 @@
 name: Build Flosy Android APK
 on:
   push:
-    branches: [flosy-android, "fix/**", "feature/flosy-free-automate-relay-android-v29"]
+    branches: [flosy-android, "fix/**", "feature/**"]
     paths:
       - 'android/**'
       - '.github/workflows/build-flosy-apk.yml'
@@ -70,6 +70,12 @@ jobs:
           if grep -Fq 'cipher.init(Cipher.ENCRYPT_MODE,secret(),new GCMParameterSpec' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java; then
             echo 'Unsafe: caller-supplied encryption IV'; exit 1
           fi
+          # Broad SMS capture stays allowlisted and excludes authentication secrets.
+          grep -Fq 'if(!sourceAllowed(c,source,sender))' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java
+          grep -Fq 'if(SECRET.matcher(text).find())' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java
+          grep -Fq 'if(!"sms".equals(source))' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java
+          grep -Fq 'if(!TX.matcher(text).find())' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java
+          grep -Fq 'if(!CURRENCY.matcher(text).find())' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java
           grep -q 'AutoRelayStore.accept' android/app/src/main/java/com/flosy/finance/AutoRelayReceiver.java
           grep -q 'if(window.FLOSY_AUTOMATE_RELAY)' android/app/src/main/java/com/flosy/finance/MainActivity.java
 
