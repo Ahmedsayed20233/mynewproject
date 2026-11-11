@@ -14,6 +14,67 @@ const pretty=n=>new Intl.NumberFormat("en-US",{maximumFractionDigits:2}).format(
 const cash=()=>C.getState().accounts||[];
 const validAmount=x=>Number.isFinite(+x)&&+x>0&&+x<1e9;
 let pending=null,staged=[],rawOutput="",notification="",recognition=null,ocrBusy=false;
+let lastAutoSaved=null;
+const autoPrefs=()=>{
+ const p=C.getState().settings?.autoCapture||{};
+ return {voice:p.voice===true,sms:p.sms===true,receipt:p.receipt===true,
+  accountId:String(p.accountId||"")};
+};
+const autoEnabled=mode=>autoPrefs()[mode]===true;
+function setAuto(mode,on){
+ if(!["sms","voice","receipt"].includes(mode))return false;
+ C.mutate(state=>{
+  state.settings=state.settings||{};
+  state.settings.autoCapture={...(state.settings.autoCapture||{}),[mode]:on===true};
+ });
+ return true;
+}
+function setAutoAccount(id){
+ if(id&& !cash().some(a=>a.id===id))return false;
+ C.mutate(state=>{
+  state.settings=state.settings||{};
+  state.settings.autoCapture={...(state.settings.autoCapture||{}),accountId:String(id||"")};
+ });
+ return true;
+}
+const resolvedAccount=preferred=>{
+ const accounts=cash().filter(a=>a&&a.id);
+ const selected=preferred&&accounts.find(a=>a.id===preferred);
+ if(selected)return selected.id;
+ const configured=accounts.find(a=>a.id===autoPrefs().accountId);
+ return configured?.id||(accounts.length===1?accounts[0].id:"");
+};
+function autoRecord(d,mode){
+ if(!autoEnabled(mode)||!d||d.autoQuality!==true)return false;
+ const accountId=resolvedAccount(d.accountId);
+ if(!accountId||!validAmount(d.amount)||!["income","expense"].includes(d.type)||
+  !/^\d{4}-\d{2}-\d{2}$/.test(String(d.date))||!d.description||isDuplicate(d))
+  return false;
+ const item={...d,accountId};
+ delete item.autoQuality;
+ item.source=mode+"_auto";
+ item.createdAt=new Date().toISOString();item.updatedAt=item.createdAt;
+ try{
+  C.mutate(state=>state.transactions.push(item));
+  lastAutoSaved={id:item.id,mode,amount:item.amount,type:item.type};
+  notification="تم تسجيل "+pretty(item.amount)+" تلقائيًا في الحساب المحدد. يمكنك التراجع من هنا.";
+  renderReview();
+  C.toast("تم تسجيل المعاملة تلقائيًا");
+  return true;
+ }catch(err){C.toast("تعذر الحفظ التلقائي، افتح المراجعة");return false}
+}
+function undoLastAuto(){
+ const last=lastAutoSaved;
+ if(!last)return;
+ C.mutate(state=>{
+  state.transactions=state.transactions.filter(item=>item.id!==last.id);
+  state.deletedIds=Array.isArray(state.deletedIds)?state.deletedIds:[];
+  state.deletedIds.push("transactions/"+last.id);
+ });
+ lastAutoSaved=null;notification="تم التراجع عن آخر معاملة تلقائية.";renderReview();
+ C.toast("تم التراجع عن المعاملة");
+}
+
 const bankName=s=>{
  const lower=s.toLowerCase();
  return [
@@ -32,8 +93,10 @@ const bankName=s=>{
 function amountFrom(s){
  const value=digits(s).replace(/\u00a0/g," ");
  const matches=[
- ...value.matchAll(/(?:EGP|جنيه(?:اً|ا)?|جم|ج\.م|L\.E\.?)\s*[:\-]?\s*([0-9][0-9.,\s]{0,22})/gi),
- ...value.matchAll(/(?:بمبلغ|بقيمة|amount|amt|تم\s*خصم|تم\s*إيداع|دفعت|دفع|purchase|paid)\s*[:\-]?\s*([0-9][0-9.,\s]{0,22})\s*(?:EGP|جنيه|جم|ج\.م|L\.E\.?)/gi)
+ ...value.matchAll(/(?:بمبلغ|بقيمة|المبلغ|amount|amt)\s*[:\-]?\s*(?:EGP|جنيه|جم|ج\.م)?\s*([0-9][0-9.,]{0,18})/gi),
+ ...value.matchAll(/([0-9][0-9.,]{0,18})\s*(?:EGP|جنيه(?:اً|ا)?|جنيهات|جم|ج\.\s*م\.?|L\.E\.?)\b/gi),
+ ...value.matchAll(/(?:EGP|جنيه(?:اً|ا)?|جم|ج\.م|L\.E\.?)\s*[:\-]?\s*([0-9][0-9.,]{0,18})/gi),
+ ...value.matchAll(/(?:دفعت|صرفت|اشتريت|حولت|حوّلت|استلمت|قبضت|جالي|دفع|purchase|paid)\s*(?:بـ?|بمبلغ)?\s*([0-9][0-9.,]{0,18})/gi)
  ];
  const m=matches.find(x=>x[1]);if(!m)return null;
  let raw=m[1].trim().replace(/\s/g,"");
@@ -81,24 +144,35 @@ function parseBankSMS(source){
   sourceHash:"sms4-"+hash(str.trim().replace(/\s+/g," ").toLowerCase()),source:"sms_reviewed",confidence:"مراجعة مطلوبة"};
 }
 function parseVoice(text){
- const str=digits(String(text||"").trim()),amount=amountFrom(str)||(()=>{
-  const m=str.match(/(?:دفعت|صرفت|شراء|استلمت|جالي|دخل|استلم|كسبت)\s+(\d+(?:[.,]\d{1,2})?)/);
-  return m?Number(m[1].replace(",",".")):null;
- })();
- if(!validAmount(amount))throw Error("اتأكد من المبلغ، مثل: «دفعت 75 جنيه على القهوة».");
- const credit=/استلمت|جالي|وصلني|مرتب|دخلت|قبضت|إيداع|ايداع/.test(str)&&!/دفعت|صرفت|اشتريت/.test(str);
+ const str=digits(String(text||"").trim());
+ if(/\b(?:OTP|PIN|CVV)\b|رمز.{0,12}(?:التحقق|السري)/i.test(str))
+  throw Error("لا يمكن تسجيل رموز تحقق بالصوت");
+ const amount=amountFrom(str);
+ if(!validAmount(amount))throw Error("قول مبلغ واضح، مثال: دفعت 75 جنيه قهوة من الكاش.");
+ const out=/دفعت|صرفت|اشتريت|دفعنا|سحبت|حولت|حوّلت|بعت|دفعة|مصروف|خصمت|شراء/.test(str);
+ const inc=/استلمت|جالي|وصلني|مرتب|دخلت|قبضت|إيداع|ايداع|تحويل وارد/.test(str);
+ if(out&&inc)throw Error("الاتجاه مش واضح: مصروف ولا دخل؟");
+ const credit=inc&&!out;
  const ymd=dateLocal(),yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
  const dt=/امبارح|أمس/.test(str)?[yesterday.getFullYear(),String(yesterday.getMonth()+1).padStart(2,"0"),String(yesterday.getDate()).padStart(2,"0")].join("-"):ymd;
- const matched=cash().find(a=>str.includes(a.name)||/فيزا|كارت|بنك/.test(str)&&a.id==="bank"||/كاش/.test(str)&&a.id==="wallet");
+ const accounts=cash().filter(x=>x&&x.id);
+ const named=accounts.find(a=>a.name&&str.includes(a.name));
+ const cashMatch= /كاش|نقد|محفظة/.test(str)?
+  accounts.find(a=>/كاش|نقد|cash|محفظة/i.test(a.name||"")):null;
+ const bankMatch=/فيزا|كارت|بنك|حساب/.test(str)?
+  accounts.find(a=>/فيزا|كارت|بنك|bank|visa|card/i.test(a.name||"")):null;
+ const accountId=named?.id||cashMatch?.id||bankMatch?.id||resolvedAccount("");
+ const basis=str.toLowerCase().replace(/\s+/g," ").trim();
+ const sourceHash="voice-auto-"+hash(basis+"|"+Math.floor(Date.now()/300000));
  return {id:uuid(),type:credit?"income":"expense",date:dt,amount,
-   category:credit?"دخل آخر":cat(str),description:"إدخال صوتي — "+str.slice(0,85),
-   accountId:matched?.id||cash()[0]?.id||"",subcategory:"",source:"voice_reviewed"};
+  category:credit?"دخل آخر":cat(str),description:"عملية صوتية — "+(credit?"دخل":"مصروف")+" — "+cat(str),
+  accountId,subcategory:"",source:"voice_reviewed",sourceHash,autoQuality:(out!==inc)&&!!accountId};
 }
 function parseReceipt(text){
  const src=digits(String(text||"").slice(0,12000));
  const lines=src.split(/[\r\n]+/).map(x=>x.trim()).filter(Boolean);
- const totalLine=/\bgrand\s*total\b|\btotal\b|الإجمالي|الاجمالي|إجمالي\s*الفاتورة|المجموع|amount\s*due|المطلوب/i;
- const excludedLine=/subtotal|sub total|ضريبة|tax|vat|خصم|discount|كاش\s*باك/i;
+ const totalLine=/\bgrand\s*total\b|\btotal\b|\bnet\s*amount\b|\bamount\s*due\b|\bto\s*pay\b|الإجمالي|الاجمالي|إجمالي\s*الفاتورة|المجموع|الصافي|صافى|المستحق|المطلوب|القيمة\s*النهائية/i;
+ const excludedLine=/subtotal|sub total|ضريبة|tax|vat|خصم|discount|كاش\s*باك|توفير|باقي|الباقي|change|before\s*tax/i;
  // Only infer the total from an explicitly labeled line, never from the largest
  // numeral (invoice number/phone/loyalty points can be larger than the total).
  const getLineAmount=line=>{
@@ -115,7 +189,13 @@ function parseReceipt(text){
    const n=Number(raw);
    return Number.isFinite(n)&&n>0&&n<1e9?n:null;
  };
- const totals=lines.filter(line=>totalLine.test(line)&&!excludedLine.test(line));
+ const totals=[];
+ for(let i=0;i<lines.length;i++){
+  if(!totalLine.test(lines[i])||excludedLine.test(lines[i]))continue;
+  totals.push(lines[i]);
+  if(i+1<lines.length&&/^(?:EGP|جم|جنيه)?\s*[0-9][0-9,.]*(?:\s*(?:EGP|جم|جنيه))?$/i.test(lines[i+1]))
+   totals.push(lines[i]+" "+lines[i+1]);
+ }
  const amount=[...totals].reverse().map(getLineAmount).find(x=>x!==null);
  if(amount===undefined||amount===null)throw Error("لم أجد إجمالي فاتورة واضحًا؛ أدخل المبلغ يدويًا بعد مراجعة الإيصال.");
  // Receipt dates are optional; invalid/ambiguous dates remain today's date and
@@ -137,7 +217,9 @@ function parseReceipt(text){
  }
  const merchant=lines.find(x=>x.length>2&&!/\d{5,}/.test(x)&&!totalLine.test(x)&&!/(tax|vat|ضريبة|الهاتف)/i.test(x))||"إيصال";
  return {id:uuid(),type:"expense",date:receiptDate,amount,category:cat(lines.join(" ")),
-  description:"إيصال — "+merchant.slice(0,60),accountId:cash()[0]?.id||"",subcategory:"",source:"receipt_reviewed"};
+  description:"إيصال — "+merchant.slice(0,60),accountId:resolvedAccount(""),subcategory:"",source:"receipt_reviewed",
+  sourceHash:"receipt-auto-"+hash(lines.join("|").toLowerCase()),
+  autoQuality:totals.length>0&&lines.length>=2&&merchant!=="إيصال"&&!!resolvedAccount("")};
 }
 function isDuplicate(d){
  return (C.getState().transactions||[]).some(x=>
@@ -147,7 +229,7 @@ function isDuplicate(d){
 function accountOpts(){return cash().map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join("")}
 function categoryOpts(type){let cats=type==="income"?["مرتب","دخل آخر","هدية"]:["طعام ومشروبات","ترفيه","مشتريات","مواصلات","الهدايا","إيجار","فاتورة الإنترنت","فاتورة شحن رصيد","فاتورة الكهرباء","فواتير","صحة","تعليم","معيشة أخرى"];return cats.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")}
 function draftForm(){
- if(!pending)return '<div class="v4-empty">مفيش عملية معلّقة. مش هيتم حفظ أي مصروف من غير تأكيدك.</div>';
+ if(!pending)return '<div class="v4-empty">مفيش معاملة بانتظار المراجعة.</div>';
  return '<form class="v4-form" id="v4-capture-confirm">'+
  '<label>نوع الحركة<select name="type"><option value="expense" '+(pending.type==="expense"?"selected":"")+'>مصروف</option><option value="income" '+(pending.type==="income"?"selected":"")+'>دخل</option></select></label>'+
  '<label>المبلغ بالجنيه<input type="number" name="amount" min=".01" step="any" value="'+esc(pending.amount)+'" required></label>'+
@@ -160,7 +242,8 @@ function draftForm(){
 }
 function renderReview(){
  const h=el("v4-capture-review");if(!h)return;
- h.innerHTML=draftForm()+(notification?'<div class="v4-note">'+esc(notification)+'</div>':'');
+ h.innerHTML=draftForm()+(notification?'<div class="v4-note">'+esc(notification)+'</div>':'')+
+ (lastAutoSaved?'<button type="button" class="v4-btn secondary" data-v4-import="undo-last">تراجع عن آخر تسجيل تلقائي</button>':'');
  if(pending){
   const a=h.querySelector('select[name=accountId]'),c=h.querySelector('select[name=category]');
   if(a&&cash().some(x=>x.id===pending.accountId))a.value=pending.accountId;
@@ -223,7 +306,8 @@ function receiveNativeVoice(spoken){
  const field=el("v4-voice-text")?.elements?.namedItem("spoken");
  if(field)field.value=spoken;
  try{
-  review(parseVoice(spoken),"راجع النص والمبلغ والتاريخ والحساب قبل الحفظ.");
+  const proposed=parseVoice(spoken);
+  if(!autoRecord(proposed,"voice"))review(proposed,"لم تتوفر ثقة كافية للحفظ التلقائي؛ راجع النص والمبلغ والحساب.");
   if(global.FLOSY_REPAIR?.nativeVoiceResult)global.FLOSY_REPAIR.nativeVoiceResult(spoken);
  }catch(e){
   if(global.FLOSY_REPAIR?.nativeVoiceError)global.FLOSY_REPAIR.nativeVoiceError(e.message);
@@ -249,7 +333,7 @@ document.addEventListener("submit",e=>{
  try{
   if(id==="v4-capture-confirm")return handleConfirmation(e.target);
   const f=new FormData(e.target);
-  if(id==="v4-voice-text")review(parseVoice(String(f.get("spoken")||"")),"المبلغ والتاريخ والفئة مستخرجة من اللغة الطبيعية؛ راجعها.");
+  if(id==="v4-voice-text"){const d=parseVoice(String(f.get("spoken")||""));if(!autoRecord(d,"voice"))review(d,"راجع المبلغ والحساب قبل الحفظ.");}
   if(id==="v4-sms-form")review(parseBankSMS(String(f.get("sms")||"")),"البيانات استُخرجت محليًا من SMS. تأكد من اتجاه الحركة والمبلغ.");
  }catch(err){C.toast(err.message)}
 });
@@ -259,8 +343,10 @@ document.addEventListener("click",e=>{
  if(action==="voice")(global.FLOSY_REPAIR?.startVoice||startVoice)();
  if(action==="ocr")(global.FLOSY_REPAIR?.scanReceipt||scanReceipt)();
  if(action==="bank")C.goto("v4-bank");
+ if(action==="undo-last")undoLastAuto();
  if(action==="discard"){pending=null;notification="ألغيت العملية دون حفظ.";renderReview()}
 });
-global.FLOSY_CAPTURE={render,parseBankSMS,parseVoice,parseReceipt,receiveNativeVoice,isDuplicate,amountFrom,cat,redact,parseReview:review};
+global.FLOSY_CAPTURE={render,parseBankSMS,parseVoice,parseReceipt,receiveNativeVoice,isDuplicate,amountFrom,cat,redact,parseReview:review,
+ autoPrefs,autoEnabled,setAuto,setAutoAccount,resolvedAccount,autoRecord,undoLastAuto};
 render();
 })(window);
