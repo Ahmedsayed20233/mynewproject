@@ -25,6 +25,8 @@ function render(){
  const root=byId("flosyAutomateRelayRoot");if(!root)return;
  if(!enabled()){root.innerHTML="";return}
  const s=info||{},pkg=s.packageName||"com.flosy.finance",paired=s.paired===true;
+ const smsAuto=!!w.FLOSY_CAPTURE?.autoEnabled?.("sms");
+
  const relayReasons={
   unsupported:"نسخة Flosy Android الحالية لا توفر تشخيص استقبال Broadcast؛ يلزم تحديث نسخة Android المتوافقة.",
   none:"لم تُسجل هذه النسخة أي رسالة Broadcast حتى الآن. تحقق من Package وReceiver class ورمز الاقتران.",
@@ -47,7 +49,7 @@ function render(){
  root.innerHTML='<section class="f29-panel"><div class="f29-head"><div><span class="f29-overline">FLOSY • LOCAL AUTOMATION</span>'+
  '<h2>استيراد تلقائي مجاني — من هاتفك لفلوسي</h2><p>اربط Automate من Google Play مع Flosy من غير مفتاح API أو حساب مطوّر أو تعطيل Play Protect.</p></div>'+
  '<span class="f29-pill">'+(paired?"رمز محلي جاهز":"غير مقترن")+'</span></div>'+
- '<div class="f29-disclosure"><strong>كيف يعمل؟</strong><p>Automate هو التطبيق الذي يقرأ SMS أو إشعارات التطبيقات التي تسمح بها في Android. Flosy لا يحصل على صلاحية قراءة صندوق رسائلك؛ يستقبل فقط أحداثًا محددة برمز سري ويضعها في قائمة مشفّرة للمراجعة. استخدام Automate يتطلب منحه الصلاحيات التي تختارها، وهو تطبيق خارجي.</p></div>'+
+ '<div class="f29-disclosure"><strong>كيف يعمل؟</strong><p>Automate هو التطبيق الذي يقرأ SMS أو إشعارات التطبيقات التي تسمح بها في Android. Flosy لا يحصل على صلاحية قراءة صندوق رسائلك؛ يستقبل فقط أحداثًا محددة برمز سري. عند تفعيل الحفظ التلقائي يحفظ المعاملات الواضحة، ويترك غير المؤكدة للمراجعة. استخدام Automate يتطلب منحه الصلاحيات التي تختارها، وهو تطبيق خارجي.</p></div>'+
  '<div class="f29-grid">'+
  '<div class="f29-step"><span class="f29-num">01</span><h3>ثبّت Automate مجانًا</h3>'+
  '<p>نزّله من Google Play. النسخة المجانية تسمح حتى 30 بلوك تشغيل — كافية للتدفقين المطلوبين.</p>'+
@@ -74,7 +76,7 @@ function render(){
  '</div>'+
  '<div class="f29-controls"><strong>الحالة والمرشحات</strong><p>'+
  (paired?"تم إنشاء رمز محلي على الهاتف؛ نجاح إرسال Automate لم يتأكد بعد":"فعّل الاقتران لإنشاء قناة مشفّرة")+
- ' • في الانتظار: '+Number(s.pending||0)+' • Flosy لا يحفظ معاملات تلقائيًا</p>'+
+ ' • في الانتظار: '+Number(s.pending||0)+' • '+(smsAuto?"الحفظ التلقائي للرسائل المالية مفعّل":"الحفظ التلقائي غير مفعّل")+'</p>'+
  '<p class="f29-small" role="status"><strong>تشخيص آخر Broadcast: </strong>'+escapeHTML(diagnosis)+'</p><div class="f29-buttons"><button class="f29-primary" type="button" data-f29="pending">عرض المعاملات المكتشفة</button>'+
  '<button class="f29-secondary" type="button" data-f29="refresh">تحديث الحالة</button>'+
  '<button class="f29-secondary" type="button" data-f29="clear">مسح المرشحات</button>'+
@@ -82,6 +84,7 @@ function render(){
  (message?'<p class="f29-feedback" role="status">'+escapeHTML(message)+'</p>':"")+
  '<p class="f29-small">الاستيراد التلقائي يلتقط الرسائل الجديدة فقط من المرسلين الذين سمحت لهم، ويستبعد رموز التحقق الحساسة. الرسائل غير المالية قد تُعرض للمراجعة لكنها لا تُحفظ كمعاملات. لا يقرأ سجل SMS القديم. لا تنس ضبط البطارية لـAutomate كي لا يوقفه نظام الهاتف. المراجعة داخل Flosy إلزامية قبل إضافة المصروف أو الدخل.</p></section>';
 }
+let lastAutoPoll=0;
 function nativeStatus(s){
  if(!s||typeof s!=="object")return;
  info={paired:!!s.paired,senders:String(s.senders||"").slice(0,400),
@@ -90,6 +93,11 @@ function nativeStatus(s){
  lastDeliveryCode:String(s.lastDeliveryCode||"unsupported").slice(0,50),
  lastDeliveryAt:Number(s.lastDeliveryAt)||0};
  render();
+ if(info.paired && info.pending>0 && w.FLOSY_CAPTURE?.autoEnabled?.("sms") &&
+    Date.now()-lastAutoPoll>4000){
+   lastAutoPoll=Date.now();
+   send("relay-pending");
+ }
 }
 function nativePair(result){
  const token=String(result?.token||"");
@@ -103,11 +111,14 @@ function nativePending(data){
   /^[0-9a-f]{32}$/.test(String(x.id||""))&&
   ["sms","instapay","bank_notification"].includes(x.source)&&
   typeof x.text==="string"&&x.text.length<=650&&Number.isFinite(Number(x.date))).slice(0,60):[];
- message=items.length?"تم عرض "+items.length+" رسائل/إشعارات في مركز الاستيراد. راجع كل رسالة قبل تسجيل أي معاملة.":
+ message=items.length?"تم فحص "+items.length+" رسائل/إشعارات؛ المعاملات الواضحة تُحفظ عند تفعيل الوضع التلقائي.":
  "لا توجد رسائل في قائمة المراجعة.";
  if(items.length && w.FLOSY_NEXT?.receiveScannedSMS){
-  w.FLOSY_NEXT.receiveScannedSMS(items);
-  C.goto("import");
+  const result=w.FLOSY_NEXT.receiveScannedSMS(items);
+  if(result?.saved){
+   message="تم حفظ "+result.saved+" معاملة مالية تلقائيًا؛ "+result.pending+" رسالة تحتاج مراجعة.";
+  }
+  if(result?.pending>0)C.goto("import");
  }
  render();
 }
