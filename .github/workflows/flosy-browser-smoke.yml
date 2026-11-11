@@ -5,6 +5,8 @@ on:
     paths:
       - 'tests/browser-smoke.cjs'
       - 'flosy-ai.js'
+      - 'flosy-automate-relay.js'
+      - 'flosy-automate-relay.css'
       - 'flosy-elevate.js'
       - 'flosy-elevate.css'
       - 'finance-pro.js'
