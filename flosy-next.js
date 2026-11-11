@@ -423,13 +423,13 @@ async function restoreBackup(id){
 }
 function tryAutoSMS(row){
  const cap=window.FLOSY_CAPTURE;
- if(!cap?.autoEnabled?.("sms")||!cap?.autoRecord)return false;
+ if(row?.source!=="sms"||!cap?.autoEnabled?.("sms")||!cap?.autoRecord)return false;
  try{
   // Bank SMS may be non-financial or contain an authentication code. No ledger
   // write unless both debit/credit direction and transaction amount are explicit.
   const text=String(row.text||"");
-  if(/\\b(?:OTP|PIN|CVV)\\b|verification|security.?code|رمز.{0,12}(التحقق|السري|التفعيل)|كود.{0,12}التحقق/i.test(text))return false;
-  if(!/(?:EGP|جنيه|ج\\.?\\s*م\\.?|L\\.?E\\.?)/i.test(text))return false;
+  if(/\b(?:OTP|PIN|CVV)\b|verification|security.?code|رمز.{0,12}(التحقق|السري|التفعيل)|كود.{0,12}التحقق/i.test(text))return false;
+  if(!/(?:EGP|جنيه|ج\.?\s*م\.?|L\.?E\.?)/i.test(text))return false;
   if(!/(?:بمبلغ|مبلغ|القيمة|amount|amt|تم خصم|تم استلام|تم إرسال|تم تحويل)/i.test(text))return false;
   const d=parseSMS(text,{source:row.source,date:row.date});
   if(!/(?:خصم|سحب|شراء|دفع|تحويل|debited|withdrawn|paid|sent|received|credited|إيداع|استلام)/i.test(text))return false;
