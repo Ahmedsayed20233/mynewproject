@@ -7,7 +7,7 @@
 import { withSupabase } from "npm:@supabase/server@1";
 
 const ORIGIN = "https://ahmedsayed20233.github.io";
-const MODEL = "gemini-2.5-flash-lite"; // Fixed Free-Tier model; no paid fallback.
+const MODEL = "gemini-3.5-flash-lite"; // Current model with Free Tier; no paid fallback.
 const MAX_DAILY = 12; // Shares the existing per-user flosy_ai_usage quota table.
 const INTENTS = ["budget", "spending", "saving", "emergency", "installments", "safe_to_spend", "general"];
 const SOURCES = ["sms", "voice", "receipt"];
@@ -118,8 +118,39 @@ export default {
       });
     }catch{return error("gemini_network_error",503)}
     finally{clearTimeout(timeout)}
-    if(response.status===429)return error("gemini_rate_limited",429);
-    if(!response.ok)return error("gemini_unavailable",503);
+    if(!response.ok){
+      // Preserve only safe, non-sensitive status metadata; do NOT forward the
+      // Google error message, request body, account IDs, or API key.
+      let providerStatus = "UNKNOWN";
+      try {
+        const payload = await response.json();
+        const candidate = String(payload?.error?.status || "");
+        const known = new Set([
+          "INVALID_ARGUMENT", "FAILED_PRECONDITION", "PERMISSION_DENIED",
+          "UNAUTHENTICATED", "NOT_FOUND", "RESOURCE_EXHAUSTED",
+          "UNAVAILABLE", "INTERNAL", "UNKNOWN"
+        ]);
+        if(known.has(candidate))providerStatus=candidate;
+      }catch { /* no raw Google response or secret is logged */ }
+      const code =
+        response.status===429 ? "gemini_rate_limited" :
+        response.status===404 ? "gemini_model_unavailable" :
+        response.status===401 ? "gemini_key_invalid" :
+        response.status===403 ? "gemini_key_permissions" :
+        response.status===400&&providerStatus==="FAILED_PRECONDITION"
+          ? "gemini_free_tier_unavailable" :
+        response.status===400 ? "gemini_invalid_request" :
+        response.status>=500 ? "gemini_provider_unavailable" :
+          "gemini_upstream_error";
+      // Only a coarse status is recorded. No account or financial content.
+      console.warn("Gemini API rejected:",response.status,providerStatus,code);
+      return Response.json({
+        error:code,
+        providerHttpStatus:response.status,
+        providerStatus,
+        model:MODEL
+      },{status:response.status===429?429:503});
+    }
     let modelOutput:unknown;
     try{
       const result=await response.json();
