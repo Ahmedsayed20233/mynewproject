@@ -206,6 +206,6 @@ document.addEventListener("submit",e=>{
  if(e.target?.id!=="flosyAiForm")return;
  e.preventDefault();ask($("flosyAiQuestion")?.value);
 });
-w.FLOSY_AI={render:view,ask,snapshot,answerFree};
+w.FLOSY_AI={render:view,ask,snapshot,answerFree,safeGeminiBody};
 view();
 })(window);
