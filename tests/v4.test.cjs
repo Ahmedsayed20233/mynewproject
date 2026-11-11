@@ -42,6 +42,67 @@ test("Receipt OCR proposal handles a currency-bearing TOTAL line",()=>{
  const r=c.window.FLOSY_CAPTURE.parseReceipt("CAFE CAMPUS\nTOTAL: EGP 125.00\nThank you");
  assert.equal(r.amount,125);assert.equal(r.type,"expense");
 });
+test("ReceiptML extracts real ZINC-like Arabic receipt with item, invoice and cash payment",()=>{
+ const c=context();load("flosy-receipt-ml.js",c);load("flosy-v4-capture.js",c);
+ const input=[
+  "نسخة العميل","إيصال مبيعات","ZINC",
+  "الصنف الكود النوع سعر الوحدة الكمية إجمالي القيمة",
+  "R.7 كوتشي 1,199.00 1 1,199.00",
+  "عدد الأصناف: 1","إجمالي الكمية: 1",
+  "الإجمالي قبل الخصم: 1,199.00","الخصم: 0.00",
+  "الصافي: 1,199","المدفوع من العميل: 1,199",
+  "الباقي المستحق للعميل: 0.00","نقدي",
+  "مسلسل البيع: 44668","تاريخ البيع: 2026/11/08 08:50 PM"
+ ].join("\n");
+ const proposal=c.window.FLOSY_CAPTURE.parseReceipt(input);
+ assert.equal(proposal.amount,1199);
+ assert.equal(proposal.date,"2026-11-08");
+ assert.equal(proposal.category,"مشتريات");
+ assert.equal(proposal.receiptDetails.merchant,"ZINC");
+ assert.equal(proposal.receiptDetails.invoiceNumber,"44668");
+ assert.equal(proposal.receiptDetails.paymentMethod,"cash");
+ assert.equal(proposal.receiptDetails.discount,0);
+ assert.equal(proposal.receiptDetails.items.length,1);
+ assert.match(proposal.receiptDetails.items[0].name,/كوتشي/);
+ assert.equal(proposal.receiptDetails.items[0].quantity,1);
+ assert.equal(proposal.receiptDetails.items[0].unitPrice,1199);
+ assert.equal(proposal.autoQuality,true);
+ c.window.FLOSY_CAPTURE.setAuto("receipt",true);
+ assert.equal(c.window.FLOSY_CAPTURE.autoRecord(proposal,"receipt"),true);
+ const saved=c.data.transactions[0];
+ assert.equal(saved.amount,1199);
+ assert.equal(saved.receiptDetails.invoiceNumber,"44668");
+ assert.equal(saved.receiptDetails.items.length,1);
+ // Customer names/raw image/entire OCR transcript are NOT copied.
+ assert.equal(saved.receiptDetails.customer,undefined);
+ assert.equal(saved.rawOcr,undefined);
+ const duplicate=c.window.FLOSY_CAPTURE.parseReceipt(input+"\nشكرا");
+ assert.equal(c.window.FLOSY_CAPTURE.isDuplicate(duplicate),true);
+});
+test("ReceiptML tolerates misrecognized Arabic net label using paid fallback, never auto-posts it",()=>{
+ const c=context();load("flosy-receipt-ml.js",c);load("flosy-v4-capture.js",c);
+ const text=["ZINC","عدد الأصناف: 1","إجمالي الكمية: 1 خصم 0.00",
+ "7977199 ا لصاني:ي","1,199 لمدفوع من العميل:",
+ "0.00 الباقي المستحق للعميل","08:50 PM 2026/11/08"].join("\n");
+ const x=c.window.FLOSY_RECEIPT_ML.extract(text);
+ assert.equal(x.amount,1199);assert.equal(x.date,"2026-11-08");
+ assert.equal(x.evidence,"paid_amount");
+ assert.equal(x.autoQuality,false);
+ assert.throws(()=>c.window.FLOSY_RECEIPT_ML.extract("ZINC\nرقم الفاتورة 44668\nضريبة 0.00"),/إجمالي/);
+});
+test("ReceiptML distinguishes multi-line grand total from invoice number and tax",()=>{
+ const c=context();load("flosy-receipt-ml.js",c);load("flosy-v4-capture.js",c);
+ const input=["THE SHOP","Invoice No: 898898",
+ "Item: sneaker 1 100.00","Subtotal 100.00","VAT 14.00",
+ "Grand Total","114.00","PAID 114.00","Cash",
+ "Date: 2026-11-05"].join("\n");
+ const data=c.window.FLOSY_CAPTURE.parseReceipt(input);
+ assert.equal(data.amount,114);assert.equal(data.date,"2026-11-05");
+ assert.equal(data.receiptDetails.invoiceNumber,"898898");
+ assert.equal(data.receiptDetails.tax,14);
+ assert.ok(data.receiptDetails.confidence>=.8);
+});
+
 test("Bank CSV quoted cells and separate debit/credit columns parse exactly once",()=>{
  const c=context();load("flosy-v4-bank.js",c);
  const b=c.window.FLOSY_BANK_CSV,rows=b.csvRecords('date,description,debit,credit\n2026-11-09,"Cafe, Campus",125,\n2026-11-10,Salary,,17000');
