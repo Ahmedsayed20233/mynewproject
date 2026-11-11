@@ -141,6 +141,15 @@ test("ReceiptML extracts real ZINC-like Arabic receipt with item, invoice and ca
  const duplicate=c.window.FLOSY_CAPTURE.parseReceipt(input+"\nشكرا");
  assert.equal(c.window.FLOSY_CAPTURE.isDuplicate(duplicate),true);
 });
+test("Saved receipt itemized details are accessible from the transaction table",()=>{
+ const html=fs.readFileSync("index.html","utf8");
+ assert.match(html,/function receiptDetailsHTML\(t\)/);
+ assert.match(html,/\$\{receiptDetailsHTML\(t\)\}/);
+ assert.match(html,/تفاصيل الفاتورة والبنود/);
+ assert.match(html,/رقم الإيصال/);
+ assert.match(html,/سعر الوحدة/);
+ assert.match(html,/safe\(it\.name/);
+});
 test("ReceiptML tolerates misrecognized Arabic net label using paid fallback, never auto-posts it",()=>{
  const c=context();load("flosy-receipt-ml.js",c);load("flosy-v4-capture.js",c);
  const text=["ZINC","عدد الأصناف: 1","إجمالي الكمية: 1 خصم 0.00",
