@@ -27,14 +27,14 @@ function render(){
  '<small>يعمل فقط عند وجود مبلغ واتجاه موثوقين. كل الرسائل غير المالية وأكواد التحقق لا تُضاف إلى الرصيد، وعدم وضوح الحساب يوقف الحفظ التلقائي.</small></div></div>'+
  '<div class="f10-two">'+
  '<section class="f10-card voice" aria-labelledby="f10VoiceTitle">'+
- '<div class="f10-cardtitle"><span class="f10-step">01</span><div><h3 id="f10VoiceTitle">سجّل بالصوت</h3><p>مثال: «دفعت 75 جنيه قهوة من الكاش»</p></div></div>'+
+ '<div class="f10-cardtitle"><span class="f10-step">01</span><div><h3 id="f10VoiceTitle">سجّل بالصوت</h3><p>مثال: «دفعت مية وخمسين جنيه قهوة من الكاش» أو «قبضت ألفين جنيه على الفيزا»</p></div></div>'+
  '<div class="f10-mic-wrap"><span class="f10-mic-icon" aria-hidden="true">🎙</span>'+
  '<button class="f10-primary" type="button" data-repair="voice">ابدأ التسجيل بالمصري</button></div>'+
  '<p class="f10-live" id="flosyVoiceStatus" role="status" aria-live="polite">جاهز. اضغط الزر واسمح للميكروفون لو طلب.</p>'+
  '<form id="v4-voice-text" class="f10-mini-form"><label for="f10Spoken">أو اكتب جملتك لو الميكروفون غير متاح</label>'+
  '<textarea id="f10Spoken" name="spoken" rows="2" maxlength="280" required placeholder="اشتريت حاجات للبيت بـ 120 جنيه امبارح"></textarea>'+
  '<button class="f10-secondary" type="submit">تسجيل الجملة</button></form>'+
- '<small class="f10-privacy">Flosy لا يخزّن تسجيلات صوتية. محرك التعرف الصوتي قد يحتاج خدمات جهازك.</small></section>'+
+ '<small class="f10-privacy">فهم المعاملة يتم بنموذج VoiceNLU محلي مدرّب على جمل مصرية اصطناعية، ويدعم الأرقام المنطوقة. Flosy لا يحتفظ بالصوت الخام، لكن خدمة تحويل الكلام إلى نص على الهاتف قد تستخدم الشبكة إذا لم يتوفر نموذج محلي.</small></section>'+
  '<section class="f10-card receipt" aria-labelledby="f10ReceiptTitle">'+ '<div class="f10-cardtitle"><span class="f10-step">02</span>'+
  '<div><h3 id="f10ReceiptTitle">اقرأ الفاتورة وأدرج تفاصيلها</h3><p>صوّر الإيصال بوضوح أو اختار صورة محفوظة</p></div></div>'+
  '<div class="f10-camera">'+
