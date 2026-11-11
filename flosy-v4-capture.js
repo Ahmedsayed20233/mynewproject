@@ -27,6 +27,8 @@ function setAuto(mode,on){
   state.settings=state.settings||{};
   state.settings.autoCapture={...(state.settings.autoCapture||{}),[mode]:on===true};
  });
+ if(mode==="sms"&&on===true&&global.FLOSY_NATIVE_RELAY_AVAILABLE===true)
+  global.FLOSY_AUTOMATE_RELAY?.requestPending?.();
  return true;
 }
 function setAutoAccount(id){
