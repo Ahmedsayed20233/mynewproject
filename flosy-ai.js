@@ -150,7 +150,7 @@ async function ask(question){
   conversation.push({role:"assistant",kind:"free",content:answerFree(q)});
   view();return;
  }
- if(!C.getSession()){error="OpenAI يتطلب تسجيل الدخول وإعداد API؛ انتقل للوضع المجاني لتبدأ فورًا.";view();return}
+ if(!C.getSession()){error="سجّل الدخول بحساب Flosy لاستخدام Gemini، أو استخدم المساعد المحلي بدون تسجيل.";view();return}
  if(selectedMode==="gemini"&&!consent){error="وافق أولًا على إرسال موضوع عام مُنقح إلى Gemini Free.";view();return}
  loading=true;view();
  try{
