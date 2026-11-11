@@ -348,6 +348,6 @@ document.addEventListener("click",e=>{
  if(action==="discard"){pending=null;notification="ألغيت العملية دون حفظ.";renderReview()}
 });
 global.FLOSY_CAPTURE={render,parseBankSMS,parseVoice,parseReceipt,receiveNativeVoice,isDuplicate,amountFrom,cat,redact,parseReview:review,
- autoPrefs,autoEnabled,setAuto,setAutoAccount,resolvedAccount,autoRecord,undoLastAuto};
+ autoPrefs,autoEnabled,setAuto,setAutoAccount,resolvedAccount,autoRecord,undoLastAuto,hasUndo:()=>Boolean(lastAutoSaved)};
 render();
 })(window);
