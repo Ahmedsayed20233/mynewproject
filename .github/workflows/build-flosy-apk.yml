@@ -110,6 +110,6 @@ jobs:
             gh release create "$TAG" dist/*.apk \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --title "فلوسي Android v2.7.0 — Safe SMS/Instapay Import" \
-              --notes "Security release: both Android APKs do not request READ_SMS, RECEIVE_SMS or Notification Access. Import individual financial SMS or InstaPay messages only by sharing/copying the selected message and reviewing each draft. Protected SMS inbox scanning and notification listening are discontinued. Play Protect remains enabled; a valid APK does not guarantee protection checks will approve installation. Preserve your encrypted backup before replacing older builds. This GitHub release is debug-signed for limited testing, not a Play Store-approved production package."
+              --title "فلوسي Android v2.9.0 — Free Automate Relay" \
+              --notes "Flosy 2.9 introduces a FREE Android-to-Android financial event bridge for the official Automate app by LlamaLab. A user creates a local pairing token in Flosy and authorizes selected SMS senders and InstaPay/bank notification packages within Automate; only candidate transactions enter a bounded, encrypted local review queue. Flosy itself requires NO READ_SMS, RECEIVE_SMS or Notification Access and never auto-commits money movements. Configure Automate blocks separately. Standard and Safe Automate APKs are debug-signed testing builds, not Play-approved production releases. Backup all Flosy data before uninstalling older builds because signatures may differ. Keep Play Protect enabled; installation may still be restricted on specific devices."
           fi
