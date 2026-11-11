@@ -195,6 +195,33 @@ function parseVoice(text){
   accountId,subcategory:"",source:"voice_reviewed",sourceHash,autoQuality:(out!==inc)&&!!accountId};
 }
 function parseReceipt(text){
+ const ml=global.FLOSY_RECEIPT_ML;
+ if(ml?.extract){
+  const info=ml.extract(text);
+  const accountId=resolvedAccount("");
+  const normalized=(info.description||"إيصال").toLowerCase();
+  const category=/كوتشي|كوئشي|حذاء|جزمة|ملابس|shoe|sneaker|\bZINC\b/i.test(info.description||"")?
+     "مشتريات":cat(normalized);
+  // Only explicitly extracted document fields, never names, numbers or raw OCR.
+  const receiptDetails={
+    merchant:info.merchant||null,invoiceNumber:info.receiptNumber||null,
+    receiptDate:info.date||null,receiptTime:info.time||null,currency:"EGP",
+    paymentMethod:info.paymentMethod||null,items:info.items||[],
+    subtotal:info.subtotal,discount:info.discount,tax:info.tax,
+    paid:info.paid,change:info.change,confidence:info.confidence,
+    evidence:info.evidence,modelVersion:info.modelVersion
+  };
+  const hashKey=info.receiptNumber?
+    String(info.merchant||"").toLowerCase()+"|"+info.receiptNumber+"|"+info.amount:
+    String(info.merchant||"").toLowerCase()+"|"+(info.date||"")+"|"+info.amount+
+     "|"+String(info.items?.[0]?.name||"").toLowerCase();
+  return {id:uuid(),type:"expense",date:info.date||dateLocal(),amount:info.amount,
+    category,description:("إيصال — "+info.description).slice(0,150),accountId,
+    subcategory:"",source:"receipt_reviewed",receiptDetails,
+    sourceHash:"receipt-auto-ml-v1-"+hash(hashKey),
+    autoQuality:info.autoQuality===true&&!!accountId};
+ }
+
  const src=digits(String(text||"").slice(0,12000));
  const lines=src.split(/[\r\n]+/).map(x=>x.trim()).filter(Boolean);
  const totalLine=/\bgrand\s*total\b|\btotal\b|\bnet\s*amount\b|\bamount\s*due\b|\bto\s*pay\b|الإجمالي|الاجمالي|إجمالي\s*الفاتورة|المجموع|الصافي|صافى|المستحق|المطلوب|القيمة\s*النهائية/i;
@@ -264,6 +291,13 @@ function draftForm(){
  '<label>الحساب<select name="accountId" required>'+accountOpts()+'</select></label>'+
  '<label>الفئة<select name="category">'+categoryOpts(pending.type)+'</select></label>'+
  '<label class="full">الوصف<input name="description" maxlength="150" value="'+esc(pending.description)+'" required></label>'+
+  (pending.receiptDetails?'<div class="full" style="padding:12px;border:1px solid #ddd;border-radius:10px"><strong>تفاصيل الإيصال المستخرجة</strong><p>المتجر: '+esc(pending.receiptDetails.merchant||"غير معروف")+
+   ' • رقم الإيصال: '+esc(pending.receiptDetails.invoiceNumber||"غير واضح")+
+   ' • طريقة الدفع: '+esc(pending.receiptDetails.paymentMethod==="cash"?"نقدي":pending.receiptDetails.paymentMethod==="card"?"بطاقة":"غير محددة")+
+   ' • ثقة القراءة: '+esc(Math.round(Number(pending.receiptDetails.confidence||0)*100))+'%</p>'+
+   (pending.receiptDetails.items||[]).map(it=>'<div>الصنف: '+esc(it.name)+' • الكمية: '+esc(it.quantity)+
+    (it.unitPrice?' • السعر: '+esc(it.unitPrice):'')+'</div>').join('')+
+   '<small>لا يتم حفظ الصورة الأصلية أو بيانات العميل الشخصية.</small></div>':"")+
  '<div class="full v4-chips"><button type="submit" class="v4-btn">تأكيد وحفظ المعاملة</button><button type="button" data-v4-import="discard" class="v4-btn secondary">إلغاء</button></div>'+
  '</form>';
 }
