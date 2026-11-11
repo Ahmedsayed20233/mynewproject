@@ -196,6 +196,18 @@ async function startLocal(){
     delete window.__geminiTestSession;
   });
   console.log("PASS: Gemini Free topic-only request, explicit consent and local finance arithmetic");
+  // Gemini Free must offer a visible route to sign-in (instead of a dead-end error).
+  await page.locator("#flosyAiMode").selectOption("gemini");
+  assert.ok(await page.locator('[data-ai-login="1"]').isVisible(),
+    "Gemini must show Flosy sign-in CTA to guests");
+  await page.locator('[data-ai-login="1"]').click();
+  assert.equal(await page.locator("#page-settings").isVisible(),true);
+  assert.equal(await page.locator("#flosyRememberSession").isVisible(),true);
+  assert.equal(await page.locator("#flosyRememberSession").isChecked(),false,
+    "Remember-login must be opt-in on shared devices");
+  await page.evaluate(()=>window.FLOSY_BRIDGE.goto("ai"));
+  await page.locator("#flosyAiMode").selectOption("free");
+
   // 2) Receipt text should become a reviewed draft, never a saved transaction.
   await page.evaluate(()=>window.FLOSY_BRIDGE.goto("v4-capture"));
   const before=await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length);

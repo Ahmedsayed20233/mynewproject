@@ -315,6 +315,21 @@ test("Gemini Free personal assistant never uploads raw financial questions",()=>
  assert.match(proxy,/flosy_ai_consume_quota/);
  assert.doesNotMatch(proxy,/OPENAI_API_KEY/);
 });
+test("Opt-in Flosy login survives Android restarts and Gemini offers direct sign-in",()=>{
+ const html=fs.readFileSync("index.html","utf8");
+ const ai=fs.readFileSync("flosy-ai.js","utf8");
+ assert.match(html,/id="flosyRememberSession"/);
+ assert.match(html,/flosy_auth_persistent_v1/);
+ assert.match(html,/function saveAuthSession\(/);
+ assert.match(html,/function loadAuthSession\(/);
+ assert.match(html,/function clearAuthSession\(/);
+ assert.match(html,/loadAuthSession\(\);categoryOptions\(\);render\(\)/);
+ assert.match(html,/flosy:auth-state-change/);
+ assert.match(ai,/data-ai-login="1"/);
+ assert.match(ai,/C\.goto\("settings"\)/);
+ assert.match(ai,/if\(!await C\.ensureSession\(\)\)/);
+ assert.match(ai,/flosy:auth-state-change/);
+});
 test("Android microphone and camera taps use origin-restricted native bridge if available",()=>{
  const c=context(),messages=[];
  c.window.FLOSY_NATIVE_VOICE_AVAILABLE=true;
@@ -345,7 +360,7 @@ test("Flosy AI defaults to free mode, API stays optional and offline shell is ve
  assert.match(ai,/mode="free"/);
  assert.match(ai,/answerFree/);
  assert.match(ai,/OpenAI API/);
- assert.ok(sw.includes("flosy-ai.js?v=720"));
+ assert.ok(sw.includes("flosy-ai.js?v=730"));
  assert.ok(sw.includes("flosy-repair.js?v=3102"));
 });
 
