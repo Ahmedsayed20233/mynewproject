@@ -173,9 +173,19 @@ async function ask(question){
         gemini_rate_limited:"انتهت حصة Gemini Free الحالية.",
         quota_unavailable:"تعذر التحقق من الحصة المجانية؛ لم يتم إرسال طلب إلى Gemini.",
         gemini_key_missing:"مفتاح Gemini غير موجود داخل Supabase Secrets.",
-        gemini_unavailable:"Gemini غير متاح حاليًا، ولا يوجد انتقال مدفوع."
+        gemini_unavailable:"Gemini غير متاح حاليًا، ولا يوجد انتقال مدفوع.",
+        gemini_model_unavailable:"النموذج غير متاح لمشروعك. تم اختيار Gemini 3.5 Flash-Lite المجاني؛ راجع إتاحته في AI Studio.",
+        gemini_key_invalid:"Gemini API Key غير صحيح أو منتهي. راجع المفتاح في Google AI Studio وSupabase Secrets.",
+        gemini_key_permissions:"المفتاح لا يملك صلاحية Gemini API. تأكد من المشروع والقيود المسموح بها للمفتاح.",
+        gemini_free_tier_unavailable:"Google لا تتيح Gemini API Free Tier لهذا المشروع/المنطقة. لن نفعل Billing أو نموذجًا مدفوعًا.",
+        gemini_invalid_request:"Gemini رفض صيغة الطلب (HTTP 400). راجع كود Edge Function.",
+        gemini_provider_unavailable:"خدمة Gemini تواجه خطأ مؤقتًا. استخدم Flosy المحلي.",
+        gemini_upstream_error:"Gemini رفض الطلب. راجع الحالة التشخيصية."
       };
-      throw Error(reasons[data.error]||"فشل الاتصال الآمن بـGemini Free.");
+      throw Error((reasons[data.error]||"فشل الاتصال الآمن بـGemini Free.")+
+        (Number.isInteger(data.providerHttpStatus)
+          ? " (Google HTTP "+data.providerHttpStatus+
+            (typeof data.providerStatus==="string"?" · "+data.providerStatus:"")+")":""));
     }
     if(typeof data.answer!=="string"||!data.answer)throw Error("Gemini لم يرجع إجابة.");
     // Gemini receives no actual money totals; Flosy independently computes them.
