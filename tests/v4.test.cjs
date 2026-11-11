@@ -159,6 +159,7 @@ test("Clear receipts use explicitly selected account when no payment type is pri
  cap.setAutoAccount("wallet");
  const withAccount=cap.parseReceipt(text);
  assert.equal(withAccount.amount,125);
+ assert.equal(withAccount.receiptDetails.merchant,"متجر التجربة");
  assert.equal(withAccount.accountId,"wallet");
  assert.equal(withAccount.autoQuality,true);
  const partial=cap.parseReceipt(text+"\nPAID: 90.00");
