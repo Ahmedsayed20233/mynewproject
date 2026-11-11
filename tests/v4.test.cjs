@@ -85,6 +85,18 @@ test("VoiceNLU recognizes income without misclassifying expense and keeps catego
  assert.equal(expense.accountId,"wallet");
 });
 
+test("Trained voice NLU metadata is explicit about synthetic evaluation and no audio upload",()=>{
+ const c=context();load("flosy-voice-nlu.js",c);
+ const info=c.window.FLOSY_VOICE_NLU.modelInfo;
+ assert.match(info.training,/synthetic/i);
+ assert.match(info.validation,/real speech/i);
+ assert.equal(info.heldOutSynthetic,2960);
+ const voice=fs.readFileSync("flosy-voice-nlu.js","utf8");
+ assert.doesNotMatch(voice,/fetch\s*\(|gemini\-api|x\-goog\-api\-key/);
+ const script=fs.readFileSync("tools/train_voice_intent_model.py","utf8");
+ assert.match(script,/LogisticRegression/);
+ assert.match(script,/14800/);
+});
 test("Receipt OCR proposal handles a currency-bearing TOTAL line",()=>{
  const c=context();load("flosy-v4-capture.js",c);
  const r=c.window.FLOSY_CAPTURE.parseReceipt("CAFE CAMPUS\nTOTAL: EGP 125.00\nThank you");
