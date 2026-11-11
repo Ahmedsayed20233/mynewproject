@@ -9,7 +9,7 @@ const fmt=n=>new Intl.NumberFormat("ar-EG",{maximumFractionDigits:2}).format(Num
 const num=x=>Number.isFinite(Number(x))&&Number(x)>=0?Number(x):0;
 const selected=()=>String($("flosyAiQuestion")?.value||"");
 const prompts=["أحلل ميزانيتي إزاي؟","أبني صندوق طوارئ مناسب؟","إزاي أنظم مصروفاتي؟","رتب لي أقساطي","إيه أكبر فئات الصرف؟"];
-let conversation=[],loading=false,consent=false,error="",mode="free";
+let conversation=[],loading=false,consent=false,error="",mode="free",returnAfterLogin=false;
 function dateString(d){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")}
 function snapshot(){
  const state=C.getState()||{},now=new Date(),month=dateString(now).slice(0,7),
@@ -120,6 +120,7 @@ function view(){
  '<div class="f2-empty">اسأل عن الميزانية والطوارئ والأقساط. الخدمة المجانية لا تحتاج تسجيل دخول أو مفتاح API.</div>')+
  (loading?'<div class="flosy-ai-loading">جارٍ التحليل…</div>':"")+'</div>'+
  (error?'<div class="f2-warning">'+escapeHTML(error)+'</div>':"")+
+ (mode==="gemini"&&!signed?'<div class="f2-card" style="padding:15px;margin:10px 0"><strong>Gemini يحتاج تسجيل الدخول إلى Flosy</strong><p class="v4-fineprint">سجّل الدخول بنفس حساب Flosy من إعدادات المزامنة السحابية. لا تضع مفتاح Gemini هنا.</p><button class="f2-toolbutton primary" type="button" data-ai-login="1">تسجيل الدخول إلى Flosy</button></div>':"")+
  '<form id="flosyAiForm" class="flosy-ai-composer"><textarea name="question" id="flosyAiQuestion" rows="3" maxlength="1200" required placeholder="مثلًا: احسبلي صندوق طوارئ 6 شهور"></textarea>'+
  (mode!=="free"?'<label class="flosy-ai-consent"><input type="checkbox" id="flosyAiConsent" '+(consent?"checked":"")+
  '> '+(mode==="gemini"?"أوافق على إرسال موضوع عام ونِسَب مُقرّبة إلى Gemini Free فقط. لن نرسل السؤال الأصلي أو رسائل البنك. قد تستخدم Google المحتوى لتحسين خدماتها.":"أوافق على إرسال ملخص مالي مجمع للخادم وOpenAI (اختياري)")+'</label>':'<p class="v4-fineprint">بياناتك لا تخرج من الجهاز في الوضع المجاني.</p>')+
@@ -154,8 +155,8 @@ async function ask(question){
  if(selectedMode==="gemini"&&!consent){error="وافق أولًا على إرسال موضوع عام مُنقح إلى Gemini Free.";view();return}
  loading=true;view();
  try{
-  await C.ensureSession();
-  const session=C.getSession();if(!session)throw Error("login_required");
+  if(!await C.ensureSession())throw Error("login_required");
+  const session=C.getSession();if(!session?.access_token)throw Error("login_required");
   const cfg=C.getCloud();
   if(selectedMode==="gemini"){
     const response=await fetch(cfg.url.replace(/\/$/,"")+"/functions/v1/flosy-gemini-parse",{
@@ -200,10 +201,17 @@ async function ask(question){
   if(!response.ok)throw Error(humanError(data.error,data.message));
   if(typeof data.answer!=="string"||!data.answer)throw Error("لا توجد إجابة من API");
   conversation.push({role:"assistant",kind:"api",content:data.answer.slice(0,6000)});
- }catch(err){error=err?.message||"تعذر الاتصال الآمن.";if(selectedMode==="gemini")conversation.push({role:"assistant",kind:"free",content:answerFree(q)})}
+ }catch(err){error=err?.message==="login_required"?"سجّل الدخول بحساب Flosy من الإعدادات لاستخدام Gemini.":err?.message||"تعذر الاتصال الآمن.";if(selectedMode==="gemini")conversation.push({role:"assistant",kind:"free",content:answerFree(q)})}
  finally{loading=false;view()}
 }
 document.addEventListener("click",e=>{
+ if(e.target?.closest?.("[data-ai-login]")){
+   returnAfterLogin=true;
+   C.goto("settings");
+   document.querySelector('#cloudAuth input[name="email"]')?.focus();
+   document.getElementById("cloudAuth")?.scrollIntoView({behavior:"smooth",block:"center"});
+   return;
+ }
  const b=e.target?.closest?.("[data-ai-prompt]");
  if(b){const field=$("flosyAiQuestion");if(field){field.value=b.dataset.aiPrompt;field.focus()}}
  if(e.target?.closest?.("[data-ai-clear]")){conversation=[];error="";view()}
@@ -215,6 +223,10 @@ document.addEventListener("change",e=>{
 document.addEventListener("submit",e=>{
  if(e.target?.id!=="flosyAiForm")return;
  e.preventDefault();ask($("flosyAiQuestion")?.value);
+});
+window.addEventListener("flosy:auth-state-change",e=>{
+ if(e.detail?.signedIn&&returnAfterLogin){returnAfterLogin=false;C.goto("ai")}
+ else view();
 });
 w.FLOSY_AI={render:view,ask,snapshot,answerFree,safeGeminiBody};
 view();
