@@ -63,6 +63,7 @@ test("ReceiptML extracts real ZINC-like Arabic receipt with item, invoice and ca
  assert.equal(proposal.receiptDetails.paymentMethod,"cash");
  assert.equal(proposal.receiptDetails.discount,0);
  assert.equal(proposal.receiptDetails.items.length,1);
+ // Arabic-only product names are valid, even though JS ASCII \\w excludes Arabic letters.
  assert.match(proposal.receiptDetails.items[0].name,/كوتشي/);
  // SKU R.7 is an item code; it must NOT be mistaken for quantity seven.
  assert.equal(proposal.receiptDetails.items[0].quantity,1);
