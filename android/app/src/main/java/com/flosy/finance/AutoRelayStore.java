@@ -181,12 +181,20 @@ public final class AutoRelayStore {
     public static synchronized boolean accept(Context c,String token,String source,String sender,String text,long when){
         if(!verify(c,token))return outcome(c,"invalid_pair_token",false);
         if(!sourceAllowed(c,source,sender))return outcome(c,"sender_not_allowed",false);
-        if(text==null||text.length()<9||text.length()>2000)
+        if(text==null||text.trim().isEmpty()||text.length()>2000)
             return outcome(c,"invalid_message",false);
+        // Never import authentication secrets, even from an authorized bank sender.
         if(SECRET.matcher(text).find())return outcome(c,"sensitive_message",false);
-        if(FAILED.matcher(text).find())return outcome(c,"failed_or_pending",false);
-        if(!TX.matcher(text).find())return outcome(c,"not_transaction",false);
-        if(!CURRENCY.matcher(text).find())return outcome(c,"currency_not_detected",false);
+        // SMS: capture every non-secret message from explicitly allowlisted senders.
+        // A bank can describe the same payment in many ways (e.g. 'تحويل لحظي',
+        // 'جم'); do not silently drop it because a keyword/currency was absent.
+        // Capturing does NOT post a ledger transaction; the user must review.
+        if(!"sms".equals(source)){
+            // Keep app notifications scoped to apparent financial events.
+            if(FAILED.matcher(text).find())return outcome(c,"failed_or_pending",false);
+            if(!TX.matcher(text).find())return outcome(c,"not_transaction",false);
+            if(!CURRENCY.matcher(text).find())return outcome(c,"currency_not_detected",false);
+        }
         long now=System.currentTimeMillis();
         if(when<1)when=now;
         // Automate timestamps may be Unix seconds.
