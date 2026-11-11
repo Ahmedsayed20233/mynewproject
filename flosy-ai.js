@@ -151,11 +151,38 @@ async function ask(question){
   view();return;
  }
  if(!C.getSession()){error="OpenAI يتطلب تسجيل الدخول وإعداد API؛ انتقل للوضع المجاني لتبدأ فورًا.";view();return}
+ if(selectedMode==="gemini"&&!consent){error="وافق أولًا على إرسال موضوع عام مُنقح إلى Gemini Free.";view();return}
  loading=true;view();
  try{
   await C.ensureSession();
   const session=C.getSession();if(!session)throw Error("login_required");
   const cfg=C.getCloud();
+  if(selectedMode==="gemini"){
+    const response=await fetch(cfg.url.replace(/\\/$/,"")+"/functions/v1/flosy-gemini-parse",{
+      method:"POST",
+      headers:{"Authorization":"Bearer "+session.access_token,
+        "apikey":cfg.key,"Content-Type":"application/json"},
+      body:JSON.stringify(safeGeminiBody(q))
+    });
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok){
+      const reasons={
+        gemini_disabled:"Gemini متوقف بأمان. لازم تفعّله من Supabase بعد التأكد من Free Tier.",
+        owner_only:"Gemini متاح فقط لحساب Flosy الشخصي المصرح له.",
+        daily_limit:"انتهت الحصة اليومية المجانية؛ التحليل المحلي متاح.",
+        gemini_rate_limited:"انتهت حصة Gemini Free الحالية.",
+        quota_unavailable:"تعذر التحقق من الحصة المجانية؛ لم يتم إرسال طلب إلى Gemini.",
+        gemini_key_missing:"مفتاح Gemini غير موجود داخل Supabase Secrets.",
+        gemini_unavailable:"Gemini غير متاح حاليًا، ولا يوجد انتقال مدفوع."
+      };
+      throw Error(reasons[data.error]||"فشل الاتصال الآمن بـGemini Free.");
+    }
+    if(typeof data.answer!=="string"||!data.answer)throw Error("Gemini لم يرجع إجابة.");
+    // Gemini receives no actual money totals; Flosy independently computes them.
+    conversation.push({role:"assistant",kind:"gemini",content:
+      data.answer.slice(0,900)+"\\n\\n--- الحسابات المؤكدة محليًا ---\\n"+answerFree(q)});
+    return;
+  }
   const response=await fetch(cfg.url.replace(/\/$/,"")+"/functions/v1/flosy-ai",{
    method:"POST",headers:{"Authorization":"Bearer "+session.access_token,"apikey":cfg.key,"Content-Type":"application/json"},
    body:JSON.stringify({question:q,include_finances:consent,history:history.map(m=>({role:m.role,content:m.content}))})});
@@ -163,7 +190,7 @@ async function ask(question){
   if(!response.ok)throw Error(humanError(data.error,data.message));
   if(typeof data.answer!=="string"||!data.answer)throw Error("لا توجد إجابة من API");
   conversation.push({role:"assistant",kind:"api",content:data.answer.slice(0,6000)});
- }catch(err){error=err?.message||"فشل اتصال API — جرّب المساعد المجاني."}
+ }catch(err){error=err?.message||"تعذر الاتصال الآمن.";if(selectedMode==="gemini")conversation.push({role:"assistant",kind:"free",content:answerFree(q)})}
  finally{loading=false;view()}
 }
 document.addEventListener("click",e=>{
