@@ -86,31 +86,47 @@ function answerFree(question){
  lines.push("طريقة الحساب واضحة ومبنية على بياناتك المسجلة فقط؛ لا يوجد وصول مباشر للبنوك أو استثمار أو تحويل تلقائي.");
  return lines.join("\n");
 }
+const GEMINI_CATEGORIES=new Set(["طعام ومشروبات","ترفيه","مواصلات","مشتريات","فواتير",
+"فاتورة الإنترنت","فاتورة الكهرباء","إيجار","صحة","تعليم","مرتب","دخل آخر","معيشة أخرى","غير مصنف"]);
+function safeGeminiBody(question){
+ const q=String(question||"").toLowerCase();
+ const intent=/طوار|أمان|أزمة/.test(q)?"emergency":/قسط|أقساط|ديون|قرض/.test(q)?"installments":
+   /safe|آمن|امن|اصرف|أصرف/.test(q)?"safe_to_spend":/توفير|ادخار|ادخر/.test(q)?"saving":
+   /صرف|مصروف|مشتري|فئات/.test(q)?"spending":/ميزان|تخطيط|خطط/.test(q)?"budget":"general";
+ const safe={task:"coach",intent};
+ const data=snapshot();
+ if(data.income>0)safe.expenseRatioBand=Math.max(0,Math.min(100,
+   Math.round(data.spending/data.income*10)*10));
+ const top=data.categories[0]?.[0];
+ if(GEMINI_CATEGORIES.has(top))safe.topCategory=top;
+ return safe; // Raw questions, personal identifiers and actual money amounts NEVER leave.
+}
 function view(){
  const root=$("flosyAiRoot");if(!root)return;
  const signed=Boolean(C.getSession());
  root.innerHTML='<div class="f2-header"><div><span class="f2-pill">✳ Flosy Coach · مجاني</span><h2>مساعدك المالي داخل فلوسي</h2>'+
- '<p>مساعد محلي يفهم أسئلة الميزانية ويحسب من بياناتك دون اتصال أو مفتاح API. ويمكنك اختيار OpenAI API اختياريًا.</p></div></div>'+
+ '<p>مساعد محلي يفهم أسئلة الميزانية ويحسب من بياناتك دون اتصال أو مفتاح API. ويمكنك اختيار Gemini Free من حسابك الشخصي.</p></div></div>'+
  '<div class="f2-card flosy-ai-shell"><div class="flosy-ai-ribbon"><div><strong>Flosy Money Coach</strong>'+
  '<small>المجاني تحليل قواعد وحسابات، وليس نموذج ChatGPT أو ذكاء اصطناعي توليدي.</small></div>'+
- '<span class="f2-chip">'+(mode==="free"?"مجاني · محلي":signed?"OpenAI · حساب متصل":"OpenAI · يتطلب تسجيل دخول")+'</span></div>'+
+ '<span class="f2-chip">'+(mode==="free"?"مجاني · محلي":mode==="gemini"?(signed?"Gemini Free · حسابك":"Gemini · سجّل الدخول"):(signed?"OpenAI API":"OpenAI · يتطلب تسجيل دخول"))+'</span></div>'+
  '<label style="display:block;margin:10px 0;font-weight:700">نوع المساعد <select id="flosyAiMode" aria-label="نوع مساعد Flosy">'+
  '<option value="free" '+(mode==="free"?"selected":"")+'>مساعد Flosy المحلي المجاني — يعمل بدون اشتراك</option>'+
+ '<option value="gemini" '+(mode==="gemini"?"selected":"")+'>Gemini API Free — حساب شخصي بدون رسوم إضافية</option>'+ 
  '<option value="api" '+(mode==="api"?"selected":"")+'>OpenAI API (اختياري، يتطلب إعدادًا مدفوعًا)</option></select></label>'+
  '<div class="flosy-ai-promptrow">'+prompts.map(p=>'<button type="button" class="f2-toolbutton" data-ai-prompt="'+escapeHTML(p)+'">'+escapeHTML(p)+'</button>').join("")+'</div>'+
  '<div class="flosy-ai-messages" id="flosyAiMessages" role="log" aria-live="polite">'+
- (conversation.length?conversation.map(x=>'<div class="flosy-ai-bubble '+(x.role==="user"?"user":"assistant")+'"><div class="flosy-ai-speaker">'+(x.role==="user"?"أنت":x.kind==="api"?"OpenAI API":"Flosy المحلي")+
+ (conversation.length?conversation.map(x=>'<div class="flosy-ai-bubble '+(x.role==="user"?"user":"assistant")+'"><div class="flosy-ai-speaker">'+(x.role==="user"?"أنت":x.kind==="gemini"?"Gemini Free":x.kind==="api"?"OpenAI API":"Flosy المحلي")+
  '</div><div>'+escapeHTML(x.content).replace(/\n/g,"<br>")+'</div></div>').join(""):
  '<div class="f2-empty">اسأل عن الميزانية والطوارئ والأقساط. الخدمة المجانية لا تحتاج تسجيل دخول أو مفتاح API.</div>')+
  (loading?'<div class="flosy-ai-loading">جارٍ التحليل…</div>':"")+'</div>'+
  (error?'<div class="f2-warning">'+escapeHTML(error)+'</div>':"")+
  '<form id="flosyAiForm" class="flosy-ai-composer"><textarea name="question" id="flosyAiQuestion" rows="3" maxlength="1200" required placeholder="مثلًا: احسبلي صندوق طوارئ 6 شهور"></textarea>'+
- (mode==="api"?'<label class="flosy-ai-consent"><input type="checkbox" id="flosyAiConsent" '+(consent?"checked":"")+
- '> أوافق على إرسال ملخص مالي مجمع للخادم وOpenAI (اختياري)</label>':'<p class="v4-fineprint">بياناتك لا تخرج من الجهاز في الوضع المجاني.</p>')+
+ (mode!=="free"?'<label class="flosy-ai-consent"><input type="checkbox" id="flosyAiConsent" '+(consent?"checked":"")+
+ '> '+(mode==="gemini"?"أوافق على إرسال موضوع عام ونِسَب مُقرّبة إلى Gemini Free فقط. لن نرسل السؤال الأصلي أو رسائل البنك. قد تستخدم Google المحتوى لتحسين خدماتها.":"أوافق على إرسال ملخص مالي مجمع للخادم وOpenAI (اختياري)")+'</label>':'<p class="v4-fineprint">بياناتك لا تخرج من الجهاز في الوضع المجاني.</p>')+
  '<div class="flosy-ai-bottom"><button type="submit" class="f2-toolbutton primary" '+(loading?"disabled":"")+
  '>اسأل المساعد <span aria-hidden="true">➜</span></button></div></form>'+
  '<div class="f2-btnrow"><button type="button" class="f2-toolbutton" data-ai-clear="true">مسح المحادثة من الشاشة</button></div>'+
- '<div class="f2-privacy">الخدمة المجانية تجري حسابات وتوصيات قائمة على قواعد قابلة للتفسير، ولا تولد إجابات ChatGPT. استخدام ChatGPT الحقيقي يتطلب فتح ChatGPT بنفسك، أو API آمن بمفتاح في Supabase، وتكلفته منفصلة.</div></div>';
+ '<div class="f2-privacy">الوضع المحلي لا يرسل بيانات. Gemini Free اختيار شخصي محدود ويستقبل نوع السؤال ونسبًا عامة منقحة فقط؛ دون أرقام الحسابات أو نصوص SMS أو الصور. اشتراك Google AI Pro لا يغطي API.</div></div>';
  const area=$("flosyAiMessages");if(area)area.scrollTop=area.scrollHeight;
 }
 function humanError(code,message){
@@ -134,12 +150,39 @@ async function ask(question){
   conversation.push({role:"assistant",kind:"free",content:answerFree(q)});
   view();return;
  }
- if(!C.getSession()){error="OpenAI يتطلب تسجيل الدخول وإعداد API؛ انتقل للوضع المجاني لتبدأ فورًا.";view();return}
+ if(!C.getSession()){error="سجّل الدخول بحساب Flosy لاستخدام Gemini، أو استخدم المساعد المحلي بدون تسجيل.";view();return}
+ if(selectedMode==="gemini"&&!consent){error="وافق أولًا على إرسال موضوع عام مُنقح إلى Gemini Free.";view();return}
  loading=true;view();
  try{
   await C.ensureSession();
   const session=C.getSession();if(!session)throw Error("login_required");
   const cfg=C.getCloud();
+  if(selectedMode==="gemini"){
+    const response=await fetch(cfg.url.replace(/\/$/,"")+"/functions/v1/flosy-gemini-parse",{
+      method:"POST",
+      headers:{"Authorization":"Bearer "+session.access_token,
+        "apikey":cfg.key,"Content-Type":"application/json"},
+      body:JSON.stringify(safeGeminiBody(q))
+    });
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok){
+      const reasons={
+        gemini_disabled:"Gemini متوقف بأمان. لازم تفعّله من Supabase بعد التأكد من Free Tier.",
+        owner_only:"Gemini متاح فقط لحساب Flosy الشخصي المصرح له.",
+        daily_limit:"انتهت الحصة اليومية المجانية؛ التحليل المحلي متاح.",
+        gemini_rate_limited:"انتهت حصة Gemini Free الحالية.",
+        quota_unavailable:"تعذر التحقق من الحصة المجانية؛ لم يتم إرسال طلب إلى Gemini.",
+        gemini_key_missing:"مفتاح Gemini غير موجود داخل Supabase Secrets.",
+        gemini_unavailable:"Gemini غير متاح حاليًا، ولا يوجد انتقال مدفوع."
+      };
+      throw Error(reasons[data.error]||"فشل الاتصال الآمن بـGemini Free.");
+    }
+    if(typeof data.answer!=="string"||!data.answer)throw Error("Gemini لم يرجع إجابة.");
+    // Gemini receives no actual money totals; Flosy independently computes them.
+    conversation.push({role:"assistant",kind:"gemini",content:
+      data.answer.slice(0,900)+"\n\n--- الحسابات المؤكدة محليًا ---\n"+answerFree(q)});
+    return;
+  }
   const response=await fetch(cfg.url.replace(/\/$/,"")+"/functions/v1/flosy-ai",{
    method:"POST",headers:{"Authorization":"Bearer "+session.access_token,"apikey":cfg.key,"Content-Type":"application/json"},
    body:JSON.stringify({question:q,include_finances:consent,history:history.map(m=>({role:m.role,content:m.content}))})});
@@ -147,7 +190,7 @@ async function ask(question){
   if(!response.ok)throw Error(humanError(data.error,data.message));
   if(typeof data.answer!=="string"||!data.answer)throw Error("لا توجد إجابة من API");
   conversation.push({role:"assistant",kind:"api",content:data.answer.slice(0,6000)});
- }catch(err){error=err?.message||"فشل اتصال API — جرّب المساعد المجاني."}
+ }catch(err){error=err?.message||"تعذر الاتصال الآمن.";if(selectedMode==="gemini")conversation.push({role:"assistant",kind:"free",content:answerFree(q)})}
  finally{loading=false;view()}
 }
 document.addEventListener("click",e=>{
@@ -156,13 +199,13 @@ document.addEventListener("click",e=>{
  if(e.target?.closest?.("[data-ai-clear]")){conversation=[];error="";view()}
 });
 document.addEventListener("change",e=>{
- if(e.target?.id==="flosyAiMode"){mode=e.target.value==="api"?"api":"free";error="";view()}
+ if(e.target?.id==="flosyAiMode"){mode=["api","gemini"].includes(e.target.value)?e.target.value:"free";error="";view()}
  if(e.target?.id==="flosyAiConsent")consent=!!e.target.checked;
 });
 document.addEventListener("submit",e=>{
  if(e.target?.id!=="flosyAiForm")return;
  e.preventDefault();ask($("flosyAiQuestion")?.value);
 });
-w.FLOSY_AI={render:view,ask,snapshot,answerFree};
+w.FLOSY_AI={render:view,ask,snapshot,answerFree,safeGeminiBody};
 view();
 })(window);
