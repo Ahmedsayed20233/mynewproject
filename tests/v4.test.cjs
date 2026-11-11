@@ -91,6 +91,23 @@ test("ReceiptML tolerates misrecognized Arabic net label using paid fallback, ne
  assert.equal(x.autoQuality,false);
  assert.throws(()=>c.window.FLOSY_RECEIPT_ML.extract("ZINC\nرقم الفاتورة 44668\nضريبة 0.00"),/إجمالي/);
 });
+test("ReceiptML reads generic multi-item grocery invoices without SKU confusion",()=>{
+ const c=context();load("flosy-receipt-ml.js",c);
+ const data=c.window.FLOSY_RECEIPT_ML.extract([
+  "CITY MARKET","الصنف الكمية سعر الوحدة الإجمالي",
+  "Bread 2 15.00 30.00",
+  "Milk 1 40.00 40.00",
+  "Sub Total 70.00","VAT 0.00","Net Total 70.00",
+  "Cash","Date 2026/11/06"].join("\n"));
+ assert.equal(data.amount,70);
+ assert.equal(data.items.length,2);
+ assert.equal(data.items[0].quantity,2);
+ assert.equal(data.items[0].unitPrice,15);
+ assert.equal(data.items[0].total,30);
+ assert.equal(data.items[1].quantity,1);
+ assert.equal(data.items[1].unitPrice,40);
+ assert.equal(data.items[1].total,40);
+});
 test("ReceiptML distinguishes multi-line grand total from invoice number and tax",()=>{
  const c=context();load("flosy-receipt-ml.js",c);load("flosy-v4-capture.js",c);
  const input=["THE SHOP","Invoice No: 898898",
