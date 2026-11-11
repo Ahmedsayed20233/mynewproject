@@ -160,6 +160,42 @@ async function startLocal(){
   assert.match(reply,/صندوق الطوارئ|تغطية 3 أشهر/);
   assert.match(reply,/Flosy المحلي|مساعد فلوسي المحلي المجاني/);
 
+
+  // Personal Gemini integration: mock the network and verify that NO raw
+  // financial question is transmitted to the Free-tier proxy.
+  const geminiRequests=[];
+  await page.route("https://vzuitcaarklesgehznha.supabase.co/functions/v1/flosy-gemini-parse",async route=>{
+    geminiRequests.push(route.request().postDataJSON());
+    await route.fulfill({status:200,contentType:"application/json",
+      body:JSON.stringify({answer:"نصيحة عامة لا تشمل أرصدة حسابات.",source:"gemini_free_tier"})});
+  });
+  await page.evaluate(()=>{
+    const b=window.FLOSY_BRIDGE;
+    window.__geminiTestSession={getSession:b.getSession,ensureSession:b.ensureSession};
+    b.getSession=()=>({access_token:"synthetic-session-token"});
+    b.ensureSession=async()=>true;
+  });
+  await page.evaluate(()=>window.FLOSY_AI.render());
+  assert.ok(await page.locator('#flosyAiMode option[value="gemini"]').count()===1);
+  await page.locator("#flosyAiMode").selectOption("gemini");
+  await page.locator("#flosyAiConsent").check();
+  const privateQuestion="اعمل خطة ميزانية ورقم حسابي PRIVATE_ACCOUNT_9999999 ورصيدي 12457 جنيه";
+  await page.locator("#flosyAiQuestion").fill(privateQuestion);
+  await page.locator("#flosyAiForm button[type=submit]").click();
+  await page.waitForFunction(()=>document.querySelector("#flosyAiMessages")?.textContent?.includes("نصيحة عامة"));
+  assert.equal(geminiRequests.length,1);
+  assert.deepEqual(Object.keys(geminiRequests[0]).sort(),["intent","task"]);
+  assert.equal(geminiRequests[0].task,"coach");
+  assert.ok(!JSON.stringify(geminiRequests[0]).includes("PRIVATE_ACCOUNT"));
+  const botReply=await page.locator("#flosyAiMessages").innerText();
+  assert.match(botReply,/Gemini Free/);
+  await page.locator("#flosyAiMode").selectOption("free");
+  await page.evaluate(()=>{
+    const b=window.FLOSY_BRIDGE,orig=window.__geminiTestSession;
+    b.getSession=orig.getSession;b.ensureSession=orig.ensureSession;
+    delete window.__geminiTestSession;
+  });
+  console.log("PASS: Gemini Free topic-only request, explicit consent and local finance arithmetic");
   // 2) Receipt text should become a reviewed draft, never a saved transaction.
   await page.evaluate(()=>window.FLOSY_BRIDGE.goto("v4-capture"));
   const before=await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length);
