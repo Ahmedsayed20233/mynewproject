@@ -27,30 +27,30 @@ function render(){
  '<small>يعمل فقط عند وجود مبلغ واتجاه موثوقين. كل الرسائل غير المالية وأكواد التحقق لا تُضاف إلى الرصيد، وعدم وضوح الحساب يوقف الحفظ التلقائي.</small></div></div>'+
  '<div class="f10-two">'+
  '<section class="f10-card voice" aria-labelledby="f10VoiceTitle">'+
- '<div class="f10-cardtitle"><span class="f10-step">01</span><div><h3 id="f10VoiceTitle">سجّل بالصوت</h3><p>مثال: «دفعت 75 جنيه قهوة من الكاش»</p></div></div>'+
+ '<div class="f10-cardtitle"><span class="f10-step">01</span><div><h3 id="f10VoiceTitle">سجّل بالصوت</h3><p>مثال: «دفعت مية وخمسين جنيه قهوة من الكاش» أو «قبضت ألفين جنيه على الفيزا»</p></div></div>'+
  '<div class="f10-mic-wrap"><span class="f10-mic-icon" aria-hidden="true">🎙</span>'+
  '<button class="f10-primary" type="button" data-repair="voice">ابدأ التسجيل بالمصري</button></div>'+
  '<p class="f10-live" id="flosyVoiceStatus" role="status" aria-live="polite">جاهز. اضغط الزر واسمح للميكروفون لو طلب.</p>'+
  '<form id="v4-voice-text" class="f10-mini-form"><label for="f10Spoken">أو اكتب جملتك لو الميكروفون غير متاح</label>'+
  '<textarea id="f10Spoken" name="spoken" rows="2" maxlength="280" required placeholder="اشتريت حاجات للبيت بـ 120 جنيه امبارح"></textarea>'+
  '<button class="f10-secondary" type="submit">تسجيل الجملة</button></form>'+
- '<small class="f10-privacy">Flosy لا يخزّن تسجيلات صوتية. محرك التعرف الصوتي قد يحتاج خدمات جهازك.</small></section>'+
+ '<small class="f10-privacy">فهم المعاملة يتم بنموذج VoiceNLU محلي مدرّب على جمل مصرية اصطناعية، ويدعم الأرقام المنطوقة. Flosy لا يحتفظ بالصوت الخام، لكن خدمة تحويل الكلام إلى نص على الهاتف قد تستخدم الشبكة إذا لم يتوفر نموذج محلي.</small></section>'+
  '<section class="f10-card receipt" aria-labelledby="f10ReceiptTitle">'+ '<div class="f10-cardtitle"><span class="f10-step">02</span>'+
- '<div><h3 id="f10ReceiptTitle">استخرج بيانات الإيصال</h3><p>صوّر الإيصال بوضوح أو اختار صورة محفوظة</p></div></div>'+
+ '<div><h3 id="f10ReceiptTitle">اقرأ الفاتورة وأدرج تفاصيلها</h3><p>صوّر الإيصال بوضوح أو اختار صورة محفوظة</p></div></div>'+
  '<div class="f10-camera">'+
  (nativeOCR?'<button type="button" class="f10-primary" data-repair="native-camera">📷 تصوير بالكاميرا</button>'+
  '<button type="button" class="f10-secondary" data-repair="native-ocr">اختيار صورة</button>':'')+
  '<label class="f10-file">اختار صورة إيصال <input id="v4-ocr-file" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" aria-label="صورة إيصال" /></label>'+
  '<button type="button" class="f10-secondary" data-v4-import="ocr">استخراج النص من الصورة</button></div>'+
  '<p class="f10-live" id="flosyOcrStatus" role="status" aria-live="polite">JPEG أو PNG أو WebP بحد أقصى 8 ميجابايت. الفاتورة الواضحة تُحفظ تلقائيًا عند تفعيل الخيار.</p>'+
- '<small class="f10-privacy">على Android: OCR محلي للأرقام والنص اللاتيني؛ المتصفح يدعم العربية مع تنزيل نموذج Tesseract.</small></section>'+
+ '<small class="f10-privacy">قراءة عربية/إنجليزية محلية على مرحلتين، مع نموذج تعلّم آلة لترجيح الإجمالي وتصحيح البنود. قد يتطلب تنزيل نموذج OCR اتصالًا بالإنترنت أول مرة. الحالات غير الواضحة للمراجعة.</small></section>'+
  '</div>'+
  '<section class="f10-extracted"><div class="f10-section-heading"><div><span class="f10-overline">EXTRACTED TEXT</span>'+
  '<h3>النص المستخرج من الإيصال</h3><p>تقدر تصححه أو تستخرج المبلغ يدويًا قبل التسجيل.</p></div></div>'+
  '<form id="flosyRepairOCRForm" class="f10-text-form">'+
  '<label for="flosyRepairOCRText">النص القابل للتعديل</label>'+
  '<textarea id="flosyRepairOCRText" name="ocrText" rows="4" maxlength="12000" placeholder="اسم المتجر&#10;Date: 10/11/2026&#10;TOTAL EGP 125.00">'+esc(lastReceiptText)+'</textarea>'+
- '<div class="f10-tools"><button type="submit" class="f10-primary">استخراج الإجمالي للمراجعة</button>'+
+ '<div class="f10-tools"><button type="submit" class="f10-primary">استخراج الفاتورة كاملة</button>'+
  '<button type="button" class="f10-secondary" data-repair="copy-ocr">نسخ النص</button>'+
  '<button type="button" class="f10-secondary" data-repair="export-ocr">تنزيل نص الإيصال</button></div></form>'+
  '<details class="f10-manual"><summary>لو الإيصال غير واضح — إدخال التاجر والمبلغ يدويًا</summary>'+
@@ -72,10 +72,13 @@ function proposeReceipt(text,engine){
  try{
   const suggested=C4.parseReceipt(raw);
   if(C4.autoRecord?.(suggested,"receipt")){
-   status("flosyOcrStatus","تم حفظ إجمالي "+suggested.amount+" جنيه مباشرة (يمكنك التراجع من أسفل الصفحة).");
+   status("flosyOcrStatus","تم حفظ "+suggested.amount+" جنيه من "+String(suggested.receiptDetails?.merchant||"الإيصال")+
+      " مع تفاصيل البنود المقروءة. يمكنك التراجع عن آخر معاملة.");
   }else{
    C4.parseReview(suggested,"تم استخراج الإيصال، لكن البيانات غير مكتملة أو التسجيل التلقائي مغلق. راجع الحقول أدناه.");
-   status("flosyOcrStatus","تم استخراج الإجمالي والتاريخ. راجع البيانات أدناه، أو فعّل الحفظ التلقائي وحدد حسابًا.");
+   status("flosyOcrStatus","تم استخراج "+suggested.amount+" جنيه من "+String(suggested.receiptDetails?.merchant||"الإيصال")+
+      "، والبنود المقروءة: "+(suggested.receiptDetails?.items?.length||0)+
+      ". راجع البيانات قبل الحفظ لأن بعض الحقول غير مؤكدة.");
   }
   return true;
  }catch(err){
@@ -87,26 +90,22 @@ function proposeReceipt(text,engine){
 function receiveNativeReceipt(text){return proposeReceipt(text,"Android ML Kit (Latin/EGP)")}
 async function receiveNativeReceiptImage(imageDataUrl,latinText){
  const latin=String(latinText||"").slice(0,12000);
- // Fast path: keep the bundled offline OCR when it finds a reliable total.
- if(latin&&proposeReceipt(latin,"Android ML Kit Latin"))return true;
+ // Do not prematurely save a partial Latin-only scan if Arabic image exists.
  if(typeof imageDataUrl!=="string"||!/^data:image\/jpeg;base64,[a-zA-Z0-9+/=]+$/.test(imageDataUrl)
-    ||imageDataUrl.length>750000){
-  status("flosyOcrStatus","OCR اللاتيني لم يحدد إجمالي الفاتورة؛ استخدم اختيار صورة + استخراج النص بالعربي.");
-  return false;
- }
+    ||imageDataUrl.length>750000)
+  return latin?proposeReceipt(latin,"Android ML Kit (Latin only)"):false;
  if(busyOCR)return false;
  busyOCR=true;
- status("flosyOcrStatus","القراءة اللاتينية لم تتعرف على الإجمالي. جاري تجربة محرك OCR عربي/إنجليزي محليًا...");
+ status("flosyOcrStatus","جاري قراءة صورة الإيصال بالعربي والإنجليزي لاستخراج المبلغ والبنود معًا...");
  let worker=null;
  try{
   const lib=await loadOCR();
   worker=await lib.createWorker(["ara","eng"]);
-  const ocr=await worker.recognize(imageDataUrl);
-  const text=String(ocr?.data?.text||"");
-  return proposeReceipt(text||latin,"Tesseract Arabic/English (Android image)");
+  const text=await readMultipleOCR(worker,imageDataUrl);
+  return proposeReceipt([text,latin].filter(Boolean).join("\n"),"ML Kit + Tesseract Arabic/English + ReceiptML");
  }catch(e){
-  status("flosyOcrStatus","تعذر إكمال OCR العربي: "+String(e.message||e)+". اختر صورة أوضح أو صحّح النص المستخرج.");
-  return false;
+  status("flosyOcrStatus","تعذر تشغيل OCR العربي: "+String(e.message||e)+". جاري تحليل النص المتاح.");
+  return latin?proposeReceipt(latin,"ML Kit Latin fallback"):false;
  }finally{
   if(worker)try{await worker.terminate()}catch{}
   busyOCR=false;
@@ -154,6 +153,51 @@ async function loadOCR(){
   document.head.appendChild(script);
  });
 }
+// Bilingual OCR with one bounded grayscale/contrast pass on crumpled receipts.
+// The original image remains on the device, never sent to Gemini or Supabase.
+async function contrastReceiptImage(source){
+ let url=null;
+ try{
+  const data=typeof source==="string"&&/^data:image\//.test(source);
+  url=data?source:URL.createObjectURL(source);
+  const img=await new Promise((resolve,reject)=>{
+   const el=new Image();el.onload=()=>resolve(el);el.onerror=()=>reject(Error("تعذر فتح الصورة"));el.src=url;
+  });
+  const maxDim=Math.max(img.naturalWidth,img.naturalHeight);
+  if(!maxDim)return null;
+  const scale=Math.min(2.0,2200/maxDim);
+  const canvas=document.createElement("canvas");
+  canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));
+  canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+  const ctx=canvas.getContext("2d",{willReadFrequently:true});if(!ctx)return null;
+  ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(img,0,0,canvas.width,canvas.height);
+  const out=ctx.getImageData(0,0,canvas.width,canvas.height),pixels=out.data;
+  for(let i=0;i<pixels.length;i+=4){
+    const gray=.299*pixels[i]+.587*pixels[i+1]+.114*pixels[i+2];
+    const light=Math.max(0,Math.min(255,Math.round((gray-125)*1.42+142)));
+    pixels[i]=light;pixels[i+1]=light;pixels[i+2]=light;
+  }
+  ctx.putImageData(out,0,0);
+  return canvas;
+ }finally{if(url&&url.startsWith("blob:"))URL.revokeObjectURL(url)}
+}
+async function readMultipleOCR(worker,source){
+ const outputs=[];
+ try{
+  const first=await worker.recognize(source);
+  const value=String(first?.data?.text||"").trim();if(value)outputs.push(value);
+ }catch{}
+ try{
+  const contrast=await contrastReceiptImage(source);
+  if(contrast){
+   const second=await worker.recognize(contrast),value=String(second?.data?.text||"").trim();
+   if(value&&value!==outputs[0])outputs.push(value);
+  }
+ }catch{}
+ if(!outputs.length)throw Error("OCR لم يتعرف على نص صالح");
+ return outputs.join("\n");
+}
 async function scanReceipt(){
  if(busyOCR)return;
  const input=el("v4-ocr-file"),file=input?.files?.[0];
@@ -173,8 +217,7 @@ async function scanReceipt(){
  try{
   const lib=await loadOCR();
   worker=await lib.createWorker(["ara","eng"]);
-  const result=await worker.recognize(file);
-  const text=String(result?.data?.text||"");
+  const text=await readMultipleOCR(worker,file);
   if(!proposeReceipt(text,"Tesseract Arabic/English"))
    throw Error("تعذر تحديد إجمالي مؤكد؛ جرّب صورة أوضح أو صحح إجمالي الفاتورة");
  }catch(err){

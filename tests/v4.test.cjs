@@ -37,11 +37,175 @@ test("Egyptian spoken phrase preserves amount and coffee classification",()=>{
  assert.equal(r.amount,75);assert.equal(r.category,"ترفيه");assert.equal(r.type,"expense");
  assert.equal(r.accountId,"bank");
 });
+test("Offline trained VoiceNLU recognizes Egyptian Arabic number words and safe expense",()=>{
+ const c=context();load("flosy-voice-nlu.js",c);load("flosy-v4-capture.js",c);
+ const m=c.window.FLOSY_VOICE_NLU;
+ const out=m.classify("دفعت مية وخمسين جنيه قهوة من الكاش");
+ assert.equal(out.intent,"expense");assert.equal(out.reliable,true);
+ assert.equal(m.spokenAmount("دفعت مية وخمسين جنيه قهوة"),150);
+ assert.equal(m.spokenAmount("دفعت الف ومتين وخمسين جنيه"),1250);
+ assert.equal(m.spokenAmount("دفعت تلات الاف وخمسمية جنيه"),3500);
+ assert.equal(m.spokenAmount("دفعت اتنين ونص جنيه"),2.5);
+ const v=c.window.FLOSY_CAPTURE.parseVoice("دفعت مية وخمسين جنيه قهوة من الكاش");
+ assert.equal(v.amount,150);assert.equal(v.category,"ترفيه");
+ assert.equal(v.accountId,"wallet");assert.equal(v.type,"expense");
+ assert.equal(v.autoQuality,true);
+ assert.ok(v.voiceDetails.confidence>.75);
+ c.window.FLOSY_CAPTURE.setAuto("voice",true);
+ assert.equal(c.window.FLOSY_CAPTURE.autoRecord(v,"voice"),true);
+ assert.equal(c.data.transactions[0].amount,150);
+ assert.equal(c.data.transactions[0].voiceDetails.intent,"expense");
+ assert.equal(c.data.transactions[0].rawTranscript,undefined);
+ assert.equal(c.data.transactions[0].voiceText,undefined);
+ assert.equal(c.window.FLOSY_CAPTURE.isDuplicate(v),true);
+});
+test("VoiceNLU safely rejects hypothetical, negated, and own-account transfer utterances",()=>{
+ const c=context();load("flosy-voice-nlu.js",c);load("flosy-v4-capture.js",c);
+ const m=c.window.FLOSY_VOICE_NLU;
+ for(const msg of ["هشتري قهوة بمية جنيه بكرة","لسه مدفعتش مية جنيه",
+   "لو دفعت عشرين جنيه هيفضل كام","مش حقيقي دفعت خمسين جنيه"]){
+   assert.equal(m.classify(msg).intent,"none",msg);
+   assert.throws(()=>c.window.FLOSY_CAPTURE.parseVoice(msg),/معاملة مكتملة/);
+ }
+ for(const msg of ["حولت ميتين جنيه من البنك للكاش","نقلت 200 جنيه بين حساباتي"]){
+   assert.equal(m.classify(msg).intent,"transfer",msg);
+   assert.throws(()=>c.window.FLOSY_CAPTURE.parseVoice(msg),/تحويلًا بين حساباتك/);
+ }
+ assert.equal(c.data.transactions.length,0);
+});
+test("VoiceNLU recognizes income without misclassifying expense and keeps category",()=>{
+ const c=context();load("flosy-voice-nlu.js",c);load("flosy-v4-capture.js",c);
+ const cap=c.window.FLOSY_CAPTURE;
+ const income=cap.parseVoice("قبضت الفين جنيه من الشغل امبارح على الفيزا");
+ assert.equal(income.amount,2000);assert.equal(income.type,"income");
+ assert.equal(income.category,"مرتب");assert.equal(income.autoQuality,true);
+ const expense=cap.parseVoice("صرفت تلاتين جنيه بنزين من الكاش");
+ assert.equal(expense.amount,30);assert.equal(expense.type,"expense");
+ assert.equal(expense.category,"مواصلات");
+ assert.equal(expense.accountId,"wallet");
+});
+
+test("Trained voice NLU metadata is explicit about synthetic evaluation and no audio upload",()=>{
+ const c=context();load("flosy-voice-nlu.js",c);
+ const info=c.window.FLOSY_VOICE_NLU.modelInfo;
+ assert.match(info.training,/synthetic/i);
+ assert.match(info.validation,/real speech/i);
+ assert.equal(info.heldOutSynthetic,2960);
+ const voice=fs.readFileSync("flosy-voice-nlu.js","utf8");
+ assert.doesNotMatch(voice,/fetch\s*\(|gemini\-api|x\-goog\-api\-key/);
+ const script=fs.readFileSync("tools/train_voice_intent_model.py","utf8");
+ assert.match(script,/LogisticRegression/);
+ assert.match(script,/range\(3700\)/);
+});
 test("Receipt OCR proposal handles a currency-bearing TOTAL line",()=>{
  const c=context();load("flosy-v4-capture.js",c);
  const r=c.window.FLOSY_CAPTURE.parseReceipt("CAFE CAMPUS\nTOTAL: EGP 125.00\nThank you");
  assert.equal(r.amount,125);assert.equal(r.type,"expense");
 });
+test("ReceiptML extracts real ZINC-like Arabic receipt with item, invoice and cash payment",()=>{
+ const c=context();load("flosy-receipt-ml.js",c);load("flosy-v4-capture.js",c);
+ const input=[
+  "نسخة العميل","إيصال مبيعات","ZINC",
+  "الصنف الكود النوع سعر الوحدة الكمية إجمالي القيمة",
+  "R.7 كوتشي 1,199.00 1 1,199.00",
+  "عدد الأصناف: 1","إجمالي الكمية: 1",
+  "الإجمالي قبل الخصم: 1,199.00","الخصم: 0.00",
+  "الصافي: 1,199","المدفوع من العميل: 1,199",
+  "الباقي المستحق للعميل: 0.00","نقدي",
+  "مسلسل البيع: 44668","تاريخ البيع: 2026/11/08 08:50 PM"
+ ].join("\n");
+ const proposal=c.window.FLOSY_CAPTURE.parseReceipt(input);
+ assert.equal(proposal.amount,1199);
+ assert.equal(proposal.date,"2026-11-08");
+ assert.equal(proposal.category,"مشتريات");
+ assert.equal(proposal.receiptDetails.merchant,"ZINC");
+ assert.equal(proposal.receiptDetails.invoiceNumber,"44668");
+ assert.equal(proposal.receiptDetails.paymentMethod,"cash");
+ assert.equal(proposal.receiptDetails.discount,0);
+ assert.equal(proposal.receiptDetails.items.length,1);
+ // Arabic-only product names are valid, even though JS ASCII \\w excludes Arabic letters.
+ assert.match(proposal.receiptDetails.items[0].name,/كوتشي/);
+ // SKU R.7 is an item code; it must NOT be mistaken for quantity seven.
+ assert.equal(proposal.receiptDetails.items[0].quantity,1);
+ assert.equal(proposal.receiptDetails.items[0].unitPrice,1199);
+ assert.equal(proposal.autoQuality,true);
+ c.window.FLOSY_CAPTURE.setAuto("receipt",true);
+ assert.equal(c.window.FLOSY_CAPTURE.autoRecord(proposal,"receipt"),true);
+ const saved=c.data.transactions[0];
+ assert.equal(saved.amount,1199);
+ assert.equal(saved.receiptDetails.invoiceNumber,"44668");
+ assert.equal(saved.receiptDetails.items.length,1);
+ // Customer names/raw image/entire OCR transcript are NOT copied.
+ assert.equal(saved.receiptDetails.customer,undefined);
+ assert.equal(saved.rawOcr,undefined);
+ const duplicate=c.window.FLOSY_CAPTURE.parseReceipt(input+"\nشكرا");
+ assert.equal(c.window.FLOSY_CAPTURE.isDuplicate(duplicate),true);
+});
+test("Saved receipt itemized details are accessible from the transaction table",()=>{
+ const html=fs.readFileSync("index.html","utf8");
+ assert.match(html,/function receiptDetailsHTML\(t\)/);
+ assert.match(html,/\$\{receiptDetailsHTML\(t\)\}/);
+ assert.match(html,/تفاصيل الفاتورة والبنود/);
+ assert.match(html,/رقم الإيصال/);
+ assert.match(html,/سعر الوحدة/);
+ assert.match(html,/safe\(it\.name/);
+});
+test("Clear receipts use explicitly selected account when no payment type is printed",()=>{
+ const c=context();load("flosy-receipt-ml.js",c);load("flosy-v4-capture.js",c);
+ const cap=c.window.FLOSY_CAPTURE;
+ const text=["متجر التجربة","Date: 10/11/2026","Grand Total","125.00"].join("\n");
+ const without=cap.parseReceipt(text);
+ assert.equal(without.autoQuality,false);
+ cap.setAutoAccount("wallet");
+ const withAccount=cap.parseReceipt(text);
+ assert.equal(withAccount.amount,125);
+ assert.equal(withAccount.receiptDetails.merchant,"متجر التجربة");
+ assert.equal(withAccount.accountId,"wallet");
+ assert.equal(withAccount.autoQuality,true);
+ const partial=cap.parseReceipt(text+"\nPAID: 90.00");
+ assert.equal(partial.autoQuality,false,"Paid amount differs from total, so manual review is mandatory");
+});
+test("ReceiptML tolerates misrecognized Arabic net label using paid fallback, never auto-posts it",()=>{
+ const c=context();load("flosy-receipt-ml.js",c);load("flosy-v4-capture.js",c);
+ const text=["ZINC","عدد الأصناف: 1","إجمالي الكمية: 1 خصم 0.00",
+ "7977199 ا لصاني:ي","1,199 لمدفوع من العميل:",
+ "0.00 الباقي المستحق للعميل","08:50 PM 2026/11/08"].join("\n");
+ const x=c.window.FLOSY_RECEIPT_ML.extract(text);
+ assert.equal(x.amount,1199);assert.equal(x.date,"2026-11-08");
+ assert.equal(x.evidence,"paid_amount");
+ assert.equal(x.autoQuality,false);
+ assert.throws(()=>c.window.FLOSY_RECEIPT_ML.extract("ZINC\nرقم الفاتورة 44668\nضريبة 0.00"),/إجمالي/);
+});
+test("ReceiptML reads generic multi-item grocery invoices without SKU confusion",()=>{
+ const c=context();load("flosy-receipt-ml.js",c);
+ const data=c.window.FLOSY_RECEIPT_ML.extract([
+  "CITY MARKET","الصنف الكمية سعر الوحدة الإجمالي",
+  "Bread 2 15.00 30.00",
+  "Milk 1 40.00 40.00",
+  "Sub Total 70.00","VAT 0.00","Net Total 70.00",
+  "Cash","Date 2026/11/06"].join("\n"));
+ assert.equal(data.amount,70);
+ assert.equal(data.items.length,2);
+ assert.equal(data.items[0].quantity,2);
+ assert.equal(data.items[0].unitPrice,15);
+ assert.equal(data.items[0].total,30);
+ assert.equal(data.items[1].quantity,1);
+ assert.equal(data.items[1].unitPrice,40);
+ assert.equal(data.items[1].total,40);
+});
+test("ReceiptML distinguishes multi-line grand total from invoice number and tax",()=>{
+ const c=context();load("flosy-receipt-ml.js",c);load("flosy-v4-capture.js",c);
+ const input=["THE SHOP","Invoice No: 898898",
+ "Item: sneaker 1 100.00","Subtotal 100.00","VAT 14.00",
+ "Grand Total","114.00","PAID 114.00","Cash",
+ "Date: 2026-11-05"].join("\n");
+ const data=c.window.FLOSY_CAPTURE.parseReceipt(input);
+ assert.equal(data.amount,114);assert.equal(data.date,"2026-11-05");
+ assert.equal(data.receiptDetails.invoiceNumber,"898898");
+ assert.equal(data.receiptDetails.tax,14);
+ assert.ok(data.receiptDetails.confidence>=.8);
+});
+
 test("Bank CSV quoted cells and separate debit/credit columns parse exactly once",()=>{
  const c=context();load("flosy-v4-bank.js",c);
  const b=c.window.FLOSY_BANK_CSV,rows=b.csvRecords('date,description,debit,credit\n2026-11-09,"Cafe, Campus",125,\n2026-11-10,Salary,,17000');
@@ -361,7 +525,10 @@ test("Flosy AI defaults to free mode, API stays optional and offline shell is ve
  assert.match(ai,/answerFree/);
  assert.match(ai,/OpenAI API/);
  assert.ok(sw.includes("flosy-ai.js?v=730"));
- assert.ok(sw.includes("flosy-repair.js?v=3102"));
+ assert.ok(sw.includes("flosy-receipt-ml.js?v=3401"));
+ assert.ok(sw.includes("flosy-voice-nlu.js?v=3402"));
+ assert.ok(sw.includes("flosy-v4-capture.js?v=3402"));
+ assert.ok(sw.includes("flosy-repair.js?v=3401"));
 });
 
 

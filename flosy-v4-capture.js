@@ -171,6 +171,45 @@ function spokenEgyptianAmount(text){
 }
 function parseVoice(text){
  const str=digits(String(text||"").trim());
+ const ml=global.FLOSY_VOICE_NLU;
+ if(ml?.classify){
+  if(/\b(?:OTP|PIN|CVV)\b|رمز.{0,12}(?:التحقق|السري)|كود\s*التحقق/i.test(str))
+   throw Error("لا يمكن تسجيل رمز تحقق أو رقم سري.");
+  const decision=ml.classify(str);
+  if(decision.intent==="transfer")
+   throw Error("ده يبدو تحويلًا بين حساباتك؛ سجله من صفحة التحويلات، مش كمصروف أو دخل.");
+  if(decision.intent==="none")
+   throw Error("الجملة مش معاملة مكتملة. قل «دفعت 75 جنيه قهوة» أو «قبضت 500 جنيه».");
+  const amount=amountFrom(str)??ml.spokenAmount(str)??spokenEgyptianAmount(str);
+  if(!validAmount(amount))throw Error("مش قادر أحدد المبلغ بشكل آمن. قل المبلغ بالجنيه.");
+  const type=decision.intent==="income"?"income":"expense";
+  const category=ml.category(str,type)|| (type==="income"?"دخل آخر":cat(str));
+  const now=new Date(),relative=/اول\s*امبارح|أول\s*أمس|قبل\s*امبارح/.test(str)?2:
+    /امبارح|أمس/.test(str)?1:0;
+  now.setDate(now.getDate()-relative);
+  let date=[now.getFullYear(),String(now.getMonth()+1).padStart(2,"0"),String(now.getDate()).padStart(2,"0")].join("-");
+  // An explicitly spoken full ISO date can be reviewed and used as the date.
+  const full=str.match(/\b(20\d{2})[\/.\-](\d{1,2})[\/.\-](\d{1,2})\b/);
+  if(full){const chk=new Date(+full[1],+full[2]-1,+full[3]);if(chk.getFullYear()===+full[1]&&chk.getMonth()+1===+full[2]&&chk.getDate()===+full[3])
+   date=[full[1],full[2].padStart(2,"0"),full[3].padStart(2,"0")].join("-")}
+  const accounts=cash().filter(x=>x&&x.id);
+  const normalized=str.replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").toLowerCase();
+  const named=accounts.find(a=>a.name&&normalized.includes(a.name.toLowerCase().replace(/[أإآ]/g,"ا").replace(/ة/g,"ه")));
+  const cashMatch=/كاش|نقد|محفظه|محفظة/.test(normalized)?
+   accounts.find(a=>/كاش|نقد|cash|محفظة|محفظه/i.test(a.name||"")):null;
+  const bankMatch=/فيزا|كارت|بنك|حساب/.test(normalized)?
+   accounts.find(a=>/فيزا|كارت|بنك|bank|visa|card|حساب/i.test(a.name||"")):null;
+  const accountId=named?.id||cashMatch?.id||bankMatch?.id||resolvedAccount("");
+  const fingerprint=str.toLowerCase().replace(/\s+/g," ").trim();
+  return {id:uuid(),type,date,amount,category,
+   // Do not persist raw transcripts or spoken personal names.
+   description:"صوت — "+(type==="income"?"دخل":"مصروف")+" — "+category,
+   accountId,subcategory:"",source:"voice_reviewed",
+   sourceHash:"voice-nlu-v1-"+hash(fingerprint+"|"+Math.floor(Date.now()/300000)),
+   voiceDetails:{intent:decision.intent,confidence:decision.confidence,modelVersion:decision.version},
+   autoQuality:decision.reliable===true&&!!accountId};
+ }
+
  if(/\b(?:OTP|PIN|CVV)\b|رمز.{0,12}(?:التحقق|السري)/i.test(str))
   throw Error("لا يمكن تسجيل رموز تحقق بالصوت");
  const amount=amountFrom(str)??spokenEgyptianAmount(str);
@@ -195,6 +234,46 @@ function parseVoice(text){
   accountId,subcategory:"",source:"voice_reviewed",sourceHash,autoQuality:(out!==inc)&&!!accountId};
 }
 function parseReceipt(text){
+ const ml=global.FLOSY_RECEIPT_ML;
+ if(ml?.extract){
+  const info=ml.extract(text);
+  const namedCash=cash().filter(a=>a?.id&&/كاش|نقد|cash|محفظة/i.test(a.name||""));
+  const namedCard=cash().filter(a=>a?.id&&/فيزا|كارت|بطاقة|visa|card/i.test(a.name||""));
+  const matchAccount=info.paymentMethod==="cash"?(namedCash.length===1?namedCash[0]:null):
+    info.paymentMethod==="card"?(namedCard.length===1?namedCard[0]:null):null;
+  // Prefer the explicitly configured auto account; otherwise use one unique
+  // payment-method-matching account. Ambiguous accounts stop auto-save.
+  const accountId=resolvedAccount("")||matchAccount?.id||"";
+  const normalized=(info.description||"إيصال").toLowerCase();
+  const category=/كوتشي|كوئشي|حذاء|جزمة|ملابس|shoe|sneaker|\bZINC\b/i.test(info.description||"")?
+     "مشتريات":cat(normalized);
+  // Only explicitly extracted document fields, never names, numbers or raw OCR.
+  const receiptDetails={
+    merchant:info.merchant||null,invoiceNumber:info.receiptNumber||null,
+    receiptDate:info.date||null,receiptTime:info.time||null,currency:"EGP",
+    paymentMethod:info.paymentMethod||null,items:info.items||[],
+    subtotal:info.subtotal,discount:info.discount,tax:info.tax,
+    paid:info.paid,change:info.change,confidence:info.confidence,
+    evidence:info.evidence,modelVersion:info.modelVersion
+  };
+  const hashKey=info.receiptNumber?
+    String(info.merchant||"").toLowerCase()+"|"+info.receiptNumber+"|"+info.amount:
+    String(info.merchant||"").toLowerCase()+"|"+(info.date||"")+"|"+info.amount+
+     "|"+String(info.items?.[0]?.name||"").toLowerCase();
+  return {id:uuid(),type:"expense",date:info.date||dateLocal(),amount:info.amount,
+    category,description:("إيصال — "+info.description).slice(0,150),accountId,
+    subcategory:"",source:"receipt_reviewed",receiptDetails,
+    sourceHash:"receipt-auto-ml-v1-"+hash(hashKey),
+    // Printed payment method is optional when the user explicitly selected a
+    // specific auto-capture account. Contradictory totals still require review.
+    autoQuality:(info.autoQuality===true||
+      (Boolean(accountId)&&Boolean(autoPrefs().accountId)&&
+       cash().some(a=>a.id===autoPrefs().accountId)&&
+       info.confidence>=0.86&&Boolean(info.merchant)&&Boolean(info.date)&&
+       ["net_total","labeled_total","split_total"].includes(info.evidence)))&&
+      (info.paid===null||info.paid===undefined||Math.abs(info.paid-info.amount)<=0.02)};
+ }
+
  const src=digits(String(text||"").slice(0,12000));
  const lines=src.split(/[\r\n]+/).map(x=>x.trim()).filter(Boolean);
  const totalLine=/\bgrand\s*total\b|\btotal\b|\bnet\s*amount\b|\bamount\s*due\b|\bto\s*pay\b|الإجمالي|الاجمالي|إجمالي\s*الفاتورة|المجموع|الصافي|صافى|المستحق|المطلوب|القيمة\s*النهائية/i;
@@ -264,6 +343,13 @@ function draftForm(){
  '<label>الحساب<select name="accountId" required>'+accountOpts()+'</select></label>'+
  '<label>الفئة<select name="category">'+categoryOpts(pending.type)+'</select></label>'+
  '<label class="full">الوصف<input name="description" maxlength="150" value="'+esc(pending.description)+'" required></label>'+
+  (pending.receiptDetails?'<div class="full" style="padding:12px;border:1px solid #ddd;border-radius:10px"><strong>تفاصيل الإيصال المستخرجة</strong><p>المتجر: '+esc(pending.receiptDetails.merchant||"غير معروف")+
+   ' • رقم الإيصال: '+esc(pending.receiptDetails.invoiceNumber||"غير واضح")+
+   ' • طريقة الدفع: '+esc(pending.receiptDetails.paymentMethod==="cash"?"نقدي":pending.receiptDetails.paymentMethod==="card"?"بطاقة":"غير محددة")+
+   ' • ثقة القراءة: '+esc(Math.round(Number(pending.receiptDetails.confidence||0)*100))+'%</p>'+
+   (pending.receiptDetails.items||[]).map(it=>'<div>الصنف: '+esc(it.name)+' • الكمية: '+esc(it.quantity)+
+    (it.unitPrice?' • السعر: '+esc(it.unitPrice):'')+'</div>').join('')+
+   '<small>لا يتم حفظ الصورة الأصلية أو بيانات العميل الشخصية.</small></div>':"")+
  '<div class="full v4-chips"><button type="submit" class="v4-btn">تأكيد وحفظ المعاملة</button><button type="button" data-v4-import="discard" class="v4-btn secondary">إلغاء</button></div>'+
  '</form>';
 }
@@ -281,7 +367,7 @@ function review(d,message){pending=d;staged=[];rawOutput="";notification=message
 function captureForm(){
  return '<section class="f10-review" aria-label="مراجعة المعاملة المالية">'+
   '<div class="f10-review-head"><span class="f10-step">03</span><div><h3>راجع العملية قبل حفظها</h3>'+
-  '<p>تقدر تعدّل الحساب، والمبلغ، والتصنيف، والتاريخ. لا يتم تسجيل أي حركة بدون تأكيد.</p></div></div>'+
+  '<p>تقدر تعدّل الحساب والمبلغ والفئة والتاريخ. الحفظ التلقائي للعمليات الواضحة اختياري، والعمليات غير المؤكدة للمراجعة.</p></div></div>'+
   '<div id="v4-capture-review"></div>'+
  '</section>';
 }

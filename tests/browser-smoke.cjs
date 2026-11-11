@@ -383,12 +383,13 @@ async function startLocal(){
    const afterUndo=C.getState().transactions.length;
    cap.setAuto("sms",false);cap.setAuto("voice",false);cap.setAuto("receipt",false);
    return {before,savedVoice,afterVoice,savedReceipt,afterReceipt,smsResult,afterSMS,otpResult,afterOTP,afterUndo,
-    receiptAmount:receipt.amount,voiceAmount:voice.amount,wordVoiceAmount:wordVoice.amount,autoAccount:account};
+    receiptAmount:receipt.amount,receiptAutoQuality:receipt.autoQuality,receiptEvidence:receipt.receiptDetails?.evidence,receiptConfidence:receipt.receiptDetails?.confidence,receiptMerchant:receipt.receiptDetails?.merchant,receiptAccount:receipt.accountId,voiceAmount:voice.amount,wordVoiceAmount:wordVoice.amount,autoAccount:account};
   });
   assert.equal(autoTests.savedVoice,true,"Explicit spoken expense should auto-save after opt-in");
   assert.equal(autoTests.afterVoice,autoTests.before+1);
   assert.equal(autoTests.voiceAmount,63);
   assert.equal(autoTests.wordVoiceAmount,150,"Egyptian spoken number words must parse");
+  console.log("Receipt auto-capture diagnostic (synthetic only)",JSON.stringify(autoTests));
   assert.equal(autoTests.savedReceipt,true,"Clearly dated labeled receipt should auto-save");
   assert.equal(autoTests.receiptAmount,125);
   assert.equal(autoTests.afterReceipt,autoTests.before+2);
