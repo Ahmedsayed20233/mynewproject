@@ -120,8 +120,9 @@ async function startLocal(){
   await page.evaluate(()=>window.FLOSY_AUTOMATE_RELAY.nativePair({token:"a".repeat(48)}));
   assert.match(await page.locator("#flosyRelayToken").innerText(),/^a{48}$/);
   await page.evaluate(()=>window.FLOSY_AUTOMATE_RELAY.nativeStatus({
-   paired:true,senders:"CIB,NBE",apps:"",pending:1,packageName:"com.flosy.finance"
+   paired:true,senders:"CIB,NBE",apps:"",pending:1,packageName:"com.flosy.finance",lastDeliveryCode:"invalid_pair_token",lastDeliveryAt:Date.now()
   }));
+  assert.match(await page.locator("#flosyAutomateRelayRoot").innerText(),/رمز الاقتران غير مطابق/);
   const beforeRelay=await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length);
   await page.evaluate(()=>window.FLOSY_AUTOMATE_RELAY.nativePending({items:[{
    id:"ab".repeat(16),source:"sms",date:Date.now(),text:"CIB تم خصم مبلغ 250 EGP مقابل شراء"
