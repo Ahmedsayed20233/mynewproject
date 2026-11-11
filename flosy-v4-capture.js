@@ -264,7 +264,14 @@ function parseReceipt(text){
     category,description:("إيصال — "+info.description).slice(0,150),accountId,
     subcategory:"",source:"receipt_reviewed",receiptDetails,
     sourceHash:"receipt-auto-ml-v1-"+hash(hashKey),
-    autoQuality:info.autoQuality===true&&!!accountId};
+    // Printed payment method is optional when the user explicitly selected a
+    // specific auto-capture account. Contradictory totals still require review.
+    autoQuality:(info.autoQuality===true||
+      (Boolean(accountId)&&Boolean(autoPrefs().accountId)&&
+       cash().some(a=>a.id===autoPrefs().accountId)&&
+       info.confidence>=0.86&&Boolean(info.merchant)&&Boolean(info.date)&&
+       ["net_total","labeled_total","split_total"].includes(info.evidence)))&&
+      (info.paid===null||info.paid===undefined||Math.abs(info.paid-info.amount)<=0.02)};
  }
 
  const src=digits(String(text||"").slice(0,12000));
