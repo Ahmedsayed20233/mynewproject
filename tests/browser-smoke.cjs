@@ -322,7 +322,7 @@ async function startLocal(){
    const voice=cap.parseVoice("دفعت 63 جنيه قهوة");
    const savedVoice=cap.autoRecord(voice,"voice");
    const afterVoice=C.getState().transactions.length;
-   const receipt=cap.parseReceipt("متجر التجربة\\nDate: 10/11/2026\\nGrand Total\\n125.00");
+   const receipt=cap.parseReceipt(["متجر التجربة","Date: 10/11/2026","Grand Total","125.00"].join(String.fromCharCode(10)));
    const savedReceipt=cap.autoRecord(receipt,"receipt");
    const afterReceipt=C.getState().transactions.length;
    const smsText="تم تنفيذ تحويل لحظي من حسابكم رقم 0000 بمبلغ 1.00 جم إلى عميل رقم مرجعي 123456789321 يوم 11-11 الساعة 14:23";
