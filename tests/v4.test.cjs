@@ -308,7 +308,10 @@ test("Gemini Free personal assistant never uploads raw financial questions",()=>
  assert.match(proxy,/withSupabase\(\{auth:"user"\}/);
  assert.match(proxy,/FLOSY_GEMINI_OWNER_UID/);
  assert.match(proxy,/GEMINI_ENABLED/);
- assert.match(proxy,/gemini-2\.5-flash-lite/);
+ assert.match(proxy,/gemini-3\.5-flash-lite/);
+ assert.match(proxy,/providerHttpStatus/);
+ assert.match(proxy,/gemini_model_unavailable/);
+ assert.doesNotMatch(proxy,/console\.log\([^)]*apiKey/);
  assert.match(proxy,/flosy_ai_consume_quota/);
  assert.doesNotMatch(proxy,/OPENAI_API_KEY/);
 });
@@ -342,7 +345,7 @@ test("Flosy AI defaults to free mode, API stays optional and offline shell is ve
  assert.match(ai,/mode="free"/);
  assert.match(ai,/answerFree/);
  assert.match(ai,/OpenAI API/);
- assert.ok(sw.includes("flosy-ai.js?v=710"));
+ assert.ok(sw.includes("flosy-ai.js?v=720"));
  assert.ok(sw.includes("flosy-repair.js?v=3102"));
 });
 
