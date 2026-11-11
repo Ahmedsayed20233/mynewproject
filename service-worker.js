@@ -1,5 +1,5 @@
 /* Flosy v4 offline application shell. NO database/API responses are cached. */
-const VERSION="flosy-automate-safe-v29-20261111-1";
+const VERSION="flosy-auto-capture-v31-20261111-1";
 const SHELL=[
  "./","./index.html","./manifest.webmanifest","./icon.svg",
  "./finance-pro.js?v=1001","./finance-pro.css?v=130",
