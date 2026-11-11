@@ -36,21 +36,21 @@ function render(){
  '<button class="f10-secondary" type="submit">تسجيل الجملة</button></form>'+
  '<small class="f10-privacy">Flosy لا يخزّن تسجيلات صوتية. محرك التعرف الصوتي قد يحتاج خدمات جهازك.</small></section>'+
  '<section class="f10-card receipt" aria-labelledby="f10ReceiptTitle">'+ '<div class="f10-cardtitle"><span class="f10-step">02</span>'+
- '<div><h3 id="f10ReceiptTitle">استخرج بيانات الإيصال</h3><p>صوّر الإيصال بوضوح أو اختار صورة محفوظة</p></div></div>'+
+ '<div><h3 id="f10ReceiptTitle">اقرأ الفاتورة وأدرج تفاصيلها</h3><p>صوّر الإيصال بوضوح أو اختار صورة محفوظة</p></div></div>'+
  '<div class="f10-camera">'+
  (nativeOCR?'<button type="button" class="f10-primary" data-repair="native-camera">📷 تصوير بالكاميرا</button>'+
  '<button type="button" class="f10-secondary" data-repair="native-ocr">اختيار صورة</button>':'')+
  '<label class="f10-file">اختار صورة إيصال <input id="v4-ocr-file" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" aria-label="صورة إيصال" /></label>'+
  '<button type="button" class="f10-secondary" data-v4-import="ocr">استخراج النص من الصورة</button></div>'+
  '<p class="f10-live" id="flosyOcrStatus" role="status" aria-live="polite">JPEG أو PNG أو WebP بحد أقصى 8 ميجابايت. الفاتورة الواضحة تُحفظ تلقائيًا عند تفعيل الخيار.</p>'+
- '<small class="f10-privacy">على Android: OCR محلي للأرقام والنص اللاتيني؛ المتصفح يدعم العربية مع تنزيل نموذج Tesseract.</small></section>'+
+ '<small class="f10-privacy">قراءة عربية/إنجليزية محلية على مرحلتين، مع نموذج تعلّم آلة لترجيح الإجمالي وتصحيح البنود. قد يتطلب تنزيل نموذج OCR اتصالًا بالإنترنت أول مرة. الحالات غير الواضحة للمراجعة.</small></section>'+
  '</div>'+
  '<section class="f10-extracted"><div class="f10-section-heading"><div><span class="f10-overline">EXTRACTED TEXT</span>'+
  '<h3>النص المستخرج من الإيصال</h3><p>تقدر تصححه أو تستخرج المبلغ يدويًا قبل التسجيل.</p></div></div>'+
  '<form id="flosyRepairOCRForm" class="f10-text-form">'+
  '<label for="flosyRepairOCRText">النص القابل للتعديل</label>'+
  '<textarea id="flosyRepairOCRText" name="ocrText" rows="4" maxlength="12000" placeholder="اسم المتجر&#10;Date: 10/11/2026&#10;TOTAL EGP 125.00">'+esc(lastReceiptText)+'</textarea>'+
- '<div class="f10-tools"><button type="submit" class="f10-primary">استخراج الإجمالي للمراجعة</button>'+
+ '<div class="f10-tools"><button type="submit" class="f10-primary">استخراج الفاتورة كاملة</button>'+
  '<button type="button" class="f10-secondary" data-repair="copy-ocr">نسخ النص</button>'+
  '<button type="button" class="f10-secondary" data-repair="export-ocr">تنزيل نص الإيصال</button></div></form>'+
  '<details class="f10-manual"><summary>لو الإيصال غير واضح — إدخال التاجر والمبلغ يدويًا</summary>'+
@@ -72,10 +72,13 @@ function proposeReceipt(text,engine){
  try{
   const suggested=C4.parseReceipt(raw);
   if(C4.autoRecord?.(suggested,"receipt")){
-   status("flosyOcrStatus","تم حفظ إجمالي "+suggested.amount+" جنيه مباشرة (يمكنك التراجع من أسفل الصفحة).");
+   status("flosyOcrStatus","تم حفظ "+suggested.amount+" جنيه من "+String(suggested.receiptDetails?.merchant||"الإيصال")+
+      " مع تفاصيل البنود المقروءة. يمكنك التراجع عن آخر معاملة.");
   }else{
    C4.parseReview(suggested,"تم استخراج الإيصال، لكن البيانات غير مكتملة أو التسجيل التلقائي مغلق. راجع الحقول أدناه.");
-   status("flosyOcrStatus","تم استخراج الإجمالي والتاريخ. راجع البيانات أدناه، أو فعّل الحفظ التلقائي وحدد حسابًا.");
+   status("flosyOcrStatus","تم استخراج "+suggested.amount+" جنيه من "+String(suggested.receiptDetails?.merchant||"الإيصال")+
+      "، والبنود المقروءة: "+(suggested.receiptDetails?.items?.length||0)+
+      ". راجع البيانات قبل الحفظ لأن بعض الحقول غير مؤكدة.");
   }
   return true;
  }catch(err){
