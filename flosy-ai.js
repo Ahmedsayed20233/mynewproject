@@ -158,7 +158,7 @@ async function ask(question){
   const session=C.getSession();if(!session)throw Error("login_required");
   const cfg=C.getCloud();
   if(selectedMode==="gemini"){
-    const response=await fetch(cfg.url.replace(/\\/$/,"")+"/functions/v1/flosy-gemini-parse",{
+    const response=await fetch(cfg.url.replace(/\/$/,"")+"/functions/v1/flosy-gemini-parse",{
       method:"POST",
       headers:{"Authorization":"Bearer "+session.access_token,
         "apikey":cfg.key,"Content-Type":"application/json"},
@@ -180,7 +180,7 @@ async function ask(question){
     if(typeof data.answer!=="string"||!data.answer)throw Error("Gemini لم يرجع إجابة.");
     // Gemini receives no actual money totals; Flosy independently computes them.
     conversation.push({role:"assistant",kind:"gemini",content:
-      data.answer.slice(0,900)+"\\n\\n--- الحسابات المؤكدة محليًا ---\\n"+answerFree(q)});
+      data.answer.slice(0,900)+"\n\n--- الحسابات المؤكدة محليًا ---\n"+answerFree(q)});
     return;
   }
   const response=await fetch(cfg.url.replace(/\/$/,"")+"/functions/v1/flosy-ai",{
