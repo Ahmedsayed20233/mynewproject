@@ -78,7 +78,7 @@ function render(){
  (paired?"تم إنشاء رمز محلي على الهاتف؛ نجاح إرسال Automate لم يتأكد بعد":"فعّل الاقتران لإنشاء قناة مشفّرة")+
  ' • في الانتظار: '+Number(s.pending||0)+' • '+(smsAuto?"الحفظ التلقائي للرسائل المالية مفعّل":"الحفظ التلقائي غير مفعّل")+'</p>'+
  '<p class="f29-small" role="status"><strong>تشخيص آخر Broadcast: </strong>'+escapeHTML(diagnosis)+'</p><div class="f29-buttons"><button class="f29-primary" type="button" data-f29="pending">عرض المعاملات المكتشفة</button>'+
- '<button class="f29-secondary" type="button" data-f29="refresh">تحديث الحالة</button><button class="f29-secondary" type="button" data-f29="undo">تراجع عن آخر معاملة تلقائية</button>'+
+ '<button class="f29-secondary" type="button" data-f29="refresh">تحديث الحالة</button><button class="f29-secondary" type="button" data-f29="auto-settings">إعدادات الحفظ التلقائي</button><button class="f29-secondary" type="button" data-f29="undo">تراجع عن آخر معاملة تلقائية</button>'+
  '<button class="f29-secondary" type="button" data-f29="clear">مسح المرشحات</button>'+
  '<button class="f29-danger" type="button" data-f29="stop">إلغاء الاقتران والتوقف</button></div></div>'+
  (message?'<p class="f29-feedback" role="status">'+escapeHTML(message)+'</p>':"")+
@@ -150,6 +150,7 @@ document.addEventListener("click",event=>{
    apps:String(byId("flosyRelayApps")?.value||"")});
   message="تم إرسال قائمة المرسلين والتطبيقات المسموح بها إلى الهاتف.";render();return;
  }
+ if(act==="auto-settings"){C.goto("v4-capture");w.FLOSY_REPAIR?.render?.();return}
  if(act==="undo"){w.FLOSY_CAPTURE?.undoLastAuto?.();render();return}
  if(act==="pending")return send("relay-pending");
  if(act==="refresh")return send("relay-status");
@@ -159,6 +160,6 @@ document.addEventListener("click",event=>{
   if(send("relay-stop")){message="تم إلغاء الاقتران. أوقف تدفقات Automate أيضًا.";render()}
  }
 });
-w.FLOSY_AUTOMATE_RELAY={render,nativePair,nativeStatus,nativePending,ack};
+w.FLOSY_AUTOMATE_RELAY={render,nativePair,nativeStatus,nativePending,ack,requestPending:()=>send("relay-pending")};
 render();
 })(window);
