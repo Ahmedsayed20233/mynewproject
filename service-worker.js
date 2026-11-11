@@ -1,5 +1,5 @@
 /* Flosy v4 offline application shell. NO database/API responses are cached. */
-const VERSION="flosy-receipt-and-voice-ml-v34-20261111";
+const VERSION="flosy-receipt-voice-ml-details-v34b-20261111";
 const SHELL=[
  "./","./index.html","./manifest.webmanifest","./icon.svg",
  "./finance-pro.js?v=1001","./finance-pro.css?v=130",
