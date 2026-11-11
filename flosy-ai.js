@@ -97,7 +97,7 @@ function view(){
  '<label style="display:block;margin:10px 0;font-weight:700">نوع المساعد <select id="flosyAiMode" aria-label="نوع مساعد Flosy">'+
  '<option value="free" '+(mode==="free"?"selected":"")+'>مساعد Flosy المحلي المجاني — يعمل بدون اشتراك</option>'+
  '<option value="gemini" '+(mode==="gemini"?"selected":"")+'>Gemini API Free — حساب شخصي بدون رسوم إضافية</option>'+ 
- '<option value="api" '+(mode!=="free"?"selected":"")+'>OpenAI API (اختياري، يتطلب إعدادًا مدفوعًا)</option></select></label>'+
+ '<option value="api" '+(mode==="api"?"selected":"")+'>OpenAI API (اختياري، يتطلب إعدادًا مدفوعًا)</option></select></label>'+
  '<div class="flosy-ai-promptrow">'+prompts.map(p=>'<button type="button" class="f2-toolbutton" data-ai-prompt="'+escapeHTML(p)+'">'+escapeHTML(p)+'</button>').join("")+'</div>'+
  '<div class="flosy-ai-messages" id="flosyAiMessages" role="log" aria-live="polite">'+
  (conversation.length?conversation.map(x=>'<div class="flosy-ai-bubble '+(x.role==="user"?"user":"assistant")+'"><div class="flosy-ai-speaker">'+(x.role==="user"?"أنت":x.kind==="gemini"?"Gemini Free":x.kind==="api"?"OpenAI API":"Flosy المحلي")+
@@ -106,7 +106,7 @@ function view(){
  (loading?'<div class="flosy-ai-loading">جارٍ التحليل…</div>':"")+'</div>'+
  (error?'<div class="f2-warning">'+escapeHTML(error)+'</div>':"")+
  '<form id="flosyAiForm" class="flosy-ai-composer"><textarea name="question" id="flosyAiQuestion" rows="3" maxlength="1200" required placeholder="مثلًا: احسبلي صندوق طوارئ 6 شهور"></textarea>'+
- (mode==="api"?'<label class="flosy-ai-consent"><input type="checkbox" id="flosyAiConsent" '+(consent?"checked":"")+
+ (mode!=="free"?'<label class="flosy-ai-consent"><input type="checkbox" id="flosyAiConsent" '+(consent?"checked":"")+
  '> '+(mode==="gemini"?"أوافق على إرسال موضوع عام ونِسَب مُقرّبة إلى Gemini Free فقط. لن نرسل السؤال الأصلي أو رسائل البنك. قد تستخدم Google المحتوى لتحسين خدماتها.":"أوافق على إرسال ملخص مالي مجمع للخادم وOpenAI (اختياري)")+'</label>':'<p class="v4-fineprint">بياناتك لا تخرج من الجهاز في الوضع المجاني.</p>')+
  '<div class="flosy-ai-bottom"><button type="submit" class="f2-toolbutton primary" '+(loading?"disabled":"")+
  '>اسأل المساعد <span aria-hidden="true">➜</span></button></div></form>'+
