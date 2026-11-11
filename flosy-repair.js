@@ -87,26 +87,22 @@ function proposeReceipt(text,engine){
 function receiveNativeReceipt(text){return proposeReceipt(text,"Android ML Kit (Latin/EGP)")}
 async function receiveNativeReceiptImage(imageDataUrl,latinText){
  const latin=String(latinText||"").slice(0,12000);
- // Fast path: keep the bundled offline OCR when it finds a reliable total.
- if(latin&&proposeReceipt(latin,"Android ML Kit Latin"))return true;
+ // Do not prematurely save a partial Latin-only scan if Arabic image exists.
  if(typeof imageDataUrl!=="string"||!/^data:image\/jpeg;base64,[a-zA-Z0-9+/=]+$/.test(imageDataUrl)
-    ||imageDataUrl.length>750000){
-  status("flosyOcrStatus","OCR اللاتيني لم يحدد إجمالي الفاتورة؛ استخدم اختيار صورة + استخراج النص بالعربي.");
-  return false;
- }
+    ||imageDataUrl.length>750000)
+  return latin?proposeReceipt(latin,"Android ML Kit (Latin only)"):false;
  if(busyOCR)return false;
  busyOCR=true;
- status("flosyOcrStatus","القراءة اللاتينية لم تتعرف على الإجمالي. جاري تجربة محرك OCR عربي/إنجليزي محليًا...");
+ status("flosyOcrStatus","جاري قراءة صورة الإيصال بالعربي والإنجليزي لاستخراج المبلغ والبنود معًا...");
  let worker=null;
  try{
   const lib=await loadOCR();
   worker=await lib.createWorker(["ara","eng"]);
-  const ocr=await worker.recognize(imageDataUrl);
-  const text=String(ocr?.data?.text||"");
-  return proposeReceipt(text||latin,"Tesseract Arabic/English (Android image)");
+  const text=await readMultipleOCR(worker,imageDataUrl);
+  return proposeReceipt([text,latin].filter(Boolean).join("\n"),"ML Kit + Tesseract Arabic/English + ReceiptML");
  }catch(e){
-  status("flosyOcrStatus","تعذر إكمال OCR العربي: "+String(e.message||e)+". اختر صورة أوضح أو صحّح النص المستخرج.");
-  return false;
+  status("flosyOcrStatus","تعذر تشغيل OCR العربي: "+String(e.message||e)+". جاري تحليل النص المتاح.");
+  return latin?proposeReceipt(latin,"ML Kit Latin fallback"):false;
  }finally{
   if(worker)try{await worker.terminate()}catch{}
   busyOCR=false;
@@ -154,6 +150,51 @@ async function loadOCR(){
   document.head.appendChild(script);
  });
 }
+// Bilingual OCR with one bounded grayscale/contrast pass on crumpled receipts.
+// The original image remains on the device, never sent to Gemini or Supabase.
+async function contrastReceiptImage(source){
+ let url=null;
+ try{
+  const data=typeof source==="string"&&/^data:image\//.test(source);
+  url=data?source:URL.createObjectURL(source);
+  const img=await new Promise((resolve,reject)=>{
+   const el=new Image();el.onload=()=>resolve(el);el.onerror=()=>reject(Error("تعذر فتح الصورة"));el.src=url;
+  });
+  const maxDim=Math.max(img.naturalWidth,img.naturalHeight);
+  if(!maxDim)return null;
+  const scale=Math.min(2.0,2200/maxDim);
+  const canvas=document.createElement("canvas");
+  canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));
+  canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+  const ctx=canvas.getContext("2d",{willReadFrequently:true});if(!ctx)return null;
+  ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(img,0,0,canvas.width,canvas.height);
+  const out=ctx.getImageData(0,0,canvas.width,canvas.height),pixels=out.data;
+  for(let i=0;i<pixels.length;i+=4){
+    const gray=.299*pixels[i]+.587*pixels[i+1]+.114*pixels[i+2];
+    const light=Math.max(0,Math.min(255,Math.round((gray-125)*1.42+142)));
+    pixels[i]=light;pixels[i+1]=light;pixels[i+2]=light;
+  }
+  ctx.putImageData(out,0,0);
+  return canvas;
+ }finally{if(url&&url.startsWith("blob:"))URL.revokeObjectURL(url)}
+}
+async function readMultipleOCR(worker,source){
+ const outputs=[];
+ try{
+  const first=await worker.recognize(source);
+  const value=String(first?.data?.text||"").trim();if(value)outputs.push(value);
+ }catch{}
+ try{
+  const contrast=await contrastReceiptImage(source);
+  if(contrast){
+   const second=await worker.recognize(contrast),value=String(second?.data?.text||"").trim();
+   if(value&&value!==outputs[0])outputs.push(value);
+  }
+ }catch{}
+ if(!outputs.length)throw Error("OCR لم يتعرف على نص صالح");
+ return outputs.join("\n");
+}
 async function scanReceipt(){
  if(busyOCR)return;
  const input=el("v4-ocr-file"),file=input?.files?.[0];
@@ -173,8 +214,7 @@ async function scanReceipt(){
  try{
   const lib=await loadOCR();
   worker=await lib.createWorker(["ara","eng"]);
-  const result=await worker.recognize(file);
-  const text=String(result?.data?.text||"");
+  const text=await readMultipleOCR(worker,file);
   if(!proposeReceipt(text,"Tesseract Arabic/English"))
    throw Error("تعذر تحديد إجمالي مؤكد؛ جرّب صورة أوضح أو صحح إجمالي الفاتورة");
  }catch(err){
