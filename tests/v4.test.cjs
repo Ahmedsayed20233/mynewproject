@@ -150,6 +150,20 @@ test("Saved receipt itemized details are accessible from the transaction table",
  assert.match(html,/سعر الوحدة/);
  assert.match(html,/safe\(it\.name/);
 });
+test("Clear receipts use explicitly selected account when no payment type is printed",()=>{
+ const c=context();load("flosy-receipt-ml.js",c);load("flosy-v4-capture.js",c);
+ const cap=c.window.FLOSY_CAPTURE;
+ const text=["THE STORE","Date: 10/11/2026","Grand Total","125.00"].join("\n");
+ const without=cap.parseReceipt(text);
+ assert.equal(without.autoQuality,false);
+ cap.setAutoAccount("wallet");
+ const withAccount=cap.parseReceipt(text);
+ assert.equal(withAccount.amount,125);
+ assert.equal(withAccount.accountId,"wallet");
+ assert.equal(withAccount.autoQuality,true);
+ const partial=cap.parseReceipt(text+"\nPAID: 90.00");
+ assert.equal(partial.autoQuality,false,"Paid amount differs from total, so manual review is mandatory");
+});
 test("ReceiptML tolerates misrecognized Arabic net label using paid fallback, never auto-posts it",()=>{
  const c=context();load("flosy-receipt-ml.js",c);load("flosy-v4-capture.js",c);
  const text=["ZINC","عدد الأصناف: 1","إجمالي الكمية: 1 خصم 0.00",
