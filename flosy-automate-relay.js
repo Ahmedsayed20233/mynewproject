@@ -25,6 +25,24 @@ function render(){
  const root=byId("flosyAutomateRelayRoot");if(!root)return;
  if(!enabled()){root.innerHTML="";return}
  const s=info||{},pkg=s.packageName||"com.flosy.finance",paired=s.paired===true;
+ const relayReasons={
+  none:"لم تُسجل هذه النسخة أي رسالة Broadcast حتى الآن. تحقق من Package وReceiver class ورمز الاقتران.",
+  invalid_pair_token:"وصل Broadcast، لكن رمز الاقتران غير مطابق. أنشئ رمزًا جديدًا وحدّثه في Automate.",
+  sender_not_allowed:"وصل Broadcast، لكن المصدر أو اسم المرسل غير موجود بقائمة السماح في Flosy.",
+  invalid_message:"وصل Broadcast، لكن نص الرسالة غير موجود أو بطول غير صالح.",
+  sensitive_message:"وصلت رسالة تحتوي مؤشرات بيانات حساسة؛ تم استبعادها للحماية.",
+  failed_or_pending:"وصلت رسالة تخص عملية معلّقة أو فاشلة، لذلك لم تُضاف.",
+  not_transaction:"وصل Broadcast لكن النص لا يبدو معاملة مالية.",
+  currency_not_detected:"وصل Broadcast لكن لم يُكتشف رمز عملة معروف مثل EGP أو جنيه.",
+  timestamp_out_of_range:"وصل Broadcast لكن التاريخ خارج نطاق المراجعة المسموح.",
+  duplicate_candidate:"وصل Broadcast لكنه يطابق مرشحًا سبق استقباله.",
+  encrypted_queue_error:"وصل Broadcast لكن حدثت مشكلة في التخزين المشفّر على الهاتف.",
+  invalid_extras:"وصل Broadcast لكن صيغة الحقول Extras غير صالحة.",
+  accepted_candidate:"وصل Broadcast وقُبل كمرشح مالي؛ افتح قائمة المراجعة."
+ };
+ const lastCode=String(s.lastDeliveryCode||"none");
+ const diagnosis=relayReasons[lastCode]||"وصل Broadcast؛ لم يتعرف التطبيق على حالة التشخيص.";
+
  root.innerHTML='<section class="f29-panel"><div class="f29-head"><div><span class="f29-overline">FLOSY • LOCAL AUTOMATION</span>'+
  '<h2>استيراد تلقائي مجاني — من هاتفك لفلوسي</h2><p>اربط Automate من Google Play مع Flosy من غير مفتاح API أو حساب مطوّر أو تعطيل Play Protect.</p></div>'+
  '<span class="f29-pill">'+(paired?"متصل محليًا":"غير مقترن")+'</span></div>'+
@@ -54,9 +72,9 @@ function render(){
  '<p class="f29-small">في Extras أضف: <code>token</code>، <code>source</code>، <code>sender</code>، <code>text</code>. قيمة source للرسالة <code>sms</code> وللإشعار <code>notification</code>. اكتب رقم أو اسم المرسل الحقيقي في sender، وPackage اسم InstaPay هو <code>'+officialApp+'</code>.</p></div>'+
  '</div>'+
  '<div class="f29-controls"><strong>الحالة والمرشحات</strong><p>'+
- (paired?"تم إنشاء اقتران على الهاتف":"فعّل الاقتران لإنشاء قناة مشفّرة")+
+ (paired?"تم إنشاء رمز محلي على الهاتف؛ نجاح إرسال Automate لم يتأكد بعد":"فعّل الاقتران لإنشاء قناة مشفّرة")+
  ' • في الانتظار: '+Number(s.pending||0)+' • Flosy لا يحفظ معاملات تلقائيًا</p>'+
- '<div class="f29-buttons"><button class="f29-primary" type="button" data-f29="pending">عرض المعاملات المكتشفة</button>'+
+ '<p class="f29-small" role="status"><strong>تشخيص آخر Broadcast: </strong>'+escapeHTML(diagnosis)+'</p><div class="f29-buttons"><button class="f29-primary" type="button" data-f29="pending">عرض المعاملات المكتشفة</button>'+
  '<button class="f29-secondary" type="button" data-f29="refresh">تحديث الحالة</button>'+
  '<button class="f29-secondary" type="button" data-f29="clear">مسح المرشحات</button>'+
  '<button class="f29-danger" type="button" data-f29="stop">إلغاء الاقتران والتوقف</button></div></div>'+
@@ -67,7 +85,9 @@ function nativeStatus(s){
  if(!s||typeof s!=="object")return;
  info={paired:!!s.paired,senders:String(s.senders||"").slice(0,400),
  apps:String(s.apps||"").slice(0,400),pending:Number(s.pending)||0,
- packageName:String(s.packageName||"com.flosy.finance").slice(0,100)};
+ packageName:String(s.packageName||"com.flosy.finance").slice(0,100),
+ lastDeliveryCode:String(s.lastDeliveryCode||"none").slice(0,50),
+ lastDeliveryAt:Number(s.lastDeliveryAt)||0};
  render();
 }
 function nativePair(result){
