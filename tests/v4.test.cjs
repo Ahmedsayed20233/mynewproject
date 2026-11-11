@@ -37,6 +37,54 @@ test("Egyptian spoken phrase preserves amount and coffee classification",()=>{
  assert.equal(r.amount,75);assert.equal(r.category,"ترفيه");assert.equal(r.type,"expense");
  assert.equal(r.accountId,"bank");
 });
+test("Offline trained VoiceNLU recognizes Egyptian Arabic number words and safe expense",()=>{
+ const c=context();load("flosy-voice-nlu.js",c);load("flosy-v4-capture.js",c);
+ const m=c.window.FLOSY_VOICE_NLU;
+ const out=m.classify("دفعت مية وخمسين جنيه قهوة من الكاش");
+ assert.equal(out.intent,"expense");assert.equal(out.reliable,true);
+ assert.equal(m.spokenAmount("دفعت مية وخمسين جنيه قهوة"),150);
+ assert.equal(m.spokenAmount("دفعت الف ومتين وخمسين جنيه"),1250);
+ assert.equal(m.spokenAmount("دفعت تلات الاف وخمسمية جنيه"),3500);
+ assert.equal(m.spokenAmount("دفعت اتنين ونص جنيه"),2.5);
+ const v=c.window.FLOSY_CAPTURE.parseVoice("دفعت مية وخمسين جنيه قهوة من الكاش");
+ assert.equal(v.amount,150);assert.equal(v.category,"ترفيه");
+ assert.equal(v.accountId,"wallet");assert.equal(v.type,"expense");
+ assert.equal(v.autoQuality,true);
+ assert.ok(v.voiceDetails.confidence>.75);
+ c.window.FLOSY_CAPTURE.setAuto("voice",true);
+ assert.equal(c.window.FLOSY_CAPTURE.autoRecord(v,"voice"),true);
+ assert.equal(c.data.transactions[0].amount,150);
+ assert.equal(c.data.transactions[0].voiceDetails.intent,"expense");
+ assert.equal(c.data.transactions[0].rawTranscript,undefined);
+ assert.equal(c.data.transactions[0].voiceText,undefined);
+ assert.equal(c.window.FLOSY_CAPTURE.isDuplicate(v),true);
+});
+test("VoiceNLU safely rejects hypothetical, negated, and own-account transfer utterances",()=>{
+ const c=context();load("flosy-voice-nlu.js",c);load("flosy-v4-capture.js",c);
+ const m=c.window.FLOSY_VOICE_NLU;
+ for(const msg of ["هشتري قهوة بمية جنيه بكرة","لسه مدفعتش مية جنيه",
+   "لو دفعت عشرين جنيه هيفضل كام","مش حقيقي دفعت خمسين جنيه"]){
+   assert.equal(m.classify(msg).intent,"none",msg);
+   assert.throws(()=>c.window.FLOSY_CAPTURE.parseVoice(msg),/معاملة مكتملة/);
+ }
+ for(const msg of ["حولت ميتين جنيه من البنك للكاش","نقلت 200 جنيه بين حساباتي"]){
+   assert.equal(m.classify(msg).intent,"transfer",msg);
+   assert.throws(()=>c.window.FLOSY_CAPTURE.parseVoice(msg),/تحويلًا بين حساباتك/);
+ }
+ assert.equal(c.data.transactions.length,0);
+});
+test("VoiceNLU recognizes income without misclassifying expense and keeps category",()=>{
+ const c=context();load("flosy-voice-nlu.js",c);load("flosy-v4-capture.js",c);
+ const cap=c.window.FLOSY_CAPTURE;
+ const income=cap.parseVoice("قبضت الفين جنيه من الشغل امبارح");
+ assert.equal(income.amount,2000);assert.equal(income.type,"income");
+ assert.equal(income.category,"مرتب");assert.equal(income.autoQuality,true);
+ const expense=cap.parseVoice("صرفت تلاتين جنيه بنزين من الكاش");
+ assert.equal(expense.amount,30);assert.equal(expense.type,"expense");
+ assert.equal(expense.category,"مواصلات");
+ assert.equal(expense.accountId,"wallet");
+});
+
 test("Receipt OCR proposal handles a currency-bearing TOTAL line",()=>{
  const c=context();load("flosy-v4-capture.js",c);
  const r=c.window.FLOSY_CAPTURE.parseReceipt("CAFE CAMPUS\nTOTAL: EGP 125.00\nThank you");
