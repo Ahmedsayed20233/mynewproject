@@ -85,6 +85,33 @@ function proposeReceipt(text,engine){
  }
 }
 function receiveNativeReceipt(text){return proposeReceipt(text,"Android ML Kit (Latin/EGP)")}
+async function receiveNativeReceiptImage(imageDataUrl,latinText){
+ const latin=String(latinText||"").slice(0,12000);
+ // Fast path: keep the bundled offline OCR when it finds a reliable total.
+ if(latin&&proposeReceipt(latin,"Android ML Kit Latin"))return true;
+ if(typeof imageDataUrl!=="string"||!/^data:image\/jpeg;base64,[a-zA-Z0-9+/=]+$/.test(imageDataUrl)
+    ||imageDataUrl.length>750000){
+  status("flosyOcrStatus","OCR اللاتيني لم يحدد إجمالي الفاتورة؛ استخدم اختيار صورة + استخراج النص بالعربي.");
+  return false;
+ }
+ if(busyOCR)return false;
+ busyOCR=true;
+ status("flosyOcrStatus","القراءة اللاتينية لم تتعرف على الإجمالي. جاري تجربة محرك OCR عربي/إنجليزي محليًا...");
+ let worker=null;
+ try{
+  const lib=await loadOCR();
+  worker=await lib.createWorker(["ara","eng"]);
+  const ocr=await worker.recognize(imageDataUrl);
+  const text=String(ocr?.data?.text||"");
+  return proposeReceipt(text||latin,"Tesseract Arabic/English (Android image)");
+ }catch(e){
+  status("flosyOcrStatus","تعذر إكمال OCR العربي: "+String(e.message||e)+". اختر صورة أوضح أو صحّح النص المستخرج.");
+  return false;
+ }finally{
+  if(worker)try{await worker.terminate()}catch{}
+  busyOCR=false;
+ }
+}
 function nativeAction(action,fallback,text=""){
  try{
   if(w.FlosyNative&&typeof w.FlosyNative.postMessage==="function"){
@@ -240,6 +267,6 @@ document.addEventListener("click",async e=>{
   catch{C.toast("حدد النص وانسخه يدويًا")}
  }
 });
-w.FLOSY_REPAIR={render,scanReceipt,startVoice,receiveNativeReceipt,proposeReceipt,nativeVoiceError,nativeVoiceResult,nativeVoiceStatus,nativeAction};
+w.FLOSY_REPAIR={render,scanReceipt,startVoice,receiveNativeReceipt,receiveNativeReceiptImage,proposeReceipt,nativeVoiceError,nativeVoiceResult,nativeVoiceStatus,nativeAction};
 render();
 })(window);
