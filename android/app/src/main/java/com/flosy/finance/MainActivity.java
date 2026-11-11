@@ -41,6 +41,13 @@ import android.os.Handler;
 import android.os.Looper;
 import java.io.File;
 import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import androidx.core.content.FileProvider;
@@ -70,6 +77,7 @@ public class MainActivity extends Activity {
     private String pendingSharedMessage = null;
     private boolean pageReady = false;
     private String pendingNativeReceiptText = null;
+    private String pendingNativeReceiptImage = null;
     private String pendingVoiceText = null;
     private SpeechRecognizer speechRecognizer = null;
     private boolean speechBusy = false;
@@ -77,6 +85,15 @@ public class MainActivity extends Activity {
     private Uri photoUri = null;
     private File photoFile = null;
     private String pendingReceiptExport = null;
+    private boolean relayWakeReceiverRegistered=false;
+    private final BroadcastReceiver relayWakeReceiver=new BroadcastReceiver(){
+        @Override public void onReceive(Context context,Intent intent){
+            if(intent!=null&&"com.flosy.finance.AUTO_RELAY_QUEUE_UPDATED".equals(intent.getAction())){
+                if(webView!=null&&pageReady)webView.post(MainActivity.this::sendRelayStatus);
+            }
+        }
+    };
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -420,6 +437,8 @@ public class MainActivity extends Activity {
             data.put("senders",AutoRelayStore.senders(this));
             data.put("apps",AutoRelayStore.apps(this));
             data.put("pending",AutoRelayStore.pending(this).length());
+            data.put("lastDeliveryCode",AutoRelayStore.lastDeliveryCode(this));
+            data.put("lastDeliveryAt",AutoRelayStore.lastDeliveryAt(this));
             data.put("packageName",getPackageName());
             relayWebEvent("nativeStatus",data);
         }catch(Exception ignored){}
@@ -506,6 +525,49 @@ public class MainActivity extends Activity {
         }
     }
 
+    // Bound the image passed to the trusted WebView. Arabic OCR is not supported
+    // by the bundled ML Kit Latin recognizer, so Tesseract can scan this downscaled
+    // in-memory JPEG locally when Latin OCR cannot find a confident total.
+    private String nativeReceiptThumbnail(Uri uri){
+        try{
+            BitmapFactory.Options bounds=new BitmapFactory.Options();
+            bounds.inJustDecodeBounds=true;
+            try(InputStream in=getContentResolver().openInputStream(uri)){
+                if(in==null)return null;
+                BitmapFactory.decodeStream(in,null,bounds);
+            }
+            if(bounds.outWidth<=0||bounds.outHeight<=0)return null;
+            BitmapFactory.Options opts=new BitmapFactory.Options();
+            int max=Math.max(bounds.outWidth,bounds.outHeight),factor=1;
+            while(max/factor>1700)factor*=2;
+            opts.inSampleSize=factor;
+            Bitmap bitmap;
+            try(InputStream in=getContentResolver().openInputStream(uri)){
+                if(in==null)return null;
+                bitmap=BitmapFactory.decodeStream(in,null,opts);
+            }
+            if(bitmap==null)return null;
+            try{
+                Bitmap scaled=bitmap;
+                int bigger=Math.max(bitmap.getWidth(),bitmap.getHeight());
+                if(bigger>1700){
+                    float ratio=1700f/bigger;
+                    scaled=Bitmap.createScaledBitmap(bitmap,
+                        Math.max(1,Math.round(bitmap.getWidth()*ratio)),
+                        Math.max(1,Math.round(bitmap.getHeight()*ratio)),true);
+                }
+                try{
+                    ByteArrayOutputStream bytes=new ByteArrayOutputStream(110000);
+                    if(!scaled.compress(Bitmap.CompressFormat.JPEG,72,bytes))return null;
+                    byte[] imageBytes=bytes.toByteArray();
+                    // Never bridge or upload full-sized receipts.
+                    if(imageBytes.length>500000)return null;
+                    return "data:image/jpeg;base64,"+Base64.encodeToString(imageBytes,Base64.NO_WRAP);
+                }finally{if(scaled!=bitmap)scaled.recycle();}
+            }finally{bitmap.recycle();}
+        }catch(Exception ignored){return null;}
+    }
+
     private void recognizeReceipt(Uri uri) {
         if(uri==null || !"content".equalsIgnoreCase(uri.getScheme())) {
             Toast.makeText(this,"اختار صورة من تطبيق الصور أو الملفات.",Toast.LENGTH_LONG).show();
@@ -518,6 +580,7 @@ public class MainActivity extends Activity {
                 if(d==null || (d.getLength()>8L*1024*1024))
                     throw new IllegalArgumentException("Image exceeds 8 MB");
             }
+            final String thumbnail=nativeReceiptThumbnail(uri);
             InputImage image=InputImage.fromFilePath(this,uri);
             TextRecognizer engine=TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
             Toast.makeText(this,"جارٍ استخراج النص محليًا من الإيصال...",Toast.LENGTH_SHORT).show();
@@ -526,14 +589,18 @@ public class MainActivity extends Activity {
                     String txt=result==null?"":result.getText();
                     if(txt.length()>12000)txt=txt.substring(0,12000);
                     pendingNativeReceiptText=txt;
+                    pendingNativeReceiptImage=thumbnail;
                     deliverNativePending();
                     if(txt.trim().isEmpty())Toast.makeText(this,
                         "الصورة غير واضحة. جرّب إضاءة أفضل وإيصالًا أقرب.",
                         Toast.LENGTH_LONG).show();
                 })
-                .addOnFailureListener(ex -> Toast.makeText(this,
-                    "فشل OCR المحلي؛ استخدم المسح من المتصفح أو إدخال نص الإيصال.",
-                    Toast.LENGTH_LONG).show())
+                .addOnFailureListener(ex -> {
+                    pendingNativeReceiptText="";
+                    pendingNativeReceiptImage=thumbnail;
+                    deliverNativePending();
+                    Toast.makeText(this,"هحاول قراءة الإيصال بالعربي داخل Flosy.",Toast.LENGTH_LONG).show();
+                })
                 .addOnCompleteListener(task -> {engine.close();cleanupPhoto();});
         }catch(Exception ex){
             cleanupPhoto();
@@ -547,10 +614,19 @@ public class MainActivity extends Activity {
                 !webView.getUrl().startsWith(HOME))return;
         if(pendingNativeReceiptText!=null) {
             final String text=pendingNativeReceiptText;
+            final String img=pendingNativeReceiptImage;
             pendingNativeReceiptText=null;
-            webView.evaluateJavascript(
-                "if(window.FLOSY_REPAIR&&window.FLOSY_REPAIR.receiveNativeReceipt)"+
-                "window.FLOSY_REPAIR.receiveNativeReceipt("+JSONObject.quote(text)+");",null);
+            pendingNativeReceiptImage=null;
+            if(img!=null){
+                webView.evaluateJavascript(
+                    "if(window.FLOSY_REPAIR&&window.FLOSY_REPAIR.receiveNativeReceiptImage)"+
+                    "window.FLOSY_REPAIR.receiveNativeReceiptImage("+
+                    JSONObject.quote(img)+","+JSONObject.quote(text)+");",null);
+            }else{
+                webView.evaluateJavascript(
+                    "if(window.FLOSY_REPAIR&&window.FLOSY_REPAIR.receiveNativeReceipt)"+
+                    "window.FLOSY_REPAIR.receiveNativeReceipt("+JSONObject.quote(text)+");",null);
+            }
         }
         if(pendingVoiceText!=null) {
             final String text=pendingVoiceText;
@@ -647,7 +723,7 @@ public class MainActivity extends Activity {
                     if(phrases!=null&&!phrases.isEmpty()&&phrases.get(0)!=null&&!phrases.get(0).trim().isEmpty()){
                         pendingVoiceText=phrases.get(0).substring(0,Math.min(320,phrases.get(0).length()));
                         deliverNativePending();
-                        sendVoiceStatus("تم التعرف على الكلام. راجع قيمة المصروف ثم أكد الحفظ.");
+                        sendVoiceStatus("تم التعرف على الكلام، وسيتم تسجيل العملية الواضحة تلقائيًا إذا فعّلت الخيار.");
                     }else notifyVoiceFailure("لم يتعرف على الكلام. جرّب الجملة مرة أخرى.");
                 }
                 @Override public void onPartialResults(Bundle partialResults){}
@@ -768,7 +844,24 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume(){
         super.onResume();
+        if(!relayWakeReceiverRegistered){
+            try{
+                IntentFilter filter=new IntentFilter("com.flosy.finance.AUTO_RELAY_QUEUE_UPDATED");
+                if(Build.VERSION.SDK_INT>=33)registerReceiver(relayWakeReceiver,filter,Context.RECEIVER_NOT_EXPORTED);
+                else registerReceiver(relayWakeReceiver,filter);
+                relayWakeReceiverRegistered=true;
+            }catch(Exception ignored){}
+        }
         if(webView!=null&&pageReady)webView.post(this::sendRelayStatus);
+    }
+
+    @Override
+    protected void onPause(){
+        if(relayWakeReceiverRegistered){
+            try{unregisterReceiver(relayWakeReceiver);}catch(Exception ignored){}
+            relayWakeReceiverRegistered=false;
+        }
+        super.onPause();
     }
 
     @Override

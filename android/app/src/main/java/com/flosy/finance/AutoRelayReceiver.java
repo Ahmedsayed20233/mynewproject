@@ -13,18 +13,30 @@ public final class AutoRelayReceiver extends BroadcastReceiver {
     public static final String ACTION="com.flosy.finance.REVIEW_EXTERNAL_FINANCIAL_EVENT";
     @Override public void onReceive(Context context,Intent intent) {
         if(intent==null||!ACTION.equals(intent.getAction()))return;
-        String text=intent.getStringExtra("text");
-        String token=intent.getStringExtra("token");
-        String source=intent.getStringExtra("source");
-        String sender=intent.getStringExtra("sender");
-        long millis=intent.getLongExtra("timestamp",0L);
-        // Some automation tools serialize all dictionary values as Strings.
-        if(millis<=0){
-            String time=intent.getStringExtra("timestamp");
-            try{millis=Long.parseLong(time==null?"":time);}
-            catch(NumberFormatException ignored){millis=System.currentTimeMillis();}
+        try {
+            String text=intent.getStringExtra("text");
+            String token=intent.getStringExtra("token");
+            String source=intent.getStringExtra("source");
+            String sender=intent.getStringExtra("sender");
+            long millis=System.currentTimeMillis();
+            // Avoid ClassCastException if Automate provides timestamp as a String.
+            Object raw=intent.hasExtra("timestamp")&&intent.getExtras()!=null?
+                intent.getExtras().get("timestamp"):null;
+            if(raw instanceof Number)millis=((Number)raw).longValue();
+            else if(raw instanceof String){
+                try{millis=Long.parseLong((String)raw);}catch(NumberFormatException ignored){}
+            }
+            if(AutoRelayStore.accept(context.getApplicationContext(),
+                token,source,sender,text,millis)){
+                // Wake only the active Flosy Activity; Android keeps the queue
+                // encrypted when the Activity is closed or in the background.
+                Intent ready=new Intent("com.flosy.finance.AUTO_RELAY_QUEUE_UPDATED");
+                ready.setPackage(context.getPackageName());
+                context.sendBroadcast(ready);
+            }
+        } catch(Exception ignored){
+            // Diagnostic code only; never log message text, sender, or secret.
+            AutoRelayStore.invalidExtras(context.getApplicationContext());
         }
-        AutoRelayStore.accept(context.getApplicationContext(),
-            token,source,sender,text,millis);
     }
 }
