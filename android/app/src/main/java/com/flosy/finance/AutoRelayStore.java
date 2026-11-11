@@ -31,6 +31,22 @@ public final class AutoRelayStore {
     private static final String PREFS="flosy_safe_automate_v1";
     private static final String CRYPTO="FlosySafeRelayAesGcmV1";
     private static final String ENABLE="enabled",TOKEN_HASH="pair_hash",QUEUE="queue";
+    // Diagnostic metadata only: never persist sender, message, account number or token.
+    private static final String LAST_DELIVERY="last_delivery_code";
+    private static final String LAST_DELIVERY_AT="last_delivery_at";
+    public static String lastDeliveryCode(Context c){
+        return p(c).getString(LAST_DELIVERY,"none");
+    }
+    public static long lastDeliveryAt(Context c){
+        return p(c).getLong(LAST_DELIVERY_AT,0L);
+    }
+    private static boolean outcome(Context c,String code,boolean accepted){
+        p(c).edit().putString(LAST_DELIVERY,code)
+            .putLong(LAST_DELIVERY_AT,System.currentTimeMillis()).apply();
+        return accepted;
+    }
+    public static void invalidExtras(Context c){outcome(c,"invalid_extras",false);}
+
     private static final String SENDERS="senders",APPS="apps";
     private static final String INSTA="com.egyptianbanks.instapay";
     private static final SecureRandom RNG=new SecureRandom();
@@ -71,7 +87,8 @@ public final class AutoRelayStore {
         try{
             // Rotate token + clear candidates to reject any prior automation silently.
             p(c).edit().putString(TOKEN_HASH,hex(hash(raw)))
-                .putBoolean(ENABLE,true).remove(QUEUE).commit();
+                .putBoolean(ENABLE,true).remove(QUEUE)
+                .remove(LAST_DELIVERY).remove(LAST_DELIVERY_AT).commit();
         }catch(Exception ignored){return "";}
         return raw;
     }
@@ -158,15 +175,20 @@ public final class AutoRelayStore {
     }
     /** All incoming data is untrusted, even with the pairing secret. */
     public static synchronized boolean accept(Context c,String token,String source,String sender,String text,long when){
-        if(!verify(c,token)||!sourceAllowed(c,source,sender)||
-            text==null||text.length()<9||text.length()>2000)return false;
-        if(SECRET.matcher(text).find()||FAILED.matcher(text).find()||
-            !TX.matcher(text).find()||!CURRENCY.matcher(text).find())return false;
+        if(!verify(c,token))return outcome(c,"invalid_pair_token",false);
+        if(!sourceAllowed(c,source,sender))return outcome(c,"sender_not_allowed",false);
+        if(text==null||text.length()<9||text.length()>2000)
+            return outcome(c,"invalid_message",false);
+        if(SECRET.matcher(text).find())return outcome(c,"sensitive_message",false);
+        if(FAILED.matcher(text).find())return outcome(c,"failed_or_pending",false);
+        if(!TX.matcher(text).find())return outcome(c,"not_transaction",false);
+        if(!CURRENCY.matcher(text).find())return outcome(c,"currency_not_detected",false);
         long now=System.currentTimeMillis();
         if(when<1)when=now;
-        // Automate's SMS timestamp may be Unix seconds.
+        // Automate timestamps may be Unix seconds.
         if(when<100000000000L)when*=1000L;
-        if(when<now-MAX_AGE_MS||when>now+24L*60*60*1000)return false;
+        if(when<now-MAX_AGE_MS||when>now+24L*60*60*1000)
+            return outcome(c,"timestamp_out_of_range",false);
         String safe=CARD.matcher(text).replaceAll("[رقم حساب مخفي]");
         safe=PHONE.matcher(safe).replaceAll("[هاتف مخفي]");
         safe=EMAIL.matcher(safe).replaceAll("[بريد مخفي]");
@@ -178,7 +200,8 @@ public final class AutoRelayStore {
             JSONArray prior=pending(c);
             for(int i=0;i<prior.length();i++){
                 JSONObject x=prior.optJSONObject(i);
-                if(x!=null&&hash.equals(x.optString("id")))return false;
+                if(x!=null&&hash.equals(x.optString("id")))
+                    return outcome(c,"duplicate_candidate",false);
             }
             JSONObject row=new JSONObject();
             row.put("id",hash);row.put("date",when);
@@ -188,8 +211,8 @@ public final class AutoRelayStore {
             JSONArray cap=new JSONArray();
             for(int i=Math.max(0,prior.length()-60);i<prior.length();i++)cap.put(prior.get(i));
             write(c,cap);
-            return true;
-        }catch(Exception e){return false;}
+            return outcome(c,"accepted_candidate",true);
+        }catch(Exception e){return outcome(c,"encrypted_queue_error",false);}
     }
     public static synchronized JSONArray pending(Context c){
         JSONArray all=read(c),valid=new JSONArray();
