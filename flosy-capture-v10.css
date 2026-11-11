@@ -49,3 +49,12 @@
 @media(max-width:850px){.f10-two{grid-template-columns:1fr}.f10-hero{padding:22px}}
 @media(max-width:580px){.f10-card,.f10-extracted,.f10-review{padding:15px;border-radius:16px}.f10-hero{padding:19px 16px}.f10-hero h2{font-size:23px}.f10-hero p{font-size:11px}.f10-mini-pills span{font-size:9px}.f10-mic-wrap{padding:12px}.f10-primary,.f10-secondary{min-height:46px}.f10-tools{flex-direction:column}.f10-tools>button{width:100%}}
 @media(prefers-reduced-motion:reduce){.f10-primary,.f10-secondary{transition:none}}
+
+/* Opt-in auto capture controls: visible on small Android screens. */
+.f10-auto-settings{margin-top:16px;padding:13px;border:1px solid #cee8df;border-radius:14px;background:#fff;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.f10-auto-settings label{display:flex;align-items:center;gap:8px;color:#275e5b;font-size:12px;font-weight:800;line-height:1.6}
+.f10-auto-settings input[type=checkbox]{width:18px;height:18px;flex:none;accent-color:#0c8376}
+.f10-auto-settings select{width:100%;min-height:38px;border:1px solid #c7ddd6;border-radius:8px;padding:7px;background:#fff;color:#214750;font-size:12px}
+.f10-auto-settings label:has(select){grid-column:1/-1;display:grid;gap:5px}
+.f10-auto-settings small{grid-column:1/-1;color:#5b7778;line-height:1.7}
+@media(max-width:740px){.f10-auto-settings{grid-template-columns:1fr}.f10-auto-settings label{min-height:28px}.f10-auto-settings label:has(select){grid-column:auto}.f10-auto-settings small{grid-column:auto}}
