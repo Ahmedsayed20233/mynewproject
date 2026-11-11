@@ -95,7 +95,7 @@ test("Trained voice NLU metadata is explicit about synthetic evaluation and no a
  assert.doesNotMatch(voice,/fetch\s*\(|gemini\-api|x\-goog\-api\-key/);
  const script=fs.readFileSync("tools/train_voice_intent_model.py","utf8");
  assert.match(script,/LogisticRegression/);
- assert.match(script,/14800/);
+ assert.match(script,/range\(3700\)/);
 });
 test("Receipt OCR proposal handles a currency-bearing TOTAL line",()=>{
  const c=context();load("flosy-v4-capture.js",c);
