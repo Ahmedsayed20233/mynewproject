@@ -135,7 +135,7 @@ function parseBankSMS(source){
  const debit=/(?:خصم|سحب|شراء|دفع|تم\s*التحويل\s*من|debit|withdraw|paid|purchase|spent|payment|pos\s*purchase)/i.test(low);
  const credit=/(?:إيداع|ايداع|استلام|اضافه|إضافة|تم\s*التحويل\s*إلى|credit|received|deposit|salary)/i.test(low);
  if(!debit&&!credit)throw Error("الرسالة لا تحتوي اتجاه معاملة واضح (خصم أو إيداع).");
- const amount=amountFrom(str)??spokenEgyptianAmount(str);if(amount===null)throw Error("لم أجد مبلغًا مؤكدًا بعملة EGP في الرسالة.");
+ const amount=amountFrom(str);if(amount===null)throw Error("لم أجد مبلغًا مؤكدًا بعملة EGP في الرسالة.");
  const dateMatch=str.match(/\b([0-3]?\d)[\/-]([01]?\d)[\/-](20\d{2})\b/);
  let dt=dateLocal();
  if(dateMatch){let d=new Date(+dateMatch[3],+dateMatch[2]-1,+dateMatch[1]);if(d.getDate()===+dateMatch[1]&&d.getMonth()+1===+dateMatch[2])dt=[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")}
@@ -173,7 +173,7 @@ function parseVoice(text){
  const str=digits(String(text||"").trim());
  if(/\b(?:OTP|PIN|CVV)\b|رمز.{0,12}(?:التحقق|السري)/i.test(str))
   throw Error("لا يمكن تسجيل رموز تحقق بالصوت");
- const amount=amountFrom(str);
+ const amount=amountFrom(str)??spokenEgyptianAmount(str);
  if(!validAmount(amount))throw Error("قول مبلغ واضح، مثال: دفعت 75 جنيه قهوة من الكاش.");
  const out=/دفعت|صرفت|اشتريت|دفعنا|سحبت|حولت|حوّلت|بعت|دفعة|مصروف|خصمت|شراء/.test(str);
  const inc=/استلمت|جالي|وصلني|مرتب|دخلت|قبضت|إيداع|ايداع|تحويل وارد/.test(str);
