@@ -306,6 +306,49 @@ async function startLocal(){
   await page.evaluate(()=>window.FLOSY_BRIDGE.goto("dashboard"));
   console.log("PASS: Studio widget controls, account balance preview, and canonical quick-add sheet");
 
+  // AutoCapture v3.1: all data below is synthetic; no real finance identifiers.
+  const autoTests=await page.evaluate(()=>{
+   const C=window.FLOSY_BRIDGE,cap=window.FLOSY_CAPTURE,N=window.FLOSY_NEXT;
+   const st=C.getState(),accounts=st.accounts||[];
+   if(!accounts.length){
+    C.mutate(s=>s.accounts.push({id:"test-auto-cash",name:"Test Cash",type:"cash",balance:0}));
+   }
+   const account=C.getState().accounts[0].id;
+   cap.setAutoAccount(account);
+   cap.setAuto("voice",true);
+   cap.setAuto("receipt",true);
+   cap.setAuto("sms",true);
+   const before=C.getState().transactions.length;
+   const voice=cap.parseVoice("دفعت 63 جنيه قهوة");
+   const savedVoice=cap.autoRecord(voice,"voice");
+   const afterVoice=C.getState().transactions.length;
+   const receipt=cap.parseReceipt("متجر التجربة\\nDate: 10/11/2026\\nGrand Total\\n125.00");
+   const savedReceipt=cap.autoRecord(receipt,"receipt");
+   const afterReceipt=C.getState().transactions.length;
+   const smsText="تم تنفيذ تحويل لحظي من حسابكم رقم 0000 بمبلغ 1.00 جم إلى عميل رقم مرجعي 123456789321 يوم 11-11 الساعة 14:23";
+   const smsResult=N.receiveScannedSMS([{id:"cd".repeat(16),source:"sms",date:Date.now(),text:smsText}]);
+   const afterSMS=C.getState().transactions.length;
+   const otpResult=N.receiveScannedSMS([{id:"ef".repeat(16),source:"sms",date:Date.now(),text:"OTP 654321 تم خصم مبلغ 100 EGP"}]);
+   const afterOTP=C.getState().transactions.length;
+   cap.undoLastAuto();
+   const afterUndo=C.getState().transactions.length;
+   cap.setAuto("sms",false);cap.setAuto("voice",false);cap.setAuto("receipt",false);
+   return {before,savedVoice,afterVoice,savedReceipt,afterReceipt,smsResult,afterSMS,otpResult,afterOTP,afterUndo,
+    receiptAmount:receipt.amount,voiceAmount:voice.amount,autoAccount:account};
+  });
+  assert.equal(autoTests.savedVoice,true,"Explicit spoken expense should auto-save after opt-in");
+  assert.equal(autoTests.afterVoice,autoTests.before+1);
+  assert.equal(autoTests.voiceAmount,63);
+  assert.equal(autoTests.savedReceipt,true,"Clearly dated labeled receipt should auto-save");
+  assert.equal(autoTests.receiptAmount,125);
+  assert.equal(autoTests.afterReceipt,autoTests.before+2);
+  assert.equal(autoTests.smsResult.saved,1,"Recognized instant transfer should auto-save");
+  assert.equal(autoTests.afterSMS,autoTests.before+3);
+  assert.equal(autoTests.otpResult.saved,0,"OTP must never auto-book");
+  assert.equal(autoTests.afterOTP,autoTests.afterSMS);
+  assert.equal(autoTests.afterUndo,autoTests.before+2,"Last auto-recorded transaction must be reversible");
+  console.log("PASS: opted-in auto-save voice, split-line receipt, instant transfer SMS, OTP rejection and undo");
+
   fs.mkdirSync("tests/_artifacts",{recursive:true});
   await page.screenshot({path:"tests/_artifacts/elevate-dashboard.png",fullPage:true});
   // Mobile RTL smoke test: all new cards must fit a 390px Android viewport.
