@@ -213,7 +213,7 @@ function parseReceipt(text){
    if(found){
      const y=+found[3],m=+found[2],d=+found[1],check=new Date(y,m-1,d);
      if(check.getFullYear()===y&&check.getMonth()+1===m&&check.getDate()===d)
-       {receiptDate=[y,String(m).padStart(2,"0"),String(d).padStart(2,"0")].join("-");break}
+       {receiptDate=[y,String(m).padStart(2,"0"),String(d).padStart(2,"0")].join("-");printedDateFound=true;break}
    }
  }
  const merchant=lines.find(x=>x.length>2&&!/\d{5,}/.test(x)&&!totalLine.test(x)&&!/(tax|vat|ضريبة|الهاتف)/i.test(x))||"إيصال";
