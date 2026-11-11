@@ -163,9 +163,13 @@ public final class AutoRelayStore {
         }
     }
     private static void write(Context c,JSONArray queue) throws Exception{
-        byte[] iv=new byte[12];RNG.nextBytes(iv);
         Cipher cipher=Cipher.getInstance("AES/GCM/NoPadding");
-        cipher.init(Cipher.ENCRYPT_MODE,secret(),new GCMParameterSpec(128,iv));
+        // AndroidKeyStore forbids caller-supplied IVs for encryption by default.
+        // Let the provider securely generate a fresh random GCM nonce.
+        cipher.init(Cipher.ENCRYPT_MODE,secret());
+        byte[] iv=cipher.getIV();
+        if(iv==null||iv.length!=12)
+            throw new IllegalStateException("Invalid AndroidKeyStore GCM IV");
         byte[] encrypted=cipher.doFinal(queue.toString().getBytes(StandardCharsets.UTF_8));
         byte[] payload=new byte[iv.length+encrypted.length];
         System.arraycopy(iv,0,payload,0,iv.length);
