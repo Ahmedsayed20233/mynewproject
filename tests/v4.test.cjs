@@ -76,7 +76,7 @@ test("VoiceNLU safely rejects hypothetical, negated, and own-account transfer ut
 test("VoiceNLU recognizes income without misclassifying expense and keeps category",()=>{
  const c=context();load("flosy-voice-nlu.js",c);load("flosy-v4-capture.js",c);
  const cap=c.window.FLOSY_CAPTURE;
- const income=cap.parseVoice("قبضت الفين جنيه من الشغل امبارح");
+ const income=cap.parseVoice("قبضت الفين جنيه من الشغل امبارح على الفيزا");
  assert.equal(income.amount,2000);assert.equal(income.type,"income");
  assert.equal(income.category,"مرتب");assert.equal(income.autoQuality,true);
  const expense=cap.parseVoice("صرفت تلاتين جنيه بنزين من الكاش");
