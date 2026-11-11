@@ -420,6 +420,8 @@ public class MainActivity extends Activity {
             data.put("senders",AutoRelayStore.senders(this));
             data.put("apps",AutoRelayStore.apps(this));
             data.put("pending",AutoRelayStore.pending(this).length());
+            data.put("lastDeliveryCode",AutoRelayStore.lastDeliveryCode(this));
+            data.put("lastDeliveryAt",AutoRelayStore.lastDeliveryAt(this));
             data.put("packageName",getPackageName());
             relayWebEvent("nativeStatus",data);
         }catch(Exception ignored){}
