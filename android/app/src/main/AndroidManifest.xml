@@ -25,7 +25,7 @@
         <!-- Only the user's paired automation app can submit a valid 192-bit token.
              Android broadcasts must explicitly name the Flosy package/class. -->
         <receiver
-            android:name=".AutoRelayReceiver"
+            android:name="com.flosy.finance.AutoRelayReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.flosy.finance.REVIEW_EXTERNAL_FINANCIAL_EVENT" />

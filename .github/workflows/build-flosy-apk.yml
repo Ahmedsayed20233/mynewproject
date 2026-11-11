@@ -64,6 +64,12 @@ jobs:
           grep -q 'com.flosy.finance.REVIEW_EXTERNAL_FINANCIAL_EVENT' android/app/src/main/AndroidManifest.xml
           grep -q 'MessageDigest.isEqual' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java
           grep -q 'AES/GCM/NoPadding' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java
+          # Regression guard: AndroidKeyStore rejects caller-specified GCM IVs in ENCRYPT_MODE.
+          grep -Fq 'cipher.init(Cipher.ENCRYPT_MODE,secret());' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java
+          grep -Fq 'byte[] iv=cipher.getIV();' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java
+          if grep -Fq 'cipher.init(Cipher.ENCRYPT_MODE,secret(),new GCMParameterSpec' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java; then
+            echo 'Unsafe: caller-supplied encryption IV'; exit 1
+          fi
           grep -q 'AutoRelayStore.accept' android/app/src/main/java/com/flosy/finance/AutoRelayReceiver.java
           grep -q 'if(window.FLOSY_AUTOMATE_RELAY)' android/app/src/main/java/com/flosy/finance/MainActivity.java
 
