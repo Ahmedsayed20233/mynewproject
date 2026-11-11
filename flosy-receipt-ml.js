@@ -103,7 +103,7 @@ function merchantName(lines){
   const value=trim(line).replace(/[|_\[\]<>]/g,"").trim();
   if(value.length<2||value.length>80||meta.test(value)||net.test(value)||total.test(value)||invoice.test(value)||
       /(?:العميل|اسم|رقم\s*هاتف|phone|mobile|customer)/i.test(value)||
-      /\d{4,}/.test(value)||/^[\d\W]+$/u.test(value))return;
+      /\d{4,}/.test(value)||!/[A-Za-z\u0621-\u064A]/u.test(value))return;
   let score=(i<9?3:0)+(i<=5?2:0);
   if(/^[A-Z][A-Z\s.&-]{2,25}$/.test(value))score+=9;
   if(/(?:متجر|سوبرماركت|صيدلية|ماركت|محل|market|shop|store|pharmacy)/i.test(value))score+=4;
