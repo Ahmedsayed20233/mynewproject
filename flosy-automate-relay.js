@@ -78,11 +78,11 @@ function render(){
  (paired?"تم إنشاء رمز محلي على الهاتف؛ نجاح إرسال Automate لم يتأكد بعد":"فعّل الاقتران لإنشاء قناة مشفّرة")+
  ' • في الانتظار: '+Number(s.pending||0)+' • '+(smsAuto?"الحفظ التلقائي للرسائل المالية مفعّل":"الحفظ التلقائي غير مفعّل")+'</p>'+
  '<p class="f29-small" role="status"><strong>تشخيص آخر Broadcast: </strong>'+escapeHTML(diagnosis)+'</p><div class="f29-buttons"><button class="f29-primary" type="button" data-f29="pending">عرض المعاملات المكتشفة</button>'+
- '<button class="f29-secondary" type="button" data-f29="refresh">تحديث الحالة</button>'+
+ '<button class="f29-secondary" type="button" data-f29="refresh">تحديث الحالة</button><button class="f29-secondary" type="button" data-f29="undo">تراجع عن آخر معاملة تلقائية</button>'+
  '<button class="f29-secondary" type="button" data-f29="clear">مسح المرشحات</button>'+
  '<button class="f29-danger" type="button" data-f29="stop">إلغاء الاقتران والتوقف</button></div></div>'+
  (message?'<p class="f29-feedback" role="status">'+escapeHTML(message)+'</p>':"")+
- '<p class="f29-small">الاستيراد التلقائي يلتقط الرسائل الجديدة فقط من المرسلين الذين سمحت لهم، ويستبعد رموز التحقق الحساسة. الرسائل غير المالية قد تُعرض للمراجعة لكنها لا تُحفظ كمعاملات. لا يقرأ سجل SMS القديم. لا تنس ضبط البطارية لـAutomate كي لا يوقفه نظام الهاتف. المراجعة داخل Flosy إلزامية قبل إضافة المصروف أو الدخل.</p></section>';
+ '<p class="f29-small">الاستيراد التلقائي يلتقط الرسائل الجديدة فقط من المرسلين الذين سمحت لهم، ويستبعد رموز التحقق الحساسة. الرسائل غير المالية قد تُعرض للمراجعة لكنها لا تُحفظ كمعاملات. لا يقرأ سجل SMS القديم. لا تنس ضبط البطارية لـAutomate كي لا يوقفه نظام الهاتف. راجع الحالات غير المكتملة فقط؛ المعاملات المؤكدة يمكن تسجيلها تلقائيًا بعد تفعيل الخيار من شاشة الصوت والفواتير.</p></section>';
 }
 let lastAutoPoll=0;
 function nativeStatus(s){
@@ -150,6 +150,7 @@ document.addEventListener("click",event=>{
    apps:String(byId("flosyRelayApps")?.value||"")});
   message="تم إرسال قائمة المرسلين والتطبيقات المسموح بها إلى الهاتف.";render();return;
  }
+ if(act==="undo"){w.FLOSY_CAPTURE?.undoLastAuto?.();render();return}
  if(act==="pending")return send("relay-pending");
  if(act==="refresh")return send("relay-status");
  if(act==="clear")return send("relay-clear");
