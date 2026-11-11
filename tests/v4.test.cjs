@@ -153,7 +153,7 @@ test("Saved receipt itemized details are accessible from the transaction table",
 test("Clear receipts use explicitly selected account when no payment type is printed",()=>{
  const c=context();load("flosy-receipt-ml.js",c);load("flosy-v4-capture.js",c);
  const cap=c.window.FLOSY_CAPTURE;
- const text=["THE STORE","Date: 10/11/2026","Grand Total","125.00"].join("\n");
+ const text=["متجر التجربة","Date: 10/11/2026","Grand Total","125.00"].join("\n");
  const without=cap.parseReceipt(text);
  assert.equal(without.autoQuality,false);
  cap.setAutoAccount("wallet");
