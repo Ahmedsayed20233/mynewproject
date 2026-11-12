@@ -90,3 +90,47 @@ test("production actions replace all original dangerous mock ledger writers",()=
  assert.match(ui,/transactions/);
  assert.match(ui,/notifications-sync/);
 });
+
+test("no fake Android device chrome or floating theme controls remain",()=>{
+ assert.equal((html.match(/class="dynamic-island"/g)||[]).length,0);
+ assert.equal((html.match(/fa-battery-full/g)||[]).length,0);
+ assert.equal((html.match(/class="tabular-nums">9:41/g)||[]).length,0);
+ assert.match(html,/flosy-ultra-more.js\?v=3810/);
+ assert.match(html,/flosy-ultra-more.css\?v=3810/);
+ assert.doesNotMatch(ui,/d\.createElement\("nav"\).*ultraThemeSwitch/);
+});
+test("More library restores every significant original legacy page without SMS inbox import",()=>{
+ const source=fs.readFileSync("flosy-ultra-more.js","utf8");
+ const old=fs.readFileSync("index.html","utf8");
+ const pages=["ai","reports","goals","portfolio","plan","risk","phase1","smart",
+ "recurring","rules","wealth","v4-capture","v4-bank","v4-wealth","v4-crisis",
+ "v4-family","v4-privacy","recovery","settings","budget","transactions","dashboard"];
+ for(const page of pages){
+  assert.ok(source.includes('page:"'+page+'"'),"missing original feature link "+page);
+  assert.ok(old.includes('id="page-'+page+'"'),"missing original functional engine "+page);
+ }
+ assert.ok(!source.includes('page:"import"'),"SMS import page must stay disabled");
+ assert.match(source,/flosyUltraCore/);
+ assert.match(source,/ultra-core-visible/);
+ assert.match(source,/ultra-more-inline/);
+ assert.match(source,/ultra-more-dock/);
+ const features=(source.match(/\{id:"/g)||[]).length;
+ assert.ok(features>=28,"should restore the full feature list, got "+features);
+});
+test("all three themes are inside More, not floating above dashboard",()=>{
+ const more=fs.readFileSync("flosy-ultra-more.js","utf8");
+ const style=fs.readFileSync("flosy-ultra-more.css","utf8");
+ for(const id of ["emerald","light","sapphire"]){
+  assert.ok(more.includes('key:"'+id+'"'),"missing theme "+id);
+ }
+ assert.match(style,/\.ultra-more-themes/);
+ assert.match(style,/\.ultra-more-overlay/);
+ assert.match(style,/\.ultra-more-dock/);
+ assert.match(style,/#flosyUltraCore\.ultra-core-visible/);
+});
+test("Ultra cache contains restored menu and changes cache version",()=>{
+ for(const file of ["flosy-ultra-more.js?v=3810","flosy-ultra-more.css?v=3810",
+ "flosy-ultra-live.js?v=3810","flosy-ultra-live.css?v=3810"])
+  assert.ok(xml.includes(file),file);
+ assert.match(xml,/flosy-ultra-more-v3810/);
+});
