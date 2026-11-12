@@ -71,6 +71,7 @@ public class MainActivity extends Activity {
     private static final int REQ_AUDIO = 76;
     private static final int REQ_SAVE_RECEIPT = 77;
     private static final int REQ_SAVE_WORKBOOK = 78;
+    private static final int REQ_NOTIFICATIONS = 79;
     private WebView webView;
     private ProgressBar loadingBar;
     private ValueCallback<Uri[]> selectedFiles;
@@ -105,20 +106,20 @@ public class MainActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setStatusBarColor(Color.WHITE);
-        getWindow().setNavigationBarColor(Color.WHITE);
-        int ui=View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-        if (android.os.Build.VERSION.SDK_INT >= 26) ui|=View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        getWindow().setStatusBarColor(isMvp()?Color.rgb(25,20,50):Color.WHITE);
+        getWindow().setNavigationBarColor(isMvp()?Color.rgb(29,23,57):Color.WHITE);
+        int ui=isMvp()?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        if (!isMvp() && Build.VERSION.SDK_INT>=26) ui|=View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
         getWindow().getDecorView().setSystemUiVisibility(ui);
 
         FrameLayout root = new FrameLayout(this);
         webView = new WebView(this);
-        webView.setBackgroundColor(Color.WHITE);
+        webView.setBackgroundColor(isMvp()?Color.rgb(25,20,50):Color.WHITE);
         root.addView(webView, new FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         loadingBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
         loadingBar.setMax(100);
-        loadingBar.setProgressTintList(ColorStateList.valueOf(Color.rgb(9, 144, 129)));
+        loadingBar.setProgressTintList(ColorStateList.valueOf(isMvp()?Color.rgb(104,70,245):Color.rgb(9,144,129)));
         loadingBar.setProgressBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
         FrameLayout.LayoutParams loadingParams = new FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, 5, Gravity.TOP);
@@ -141,7 +142,7 @@ public class MainActivity extends Activity {
         settings.setTextZoom(100);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         // Keep the native WebView canvas white, including startup before CSS loads.
-        webView.setBackgroundColor(Color.WHITE);
+        webView.setBackgroundColor(isMvp()?Color.rgb(25,20,50):Color.WHITE);
 
         // Modern Android WebView origin-restricted bridge. Never expose Java JS interfaces to iframes.
         // This avoids fragile custom-scheme top-level navigations on recent WebView versions.
@@ -161,6 +162,22 @@ public class MainActivity extends Activity {
                         view.post(()->{
                             if(isMvp() && ("direct-capture-settings".equals(action)
                                 || action.startsWith("relay-")))return;
+                            if(isMvp()&&action.startsWith("notifications-")){
+                                if("notifications-enable".equals(action))enableLocalReminders();
+                                else if("notifications-status".equals(action))sendAuroraStatus();
+                                else if("notifications-sync".equals(action)){
+                                    FlosyReminderScheduler.sync(this,msg.optJSONArray("items"));
+                                    sendAuroraStatus();
+                                }else if("notifications-stop".equals(action)){
+                                    FlosyReminderScheduler.setEnabled(this,false);
+                                    sendAuroraStatus();
+                                }else if("notifications-test".equals(action)){
+                                    boolean done=FlosyReminderScheduler.test(this);
+                                    Toast.makeText(this,done?"تم إرسال إشعار تجريبي":"فعّل التنبيهات أولًا",Toast.LENGTH_SHORT).show();
+                                    sendAuroraStatus();
+                                }
+                                return;
+                            }
                             if("voice".equals(action))startEgyptianVoice();
                             else if("receipt-ocr".equals(action))pickNativeReceipt();
                             else if("receipt-camera".equals(action))captureReceiptPhoto();
@@ -299,7 +316,8 @@ public class MainActivity extends Activity {
                         + (Build.VERSION.SDK_INT >= 28 ? "true" : "false") + ";"
                         + "if(window.FLOSY_NEXT)window.FLOSY_NEXT.render();"
                         + "if(window.FLOSY_AUTOMATE_RELAY)window.FLOSY_AUTOMATE_RELAY.render();"
-                        + "if(window.FLOSY_REPAIR)window.FLOSY_REPAIR.render();", null);
+                        + "if(window.FLOSY_REPAIR)window.FLOSY_REPAIR.render();"
+                        + "if(window.FLOSY_AURORA)window.FLOSY_AURORA.boot();", null);
                     if(isMvp())configureMvpWebUi();
                     else deliverPendingSharedMessage();
                     deliverNativePending();
@@ -387,6 +405,25 @@ public class MainActivity extends Activity {
         }
     }
 
+
+    // Only user-initiated reminders. Android never reads financial-app notifications.
+    private void enableLocalReminders(){
+        if(!isMvp())return;
+        if(Build.VERSION.SDK_INT>=33 &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED){
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},REQ_NOTIFICATIONS);
+            return;
+        }
+        FlosyReminderScheduler.setEnabled(this,true);
+        sendAuroraStatus();
+    }
+    private void sendAuroraStatus(){
+        if(!isMvp()||webView==null||!pageReady||webView.getUrl()==null||
+            !webView.getUrl().startsWith(HOME))return;
+        JSONObject status=FlosyReminderScheduler.status(this);
+        webView.evaluateJavascript("if(window.FLOSY_AURORA)window.FLOSY_AURORA.onNativeStatus("+
+            status.toString()+");",null);
+    }
 
     // Founder-only MVP: no SMS/notification/relay permissions or inbound messages.
     // Hide the hosted site's optional bank-message import route, without touching
@@ -494,6 +531,13 @@ public class MainActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] results){
         super.onRequestPermissionsResult(requestCode,permissions,results);
+        if(requestCode==REQ_NOTIFICATIONS&&isMvp()){
+            boolean granted=results.length>0&&results[0]==PackageManager.PERMISSION_GRANTED;
+            FlosyReminderScheduler.setEnabled(this,granted);
+            sendAuroraStatus();
+            Toast.makeText(this,granted?"تم تفعيل تنبيهات فلوسي":"يمكن تفعيل التنبيهات لاحقًا من إعدادات الهاتف",Toast.LENGTH_LONG).show();
+            return;
+        }
         if(requestCode==REQ_AUDIO){
             if(results.length>0 && results[0]==PackageManager.PERMISSION_GRANTED)
                 startEgyptianVoice();
@@ -955,7 +999,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume(){
         super.onResume();
-        if(!relayWakeReceiverRegistered){
+        if(!isMvp()&&!relayWakeReceiverRegistered){
             try{
                 IntentFilter filter=new IntentFilter("com.flosy.finance.AUTO_RELAY_QUEUE_UPDATED");
                 if(Build.VERSION.SDK_INT>=33)registerReceiver(relayWakeReceiver,filter,Context.RECEIVER_NOT_EXPORTED);
@@ -963,7 +1007,10 @@ public class MainActivity extends Activity {
                 relayWakeReceiverRegistered=true;
             }catch(Exception ignored){}
         }
-        if(webView!=null&&pageReady)webView.post(this::sendRelayStatus);
+        if(webView!=null&&pageReady){
+            if(isMvp())webView.post(this::sendAuroraStatus);
+            else webView.post(this::sendRelayStatus);
+        }
     }
 
     @Override
