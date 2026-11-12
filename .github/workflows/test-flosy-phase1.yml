@@ -4,6 +4,9 @@ on:
     branches: [flosy-site, "fix/**", "feature/**"]
     paths:
       - 'index.html'
+      - 'flosy-ultra.html'
+      - 'flosy-ultra-*'
+      - 'tests/ultra.test.cjs'
       - 'flosy-sync-v3.js'
       - 'flosy-phase1.js'
       - 'flosy-next.js'
@@ -72,8 +75,11 @@ jobs:
           node --check flosy-elevate.js
           node --check flosy-studio.js
           node --check flosy-aurora.js
+          node --check flosy-ultra-data.js
+          node --check flosy-ultra-ai.js
+          node --check flosy-ultra-live.js
           node --check flosy-repair.js
           node --check flosy-assistant-bridge.js
           node --check service-worker.js
       - name: Run financial safety regression suite
-        run: node --test tests/phase1.test.cjs tests/v4.test.cjs tests/offline-cache.test.cjs tests/direct-capture-ui.test.cjs tests/ai-analytics.test.cjs tests/report-kit.test.cjs tests/aurora.test.cjs
+        run: node --test tests/phase1.test.cjs tests/v4.test.cjs tests/offline-cache.test.cjs tests/direct-capture-ui.test.cjs tests/ai-analytics.test.cjs tests/report-kit.test.cjs tests/aurora.test.cjs tests/ultra.test.cjs
