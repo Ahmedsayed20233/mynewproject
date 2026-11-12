@@ -85,20 +85,23 @@ jobs:
           grep -q 'AutoRelayStore.accept' android/app/src/main/java/com/flosy/finance/AutoRelayReceiver.java
           grep -q 'if(window.FLOSY_AUTOMATE_RELAY)' android/app/src/main/java/com/flosy/finance/MainActivity.java
 
-      - name: Compile both Android versions
+      - name: Compile all Android MVP flavors
         run: |
-          gradle -p android --no-daemon --stacktrace assembleStandardDebug assembleSmsDebug
+          gradle -p android --no-daemon --stacktrace assembleStandardDebug assembleSmsDebug assembleDirectDebug
 
       - name: Validate and stage APKs
         run: |
           set -e
           STANDARD="android/app/build/outputs/apk/standard/debug/app-standard-debug.apk"
           SMS="android/app/build/outputs/apk/sms/debug/app-sms-debug.apk"
+          DIRECT="android/app/build/outputs/apk/direct/debug/app-direct-debug.apk"
           test -s "$STANDARD"
           test -s "$SMS"
+          test -s "$DIRECT"
           mkdir -p dist
-          cp "$STANDARD" dist/Flosy-Android-Standard-v3.4.1.apk
-          cp "$SMS" dist/Flosy-Safe-Automate-v3.4.1-ReceiptML-VoiceNLU.apk
+          cp "$STANDARD" dist/Flosy-Android-Standard-v3.5.0.apk
+          cp "$SMS" dist/Flosy-Safe-Automate-v3.5.0-ReceiptML-VoiceNLU.apk
+          cp "$DIRECT" dist/Flosy-Direct-Capture-Lab-v3.5.0.apk
           for APK in "$STANDARD" "$SMS"; do
             "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | head -8
             "$ANDROID_HOME/build-tools/35.0.0/aapt" dump permissions "$APK" | tee /tmp/flosy-permissions.txt
@@ -106,12 +109,20 @@ jobs:
               echo "Unsafe declared permission found in $APK"; exit 1
             fi
           done
+          # Direct Lab intentionally requests RECEIVE_SMS; Standard and SMS do not.
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump permissions "$DIRECT" | tee /tmp/direct-permissions.txt
+          grep -q 'android.permission.RECEIVE_SMS' /tmp/direct-permissions.txt
+          if grep -Eq 'android.permission.(READ_SMS|SEND_SMS|BIND_ACCESSIBILITY_SERVICE)' /tmp/direct-permissions.txt; then
+            echo 'Unexpected permission in Direct Lab'; exit 1
+          fi
+          grep -Fq 'AutoRelayStore.acceptDirect' android/app/src/direct/java/com/flosy/finance/DirectSmsReceiver.java
+          grep -Fq 'AutoRelayStore.acceptDirect' android/app/src/direct/java/com/flosy/finance/DirectNotificationListener.java
           ls -lh dist/*.apk
 
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Flosy-Android-v3.4.1-Automate-Safe-Gemini-Free
+          name: Flosy-Android-v3.5.0-Direct-Capture-Lab
           path: dist/*.apk
           retention-days: 30
           if-no-files-found: error
@@ -121,13 +132,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="flosy-android-v3.4.1"
+          TAG="flosy-android-v3.5.0"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.apk --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$TAG" dist/*.apk \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --title "فلوسي Android v3.4.1 — ReceiptML + VoiceNLU + Safe Automate + Gemini Free" \
-              --notes "Flosy Safe Automate v3.4.1: receives authorized bank SMS from the user's Automate flow using an allowlisted sender + pairing token; stores all non-secret allowlisted SMS in an AES-GCM local queue (OTP/PIN/CVV excluded). The latest Flosy website loaded by the APK offers opt-in automatic saving of clearly recognized SMS and Egyptian Arabic spoken transactions, and itemized Arabic/English receipt extraction. Its offline ReceiptML module uses a synthetically trained numerical-line classifier and Tesseract Arabic/English after native Latin ML Kit. VoiceNLU is an offline synthetically trained Egyptian-Arabic intent classifier; the Android speech-to-text service may use the network depending on device. Both synthetic models require real-world testing, no guarantee of reading every receipt. New Flosy AI Gemini API Free mode uses the owner's Supabase function only if GEMINI_ENABLED is true and an unbilled Google AI Studio Free Tier project is configured; it does NOT use Google AI Pro subscription quota. Gemini AI chat currently receives only generic non-identifying labels/rounded ratios, not raw SMS, voice, photos or account data. Gemini-powered parsing of SMS/voice/receipts is not yet enabled. App UI requires internet for current hosted site updates. This is a debug-signed TESTING APK, not a Play-approved production release. GitHub Actions debug signing may differ from earlier APKs: backup and validate cloud sync before updating; NEVER uninstall old app merely to bypass signature conflicts without restoring backup. Do NOT disable Play Protect. No restricted SMS/notification permissions are requested by Flosy. Sender/notification detection requires the separately installed Automate app and user authorization."
+              --title "فلوسي Android v3.5.0 — ReceiptML + VoiceNLU + Safe Automate + Gemini Free" \
+              --notes "Flosy Safe Automate v3.5.0: receives authorized bank SMS from the user's Automate flow using an allowlisted sender + pairing token; stores all non-secret allowlisted SMS in an AES-GCM local queue (OTP/PIN/CVV excluded). The latest Flosy website loaded by the APK offers opt-in automatic saving of clearly recognized SMS and Egyptian Arabic spoken transactions, and itemized Arabic/English receipt extraction. Its offline ReceiptML module uses a synthetically trained numerical-line classifier and Tesseract Arabic/English after native Latin ML Kit. VoiceNLU is an offline synthetically trained Egyptian-Arabic intent classifier; the Android speech-to-text service may use the network depending on device. Both synthetic models require real-world testing, no guarantee of reading every receipt. New Flosy AI Gemini API Free mode uses the owner's Supabase function only if GEMINI_ENABLED is true and an unbilled Google AI Studio Free Tier project is configured; it does NOT use Google AI Pro subscription quota. Gemini AI chat currently receives only generic non-identifying labels/rounded ratios, not raw SMS, voice, photos or account data. Gemini-powered parsing of SMS/voice/receipts is not yet enabled. App UI requires internet for current hosted site updates. This is a debug-signed TESTING APK, not a Play-approved production release. GitHub Actions debug signing may differ from earlier APKs: backup and validate cloud sync before updating; NEVER uninstall old app merely to bypass signature conflicts without restoring backup. Do NOT disable Play Protect. Standard and Safe Automate have no restricted SMS permission. The separate Direct Lab APK requests hard-restricted RECEIVE_SMS and notification access via explicit Android consent, so Play/installer may deny SMS. New transactions may be captured directly without Automate if permissions are granted. Debug-only; no historical inbox scan. Incomplete events go to review."
           fi

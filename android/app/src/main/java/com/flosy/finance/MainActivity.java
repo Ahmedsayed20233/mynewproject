@@ -155,6 +155,7 @@ public class MainActivity extends Activity {
                             if("voice".equals(action))startEgyptianVoice();
                             else if("receipt-ocr".equals(action))pickNativeReceipt();
                             else if("receipt-camera".equals(action))captureReceiptPhoto();
+                            else if("direct-capture-settings".equals(action))openDirectCaptureSettings();
                             else if("relay-pair".equals(action))pairAutomate();
                             else if("relay-status".equals(action))sendRelayStatus();
                             else if("relay-configure".equals(action)){
@@ -276,6 +277,8 @@ public class MainActivity extends Activity {
                         + "window.FLOSY_NATIVE_SMS_AVAILABLE="
                         + "false;"
                         + "window.FLOSY_NATIVE_RELAY_AVAILABLE=true;"
+                        + "window.FLOSY_NATIVE_DIRECT_CAPTURE_AVAILABLE="
+                        + ("direct".equals(BuildConfig.FLAVOR)?"true":"false") + ";"
                         + "window.FLOSY_NATIVE_VOICE_AVAILABLE=true;"
                         + "window.FLOSY_NATIVE_OCR_AVAILABLE=true;"
                         + "window.FLOSY_NATIVE_BRIDGE_AVAILABLE="+(webMessageReady ? "true" : "false")+";"
@@ -432,10 +435,20 @@ public class MainActivity extends Activity {
                 }catch(Exception ignored){}
             }).show();
     }
+    private void openDirectCaptureSettings(){
+        if(!"direct".equals(BuildConfig.FLAVOR))return;
+        try{
+            Intent i=new Intent();
+            i.setClassName(getPackageName(),"com.flosy.finance.DirectCaptureSettingsActivity");
+            startActivity(i);
+        }catch(Exception e){Toast.makeText(this,"إعداد الالتقاط المباشر غير متاح",Toast.LENGTH_LONG).show();}
+    }
     private void sendRelayStatus(){
         try{
             JSONObject data=new JSONObject();
             data.put("paired",AutoRelayStore.paired(this));
+            data.put("directAvailable","direct".equals(BuildConfig.FLAVOR));
+            data.put("directEnabled","direct".equals(BuildConfig.FLAVOR)&&AutoRelayStore.directEnabled(this));
             data.put("senders",AutoRelayStore.senders(this));
             data.put("apps",AutoRelayStore.apps(this));
             data.put("pending",AutoRelayStore.pending(this).length());
