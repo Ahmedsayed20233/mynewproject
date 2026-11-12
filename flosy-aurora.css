@@ -315,3 +315,65 @@ progress::-webkit-progress-value,.progress i:not(.over):not(.warn),.f2-progress 
  .flosy-aurora-intro,.flosy-aurora-notifications{display:none!important}
  .report-paper,.report-paper *{print-color-adjust:exact;-webkit-print-color-adjust:exact}
 }
+
+/* Aurora detailing for smart voice capture, receipts and AI conversations. */
+#page-v4-capture{color:#28203F!important}
+.f10-hero{background:linear-gradient(115deg,#4B2BAB,#6846F5 75%,#7954D9)!important;
+ border:1px solid #A48DF2!important;border-radius:23px!important;box-shadow:0 18px 36px #110C3B35!important}
+.f10-hero h2,.f10-hero p,.f10-overline{color:#FFF!important}
+.f10-hero p{color:#EAE5FF!important}
+.f10-mini-pills span{background:#FFFFFF20!important;border:1px solid #FFFFFF58!important;color:#FFF!important}
+.f10-card,.f10-extracted,.f10-review{background:#FFF!important;border:1px solid #E9E4F6!important;
+ border-radius:20px!important;box-shadow:var(--aurora-shadow)!important}
+.f10-step,.f10-card.receipt .f10-step,.f10-review-head .f10-step{
+ background:#EEE8FF!important;color:#6543EC!important;border-radius:14px!important
+}
+.f10-cardtitle h3,.f10-review-head h3,.f10-extracted h3{color:#2A2244!important}
+.f10-cardtitle p,.f10-review-head p,.f10-extracted p,.f10-bottom,.f10-privacy{color:#77738D!important}
+.f10-mic-wrap{background:linear-gradient(115deg,#F5F0FF,#ECFBFF)!important;
+ border:1px solid #E0D7FA!important;border-radius:17px!important}
+.f10-mic-icon{background:radial-gradient(circle,#B39AFF,#6846F5)!important;
+ color:#FFF!important;box-shadow:0 5px 20px #6846F569;font-size:24px!important}
+.f10-primary{background:linear-gradient(105deg,#6846F5,#8955FF)!important;
+ border-color:#6846F5!important;color:#FFF!important;border-radius:13px!important}
+.f10-primary:hover{background:#5633C9!important}
+.f10-secondary{background:#F8F5FF!important;border-color:#D8CDF9!important;color:#6846F5!important}
+.f10-secondary:hover{background:#EEE8FF!important}
+.f10-live,.f10-camera,.f10-auto-settings{background:#F8F5FF!important;
+ border-color:#E7DCFF!important;color:#4D4372!important;border-radius:15px!important}
+.f10-mini-form textarea,.f10-mini-form input,.f10-text-form textarea,
+.f10-auto-settings select,.f10-file{background:#FFF!important;color:#28213F!important;
+ border:1px solid #DFD7F2!important;border-radius:12px!important}
+.f10-manual summary,.f10-bottom button{color:#6543E4!important}
+.f10-owner-consent,.f2-owner-consent{background:#F4F0FF!important;
+ border:1px solid #E1D8FF!important;color:#493C79!important}
+.f10-auto-settings input[type=checkbox],.f2-owner-consent input{accent-color:#6846F5!important}
+.flosy-ai-shell{max-width:1040px!important}
+.flosy-ai-ribbon{border-bottom-color:#E7E0F5!important}
+.flosy-ai-ribbon strong{color:#30224E!important}
+.flosy-ai-promptrow button{background:#F2EDFF!important;color:#6241D4!important;
+ border:1px solid #E1D7FC!important;border-radius:99px!important}
+.flosy-ai-messages{min-height:290px!important;background:#F8F6FF!important;
+ border:1px solid #E6DDF9!important}
+.flosy-ai-composer textarea{background:#FFF!important;color:#28213F!important;
+ border:1px solid #E1D9F1!important}
+.flosy-ai-consent input{accent-color:#6846F5!important}
+.f2-btnrow button:not(.primary),.f2-toolbutton:not(.primary){
+ background:#F8F5FF!important;color:#6042C9!important;border:1px solid #E2DAFA!important
+}
+.f2-nav-marker{background:#EDE6FF!important;color:#5535C2!important}
+.f2-review-panel{background:#F4EEFF!important;border-color:#DFD1FF!important}
+.f2-select{background:#FFF!important;color:#24213F!important}
+/* Small logo type and mobile engagement metrics. */
+#page-reports .report-tools{background:#FFFFFF12;border:1px solid #FFFFFF2D;
+ border-radius:18px;padding:12px}
+#page-reports .report-tools label{color:#DDD7F8!important}
+#page-reports .report-tools .chip{color:#27213F!important;background:#FFF!important}
+.flosy-ai-shell .v4-surface{box-shadow:var(--aurora-shadow)!important}
+@media(max-width:700px){
+ .f10-two{grid-template-columns:1fr!important}
+ .f10-hero{padding:22px 17px!important}
+ .f10-card,.f10-extracted,.f10-review{padding:15px!important}
+ .flosy-ai-bubble{max-width:95%!important}
+ #page-reports .report-tools{padding:10px}
+}
