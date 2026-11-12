@@ -140,12 +140,12 @@ jobs:
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Flosy-Android-v3.6.1-Direct-Capture-Lab
+          name: Flosy-Android-v3.6.1-Safe-Notification-Beta
           path: dist/*.apk
           retention-days: 30
           if-no-files-found: error
 
-      - name: Publish two APKs as GitHub Release
+      - name: Publish permission-minimized APKs as GitHub Release
         if: github.ref == 'refs/heads/flosy-android' && github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
