@@ -100,6 +100,8 @@ public class MainActivity extends Activity {
     };
 
 
+    private static boolean isMvp(){return "mvp".equals(BuildConfig.FLAVOR);}
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -123,7 +125,7 @@ public class MainActivity extends Activity {
         root.addView(loadingBar, loadingParams);
         setContentView(root);
         WebView.setWebContentsDebuggingEnabled(false);
-        readSharedText(getIntent());
+        if(!isMvp())readSharedText(getIntent());
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
@@ -157,6 +159,8 @@ public class MainActivity extends Activity {
                         JSONObject msg=new JSONObject(raw);
                         final String action=msg.optString("action","");
                         view.post(()->{
+                            if(isMvp() && ("direct-capture-settings".equals(action)
+                                || action.startsWith("relay-")))return;
                             if("voice".equals(action))startEgyptianVoice();
                             else if("receipt-ocr".equals(action))pickNativeReceipt();
                             else if("receipt-camera".equals(action))captureReceiptPhoto();
@@ -283,7 +287,8 @@ public class MainActivity extends Activity {
                     view.evaluateJavascript("window.FLOSY_NATIVE_ANDROID=true;"
                         + "window.FLOSY_NATIVE_SMS_AVAILABLE="
                         + "false;"
-                        + "window.FLOSY_NATIVE_RELAY_AVAILABLE=true;"
+                        + "window.FLOSY_NATIVE_RELAY_AVAILABLE="+(isMvp()?"false":"true")+";"
+                        + "window.FLOSY_MVP_NO_MESSAGE_IMPORT="+(isMvp()?"true":"false")+";"
                         + "window.FLOSY_NATIVE_DIRECT_CAPTURE_AVAILABLE="
                         + (("direct".equals(BuildConfig.FLAVOR)||"notify".equals(BuildConfig.FLAVOR))?"true":"false") + ";"
                         + "window.FLOSY_NATIVE_VOICE_AVAILABLE=true;"
@@ -295,9 +300,10 @@ public class MainActivity extends Activity {
                         + "if(window.FLOSY_NEXT)window.FLOSY_NEXT.render();"
                         + "if(window.FLOSY_AUTOMATE_RELAY)window.FLOSY_AUTOMATE_RELAY.render();"
                         + "if(window.FLOSY_REPAIR)window.FLOSY_REPAIR.render();", null);
-                    deliverPendingSharedMessage();
+                    if(isMvp())configureMvpWebUi();
+                    else deliverPendingSharedMessage();
                     deliverNativePending();
-                    sendRelayStatus();
+                    if(!isMvp())sendRelayStatus();
                 }
             }
 
@@ -381,10 +387,19 @@ public class MainActivity extends Activity {
         }
     }
 
+
+    // Founder-only MVP: no SMS/notification/relay permissions or inbound messages.
+    // Hide the hosted site's optional bank-message import route, without touching
+    // the shared live website used by other Flosy builds.
+    private void configureMvpWebUi(){
+        if(!isMvp()||webView==null||!pageReady)return;
+        webView.evaluateJavascript("(function(){\n  window.FLOSY_MVP_NO_MESSAGE_IMPORT=true;\n  window.FLOSY_NATIVE_SMS_AVAILABLE=false;\n  window.FLOSY_NATIVE_RELAY_AVAILABLE=false;\n  window.FLOSY_NATIVE_DIRECT_CAPTURE_AVAILABLE=false;\n  var id='flosy-mvp-no-import';\n  var css='[data-page=\"import\"],[data-go=\"import\"],[data-u-go=\"import\"],#page-import{display:none!important}';\n  if(!document.getElementById(id)){\n    var style=document.createElement('style');\n    style.id=id;style.textContent=css;document.head.appendChild(style);\n  }\n  var importer=document.querySelector('#page-import');\n  if(importer&&importer.classList.contains('active')){\n    var home=document.querySelector('[data-page=\"dashboard\"]');\n    if(home)home.click();\n  }\n})()",null);
+    }
+
     // Opt-in Android Sharesheet import: only text that the user explicitly shares.
     // Never request READ_SMS or read the user's messages database.
     private void readSharedText(Intent intent) {
-        if (intent == null || !Intent.ACTION_SEND.equals(intent.getAction())) return;
+        if (isMvp() || intent == null || !Intent.ACTION_SEND.equals(intent.getAction())) return;
         if (intent.getType() == null || !intent.getType().startsWith("text/plain")) return;
         CharSequence shared = intent.getCharSequenceExtra(Intent.EXTRA_TEXT);
         if (shared != null) {

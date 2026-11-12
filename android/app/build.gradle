@@ -21,8 +21,8 @@ android {
         applicationId 'com.flosy.finance'
         minSdk 24
         targetSdk 35
-        versionCode 38
-        versionName '3.6.1'
+        versionCode 39
+        versionName '3.6.2'
     }
 
 
@@ -48,6 +48,11 @@ android {
             dimension 'permissionLevel'
             applicationIdSuffix '.notify'
             // User-allowed financial notifications ONLY; no SMS receive/read permissions.
+        }
+        mvp {
+            dimension 'permissionLevel'
+            applicationIdSuffix '.mvp'
+            // Independent founder-testing build; no SMS, notification, relay, or message import.
         }
     }
 
