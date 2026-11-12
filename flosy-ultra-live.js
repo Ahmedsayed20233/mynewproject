@@ -519,7 +519,10 @@
   const badge=qa(".phone-frame[data-screen='1'] .rounded-full").find(el=>
    /256-Bit|256|مشفر/.test(el.textContent));
   if(badge)badge.textContent="نسخة تجريبية — حافظ على نسختك الاحتياطية";
-  w.goToScreen(2);
+  // Do not mark onboarding completed until the user actually chooses to enter Home.
+  let done=false;
+  try{done=localStorage.getItem("flosy_ultra_onboarding_done_v1")==="1"}catch{}
+  w.goToScreen(done?2:1);
  }
  w.FLOSY_ULTRA={
   render:()=>renderLive(true),onNativeReceipt:receiptResult,onVoiceText:parseVoiceText,
