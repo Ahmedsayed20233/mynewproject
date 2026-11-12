@@ -303,7 +303,9 @@ public class MainActivity extends Activity {
                         + "font-weight:bold;margin-top:20px}</style>"
                         + "<h1>فلوسي</h1><p>تعذر تحميل الموقع. تأكد من الاتصال بالإنترنت.</p>"
                         + "<a href='" + HOME + "'>إعادة المحاولة</a></html>";
-                    view.loadDataWithBaseURL(HOME, html, "text/html", "UTF-8", null);
+                    // An offline error page must never inherit the trusted Flosy website origin.
+                    // Retry still navigates to HOME via its absolute HTTPS link.
+                    view.loadDataWithBaseURL("about:blank", html, "text/html", "UTF-8", null);
                 }
             }
         });
