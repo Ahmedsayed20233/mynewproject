@@ -254,7 +254,8 @@ function parseReceipt(text){
     paymentMethod:info.paymentMethod||null,items:info.items||[],
     subtotal:info.subtotal,discount:info.discount,tax:info.tax,
     paid:info.paid,change:info.change,confidence:info.confidence,
-    evidence:info.evidence,modelVersion:info.modelVersion
+    evidence:info.evidence,modelVersion:info.modelVersion,
+    validationIssues:info.validationIssues||[]
   };
   const hashKey=info.receiptNumber?
     String(info.merchant||"").toLowerCase()+"|"+info.receiptNumber+"|"+info.amount:
@@ -266,7 +267,7 @@ function parseReceipt(text){
     sourceHash:"receipt-auto-ml-v1-"+hash(hashKey),
     // Printed payment method is optional when the user explicitly selected a
     // specific auto-capture account. Contradictory totals still require review.
-    autoQuality:(info.autoQuality===true||
+    autoQuality:!(info.validationIssues||[]).length&&(info.autoQuality===true||
       (Boolean(accountId)&&Boolean(autoPrefs().accountId)&&
        cash().some(a=>a.id===autoPrefs().accountId)&&
        info.confidence>=0.86&&Boolean(info.merchant)&&Boolean(info.date)&&
@@ -347,6 +348,8 @@ function draftForm(){
    ' • رقم الإيصال: '+esc(pending.receiptDetails.invoiceNumber||"غير واضح")+
    ' • طريقة الدفع: '+esc(pending.receiptDetails.paymentMethod==="cash"?"نقدي":pending.receiptDetails.paymentMethod==="card"?"بطاقة":"غير محددة")+
    ' • ثقة القراءة: '+esc(Math.round(Number(pending.receiptDetails.confidence||0)*100))+'%</p>'+
+   ((pending.receiptDetails.validationIssues||[]).includes("subtotal_mismatch")?
+    '<p role="status">الإجمالي لا يطابق المجموع الفرعي مع الضريبة والخصم؛ راجع المبلغ من الإيصال قبل الحفظ.</p>':"")+
    (pending.receiptDetails.items||[]).map(it=>'<div>الصنف: '+esc(it.name)+' • الكمية: '+esc(it.quantity)+
     (it.unitPrice?' • السعر: '+esc(it.unitPrice):'')+'</div>').join('')+
    '<small>لا يتم حفظ الصورة الأصلية أو بيانات العميل الشخصية.</small></div>':"")+

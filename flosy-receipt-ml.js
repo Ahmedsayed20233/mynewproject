@@ -209,10 +209,20 @@ function extract(text){
  const paidCandidate=candidates.filter(x=>x.paid&&!change.test(x.text)).sort((a,b)=>b.line-a.line)[0];
  const chosen=preferred||paidCandidate||null;
  if(!chosen||!(chosen.value>0&&chosen.value<1e9))throw Error("لم أجد إجماليًا أو مبلغًا مدفوعًا موثوقًا من الصورة");
+ // Reconcile printed fields in integer piastres, independently of the ranker.
+ // A missing adjustment is treated as zero only for this conservative veto:
+ // tax-inclusive or incomplete OCR layouts can still be corrected in review.
+ // Do not sum extracted items: the table may be cropped or only partly read.
+ const cents=value=>Math.round(value*100);
+ const validationIssues=[];
+ if(subtotal!==null && Math.abs(cents(subtotal)+cents(tax??0)-
+     cents(discount??0)-cents(chosen.value))>2)
+   validationIssues.push("subtotal_mismatch");
  const hasZeroChange=(changeValue===0);
  let confidence=preferred?(preferred.strong?0.98:Math.max(0.82,Math.min(0.96,preferred.probability))):0.69;
  if(paidValue!==null&&Math.abs(paidValue-chosen.value)<=0.01)confidence=Math.min(0.99,confidence+0.03);
  if(!preferred&&hasZeroChange)confidence=0.74;
+ if(validationIssues.length)confidence=Math.min(confidence,0.79);
  if(!date)confidence=Math.min(confidence,0.68);
  if(!merchant)confidence=Math.min(confidence,0.65);
  const timeLine=lines.find(l=>/\b(?:[01]?\d|2[0-3]):[0-5]\d\s*(?:AM|PM|ص|م)?\b/i.test(l))||"";
@@ -223,8 +233,8 @@ function extract(text){
  const items=extractItems(lines);
  return {amount:chosen.value,merchant,date,time,receiptNumber,paymentMethod,
    items,discount,tax,subtotal,paid:paidValue,change:changeValue,currency:"EGP",
-   confidence:+confidence.toFixed(2),evidence:chosen.evidence,
-   autoQuality:!!preferred&&confidence>=0.86&&!!merchant&&!!date&&!!paymentMethod,
+   confidence:+confidence.toFixed(2),evidence:chosen.evidence,validationIssues,
+   autoQuality:validationIssues.length===0&&!!preferred&&confidence>=0.86&&!!merchant&&!!date&&!!paymentMethod,
    modelVersion:MODEL.version,
    // No photos, customer name, phone or unredacted OCR transcript in finance record.
    description:[merchant||"إيصال",items[0]?.name].filter(Boolean).join(" — ").slice(0,95)};

@@ -19,7 +19,7 @@ async function startLocal(){
  const server=await startLocal();
  let browser,page;
  try{
-  browser=await chromium.launch({headless:true,args:["--no-sandbox"]});
+  browser=await chromium.launch({headless:true,executablePath:process.env.FLOSY_CHROMIUM_PATH||undefined,args:["--no-sandbox"]});
   const context=await browser.newContext({acceptDownloads:true,serviceWorkers:"block"});
   page=await context.newPage();
   // Never send test data to remote API services.
@@ -399,6 +399,32 @@ async function startLocal(){
   assert.equal(autoTests.afterOTP,autoTests.afterSMS);
   assert.equal(autoTests.afterUndo,autoTests.before+2,"Last auto-recorded transaction must be reversible");
   console.log("PASS: opted-in auto-save voice, split-line receipt, instant transfer SMS, OTP rejection and undo");
+
+  // Conflicting OCR arithmetic must reach visible review even after auto opt-in.
+  await page.evaluate(()=>{
+   window.FLOSY_BRIDGE.goto("v4-capture");
+   window.FLOSY_CAPTURE.setAuto("receipt",true);
+  });
+  const conflictBefore=await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length);
+  await page.locator("#flosyRepairOCRText").fill(
+   "TEST SHOP\nDate 2026-11-10\nSubtotal 100.00\nVAT 14.00\nDiscount: 0.00\nGrand Total 914.00\nCash");
+  await page.locator("#flosyRepairOCRForm button[type=submit]").click();
+  assert.equal(await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length),conflictBefore);
+  assert.ok(await page.locator('#v4-capture-review [role="status"]').isVisible());
+  assert.match(await page.locator('#v4-capture-review [role="status"]').innerText(),/الإجمالي لا يطابق/);
+  assert.equal(await page.locator('#v4-capture-confirm input[name="amount"]').inputValue(),"914");
+  fs.mkdirSync("tests/_artifacts",{recursive:true});
+  await page.screenshot({path:"tests/_artifacts/receipt-arithmetic-review.png",fullPage:true});
+  // The user can correct and explicitly approve the draft through the existing form.
+  await page.locator('#v4-capture-confirm input[name="amount"]').fill("114");
+  await page.locator('#v4-capture-confirm button[type="submit"]').click();
+  assert.equal(await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length),conflictBefore+1);
+  assert.equal(await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.at(-1).amount),114);
+  await page.evaluate(()=>{
+   window.FLOSY_CAPTURE.setAuto("receipt",false);
+   window.FLOSY_BRIDGE.goto("dashboard");
+  });
+  console.log("PASS: inconsistent receipt requires visible review and explicit corrected approval");
 
   fs.mkdirSync("tests/_artifacts",{recursive:true});
   await page.screenshot({path:"tests/_artifacts/elevate-dashboard.png",fullPage:true});

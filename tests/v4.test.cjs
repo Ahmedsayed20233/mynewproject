@@ -341,7 +341,8 @@ test("Calendar export contains explicit due dates, not personal amounts or accou
  assert.match(ics,/BEGIN:VCALENDAR/);
  assert.match(ics,/BEGIN:VEVENT/);
  assert.match(ics,/DTSTART;VALUE=DATE:20261120/);
- assert.doesNotMatch(ics,/1250|9999|Secret|Internet/);
+ // Timestamp digits can coincidentally contain an amount (e.g. 12:50 UTC).
+ assert.doesNotMatch(ics.replace(/^DTSTAMP:.*$/mg,""),/1250|9999|Secret|Internet/);
 });
 
 
@@ -525,9 +526,9 @@ test("Flosy AI defaults to free mode, API stays optional and offline shell is ve
  assert.match(ai,/answerFree/);
  assert.match(ai,/OpenAI API/);
  assert.ok(sw.includes("flosy-ai.js?v=730"));
- assert.ok(sw.includes("flosy-receipt-ml.js?v=3401"));
+ assert.ok(sw.includes("flosy-receipt-ml.js?v=3402"));
  assert.ok(sw.includes("flosy-voice-nlu.js?v=3402"));
- assert.ok(sw.includes("flosy-v4-capture.js?v=3402"));
+ assert.ok(sw.includes("flosy-v4-capture.js?v=3403"));
  assert.ok(sw.includes("flosy-repair.js?v=3401"));
 });
 
@@ -802,4 +803,39 @@ test("Automate web component and cache have matching version without SMS permiss
  assert.match(sw,/flosy-automate-relay\.js\?v=3102/);
  assert.match(sw,/flosy-automate-relay\.css\?v=2901/);
  assert.match(index,/id="flosyAutomateRelayRoot"/);
+});
+
+
+test("Receipt arithmetic conflicts require review even with an explicit auto account",()=>{
+ for(const payment of ["Cash", ""]){
+  for(const labels of [
+   ["Subtotal 100.00","VAT 14.00","Discount: 0.00","Grand Total 914.00"],
+   ["الإجمالي قبل الخصم: ١٠٠٫٠٠","الضريبة: ١٤٫٠٠","الخصم: ١٠٫٠٠","الصافي: ١١٤٫٠٠"]
+  ]){
+   const c=context();load("flosy-receipt-ml.js",c);load("flosy-v4-capture.js",c);
+   const cap=c.window.FLOSY_CAPTURE;
+   cap.setAutoAccount("wallet");cap.setAuto("receipt",true);
+   const text=["TEST SHOP","Date 2026-11-10",...labels,payment].join("\n");
+   const proposal=cap.parseReceipt(text);
+   assert.equal(proposal.autoQuality,false);
+   assert.equal(proposal.receiptDetails.validationIssues.includes("subtotal_mismatch"),true);
+   assert.equal(cap.autoRecord(proposal,"receipt"),false);
+   assert.equal(c.data.transactions.length,0);
+   cap.parseReview(proposal);
+   assert.match(c.elems["v4-capture-review"].innerHTML,/الإجمالي لا يطابق/);
+  }
+ }
+});
+
+test("Receipt arithmetic accepts cents, zero adjustments and matching Arabic totals",()=>{
+ const c=context();load("flosy-receipt-ml.js",c);
+ for(const labels of [
+  ["Subtotal 0.10","VAT 0.20","Discount: 0.00","Grand Total 0.30"],
+  ["الإجمالي قبل الخصم: ١٠٠٫٠٠","الضريبة: ١٤٫٠٠","الخصم: ١٠٫٠٠","الصافي: ١٠٤٫٠٠"],
+  ["Subtotal 100.00","VAT 0.00","Discount: 0.00","Grand Total 100.00"]
+ ]){
+  const result=c.window.FLOSY_RECEIPT_ML.extract(["TEST SHOP","Date 2026-11-10",...labels,"Cash"].join("\n"));
+  assert.equal(result.autoQuality,true);
+  assert.equal(result.validationIssues.length,0);
+ }
 });
