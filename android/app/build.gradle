@@ -21,8 +21,8 @@ android {
         applicationId 'com.flosy.finance'
         minSdk 24
         targetSdk 35
-        versionCode 40
-        versionName '3.7.0'
+        versionCode 41
+        versionName '3.7.1'
     }
 
 
@@ -51,7 +51,7 @@ android {
         }
         mvp {
             dimension 'permissionLevel'
-            applicationIdSuffix '.mvp'
+            applicationIdSuffix '.aurora'
             // Aurora founder MVP: local due-date notifications, but NO bank SMS, app notification reading or message relay.
         }
     }
