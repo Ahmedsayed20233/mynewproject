@@ -194,6 +194,9 @@
   snapshot=month;
   renderHome(month);renderAccounts(month);transactionGroups();renderBudget(month);
   renderAnalytics(anal);renderReports(report);renderTips(month);
+  // Newly rendered rows must inherit the user's privacy toggle; never flash amounts.
+  if(typeof privacyHidden!=="undefined"&&privacyHidden)
+   qa(".balance-sensitive").forEach(el=>el.classList.add("privacy-blur"));
   syncNotifications();
   if(w.FLOSY_ULTRA_AI?.setContext)w.FLOSY_ULTRA_AI.setContext(month,C,core);
  }
