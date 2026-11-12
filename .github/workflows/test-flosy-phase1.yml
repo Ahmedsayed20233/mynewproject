@@ -26,8 +26,10 @@ on:
       - 'flosy-repair.js'
       - 'flosy-assistant-bridge.js'
       - 'flosy-ai.js'
+      - 'flosy-account-router.js'
+      - 'tests/account-router.test.cjs'
       - 'flosy-report-kit.js'
-      - 'tests/report-kit.test.cjs'
+      - 'tests/report-kit.test.cjs tests/account-router.test.cjs'
       - 'supabase/functions/flosy-ai/index.ts'
       - 'service-worker.js'
       - 'tests/v4.test.cjs'
@@ -56,6 +58,7 @@ jobs:
           node --check flosy-automate-relay.js
           node --check flosy-ai-analytics.js
           node --check flosy-ai.js
+          node --check flosy-account-router.js
           node --check flosy-report-kit.js
           node --check flosy-v4-capture.js
           node --check flosy-v4-bank.js
