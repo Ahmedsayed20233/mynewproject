@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Flosy Ultra">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0B1324"/><stop offset="1" stop-color="#051C1A"/></linearGradient><linearGradient id="f" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6EE7B7"/><stop offset=".55" stop-color="#10B981"/><stop offset="1" stop-color="#0EA5E9"/></linearGradient></defs>
+<rect width="128" height="128" rx="29" fill="url(#bg)"/>
+<path d="M33 94V48c0-16 12-26 29-26h37L90 42H64c-9 0-12 5-12 12v8h32L76 80H52v14c0 13-19 13-19 0z" fill="url(#f)"/>
+<path d="M33 66V48c0-16 12-26 29-26h37" fill="none" stroke="#B6FFDA" stroke-opacity=".4" stroke-width="3"/>
+</svg>
