@@ -58,7 +58,7 @@ jobs:
           grep -Fq 'FlosyReminderReceiver' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'notifications-enable' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'notifications-sync' android/app/src/main/java/com/flosy/finance/MainActivity.java
-          grep -Fq '/flosy-ultra.html' android/app/src/main/java/com/flosy/finance/MainActivity.java
+          grep -Fq 'ROOT + "flosy-ultra.html"' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'ultra-ai-speak' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'ar-EG' android/app/src/main/java/com/flosy/finance/FlosyUltraSpeech.java
           grep -Fq 'TextToSpeech' android/app/src/main/java/com/flosy/finance/FlosyUltraSpeech.java
