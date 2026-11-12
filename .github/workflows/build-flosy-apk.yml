@@ -40,123 +40,69 @@ jobs:
         with:
           gradle-version: '8.11.1'
 
-      - name: Verify all-white native theme
+      - name: Verify MVP excludes messaging features
         run: |
-          grep -q "Theme.Material.Light.NoActionBar" android/app/src/main/AndroidManifest.xml
-          # Offline retry page must not inherit the trusted site origin.
-          grep -Fq 'view.loadDataWithBaseURL("about:blank"' android/app/src/main/java/com/flosy/finance/MainActivity.java
-          grep -q "webView.setBackgroundColor(Color.WHITE)" android/app/src/main/java/com/flosy/finance/MainActivity.java
-          grep -q "FLOSY_NATIVE_OCR_AVAILABLE=true" android/app/src/main/java/com/flosy/finance/MainActivity.java
-          grep -q "setAllowContentAccess(true)" android/app/src/main/java/com/flosy/finance/MainActivity.java
-          grep -q "addWebMessageListener" android/app/src/main/java/com/flosy/finance/MainActivity.java
-          grep -q "RECORD_AUDIO" android/app/src/main/AndroidManifest.xml
-          grep -q "REQ_SAVE_WORKBOOK" android/app/src/main/java/com/flosy/finance/MainActivity.java
-          grep -q "xlsx-chunk" android/app/src/main/java/com/flosy/finance/MainActivity.java
-          grep -q "FLOSY_NATIVE_XLSX_AVAILABLE=true" android/app/src/main/java/com/flosy/finance/MainActivity.java
-          grep -q "ACTION_IMAGE_CAPTURE" android/app/src/main/java/com/flosy/finance/MainActivity.java
-          grep -q "ACTION_CREATE_DOCUMENT" android/app/src/main/java/com/flosy/finance/MainActivity.java
-          # No banking/notification high-risk permission may be requested by either variant.
-          # Scan actual XML attributes, not explanatory comments mentioning old permissions.
-          if grep -Eq '<uses-permission[^>]*android\.permission\.(READ_SMS|RECEIVE_SMS|SEND_SMS)|android:permission="android\.permission\.(BIND_NOTIFICATION_LISTENER_SERVICE|BIND_ACCESSIBILITY_SERVICE)"' \
-              android/app/src/main/AndroidManifest.xml android/app/src/sms/AndroidManifest.xml; then
-            echo "Blocked: restricted SMS/notification permission in Android manifest"; exit 1
+          set -eu
+          grep -Fq "versionName '3.6.2'" android/app/build.gradle
+          grep -Fq "applicationIdSuffix '.mvp'" android/app/build.gradle
+          grep -Fq 'tools:node="remove"' android/app/src/mvp/AndroidManifest.xml
+          grep -Fq 'tools:node="replace"' android/app/src/mvp/AndroidManifest.xml
+          grep -Fq 'FLOSY_MVP_NO_MESSAGE_IMPORT' android/app/src/main/java/com/flosy/finance/MainActivity.java
+          grep -Fq 'configureMvpWebUi()' android/app/src/main/java/com/flosy/finance/MainActivity.java
+          grep -Fq 'if(isMvp()' android/app/src/main/java/com/flosy/finance/MainActivity.java
+          if grep -E '<uses-permission[^>]+(READ_SMS|RECEIVE_SMS|SEND_SMS)' android/app/src/mvp/AndroidManifest.xml; then
+            echo "MVP must have no SMS permission"; exit 1
           fi
-          if grep -Eq 'Telephony.Sms|Manifest.permission.READ_SMS|InstaPayNotificationReader' \
-              android/app/src/main/java/com/flosy/finance/MainActivity.java; then
-            echo "Blocked: retired broad SMS/notification scanner still referenced"; exit 1
-          fi
-          grep -Fq "versionName '3.6.1'" android/app/build.gradle
-          grep -Fq 'private static final String HOME = "https://ahmedsayed20233.github.io/mynewproject/"' android/app/src/main/java/com/flosy/finance/MainActivity.java
-          grep -Fq 'receiveNativeReceiptImage' android/app/src/main/java/com/flosy/finance/MainActivity.java
-          # Notify build has user-controlled Notification Access but NO SMS read/receive permission.
-          if grep -Eq 'uses-permission[^>]*android.permission.(READ_SMS|RECEIVE_SMS|SEND_SMS)' android/app/src/notify/AndroidManifest.xml; then
-            echo "Notify flavor cannot request SMS permissions"; exit 1
-          fi
-          grep -Fq 'android.permission.BIND_NOTIFICATION_LISTENER_SERVICE' android/app/src/notify/AndroidManifest.xml
-          grep -Fq 'notify {' android/app/build.gradle
-          grep -Fq 'allowedNativeSender(this,title.toString())' android/app/src/direct/java/com/flosy/finance/DirectNotificationListener.java
-          grep -Fq 'AUTO_RELAY_QUEUE_UPDATED' android/app/src/main/java/com/flosy/finance/AutoRelayReceiver.java
-          grep -q 'android.intent.action.SEND' android/app/src/main/AndroidManifest.xml
-          grep -q 'com.flosy.finance.REVIEW_EXTERNAL_FINANCIAL_EVENT' android/app/src/main/AndroidManifest.xml
-          grep -q 'MessageDigest.isEqual' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java
-          grep -q 'AES/GCM/NoPadding' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java
-          # Regression guard: AndroidKeyStore rejects caller-specified GCM IVs in ENCRYPT_MODE.
-          grep -Fq 'cipher.init(Cipher.ENCRYPT_MODE,secret());' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java
-          grep -Fq 'byte[] iv=cipher.getIV();' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java
-          if grep -Fq 'cipher.init(Cipher.ENCRYPT_MODE,secret(),new GCMParameterSpec' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java; then
-            echo 'Unsafe: caller-supplied encryption IV'; exit 1
-          fi
-          # Broad SMS capture stays allowlisted and excludes authentication secrets.
-          grep -Fq 'if(!sourceAllowed(c,source,sender))' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java
-          grep -Fq 'if(SECRET.matcher(text).find())' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java
-          grep -Fq 'if(!"sms".equals(source))' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java
-          grep -Fq 'if(!TX.matcher(text).find())' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java
-          grep -Fq 'if(!CURRENCY.matcher(text).find())' android/app/src/main/java/com/flosy/finance/AutoRelayStore.java
-          grep -q 'AutoRelayStore.accept' android/app/src/main/java/com/flosy/finance/AutoRelayReceiver.java
-          grep -q 'if(window.FLOSY_AUTOMATE_RELAY)' android/app/src/main/java/com/flosy/finance/MainActivity.java
+          grep -Fq 'RECORD_AUDIO' android/app/src/main/AndroidManifest.xml
+          grep -Fq 'ACTION_CREATE_DOCUMENT' android/app/src/main/java/com/flosy/finance/MainActivity.java
 
-      - name: Compile all Android MVP flavors
-        run: |
-          gradle -p android --no-daemon --stacktrace assembleStandardDebug assembleSmsDebug assembleDirectDebug assembleNotifyDebug
+      - name: Compile founder-test MVP APK
+        run: gradle -p android --no-daemon --stacktrace assembleMvpDebug
 
-      - name: Validate and stage APKs
+      - name: Verify installable APK manifest, signing and contents
         run: |
-          set -e
-          STANDARD="android/app/build/outputs/apk/standard/debug/app-standard-debug.apk"
-          SMS="android/app/build/outputs/apk/sms/debug/app-sms-debug.apk"
-          DIRECT="android/app/build/outputs/apk/direct/debug/app-direct-debug.apk"
-          NOTIFY="android/app/build/outputs/apk/notify/debug/app-notify-debug.apk"
-          test -s "$STANDARD"
-          test -s "$SMS"
-          test -s "$DIRECT"
-          test -s "$NOTIFY"
+          set -euo pipefail
+          APK="android/app/build/outputs/apk/mvp/debug/app-mvp-debug.apk"
+          test -s "$APK"
+          AAPT="$ANDROID_HOME/build-tools/35.0.0/aapt"
+          SIGN="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          "$AAPT" dump badging "$APK" | tee /tmp/flosy-mvp-badging.txt
+          grep -q "name='com.flosy.finance.mvp'" /tmp/flosy-mvp-badging.txt
+          grep -q "versionName='3.6.2'" /tmp/flosy-mvp-badging.txt
+          "$AAPT" dump permissions "$APK" | tee /tmp/flosy-mvp-permissions.txt
+          if grep -E 'android.permission.(READ_SMS|RECEIVE_SMS|SEND_SMS|READ_CALL_LOG|BIND_NOTIFICATION_LISTENER_SERVICE|BIND_ACCESSIBILITY_SERVICE)' /tmp/flosy-mvp-permissions.txt; then
+            echo "BLOCKED: MVP APK contains restricted messages/notification permission"; exit 1
+          fi
+          "$AAPT" dump xmltree "$APK" AndroidManifest.xml > /tmp/flosy-mvp-manifest.txt
+          if grep -E 'AutoRelayReceiver|DirectSmsReceiver|DirectNotificationListener|REVIEW_EXTERNAL_FINANCIAL_EVENT|SMS_RECEIVED|android.intent.action.SEND' /tmp/flosy-mvp-manifest.txt; then
+            echo "BLOCKED: MVP APK exports a message import component"; exit 1
+          fi
+          "$SIGN" verify --verbose "$APK"
+          unzip -t "$APK" >/dev/null
           mkdir -p dist
-          cp "$STANDARD" dist/Flosy-Android-Standard-v3.6.1.apk
-          cp "$SMS" dist/Flosy-Safe-Automate-v3.6.1-ReceiptML-VoiceNLU.apk
-          # Direct Lab is compiled for regression testing, NOT published for sideload.
-          cp "$NOTIFY" dist/Flosy-Notifications-No-SMS-v3.6.1.apk
-          for APK in "$STANDARD" "$SMS" "$NOTIFY"; do
-            "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | head -8
-            "$ANDROID_HOME/build-tools/35.0.0/aapt" dump permissions "$APK" | tee /tmp/flosy-permissions.txt
-            if grep -Eq 'android.permission.(READ_SMS|RECEIVE_SMS|SEND_SMS|BIND_NOTIFICATION_LISTENER_SERVICE|BIND_ACCESSIBILITY_SERVICE)' /tmp/flosy-permissions.txt; then
-              echo "Unsafe declared permission found in $APK"; exit 1
-            fi
-          done
-          # Direct Lab intentionally requests RECEIVE_SMS, but is never distributed in this release.
-          # Notify must NOT request SMS permissions, despite using user-granted notification listener.
-          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump permissions "$DIRECT" | tee /tmp/direct-permissions.txt
-          grep -q 'android.permission.RECEIVE_SMS' /tmp/direct-permissions.txt
-          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump permissions "$NOTIFY" | tee /tmp/notify-permissions.txt
-          if grep -Eq 'android.permission.(READ_SMS|RECEIVE_SMS|SEND_SMS|READ_CALL_LOG)' /tmp/notify-permissions.txt; then
-            echo "Blocked: restricted messaging permissions in Notify APK"; exit 1
-          fi
-          if grep -Eq 'android.permission.(READ_SMS|SEND_SMS|BIND_ACCESSIBILITY_SERVICE)' /tmp/direct-permissions.txt; then
-            echo 'Unexpected permission in Direct Lab'; exit 1
-          fi
-          grep -Fq 'AutoRelayStore.acceptDirect' android/app/src/direct/java/com/flosy/finance/DirectSmsReceiver.java
-          grep -Fq 'AutoRelayStore.acceptDirect' android/app/src/direct/java/com/flosy/finance/DirectNotificationListener.java
+          cp "$APK" dist/Flosy-MVP-No-Messages-v3.6.2.apk
           ls -lh dist/*.apk
 
-      - name: Upload APK artifacts
+      - name: Upload MVP testing APK
         uses: actions/upload-artifact@v4
         with:
-          name: Flosy-Android-v3.6.1-Safe-Notification-Beta
+          name: Flosy-MVP-v3.6.2-No-Messages-APK
           path: dist/*.apk
           retention-days: 30
           if-no-files-found: error
 
-      - name: Publish permission-minimized APKs as GitHub Release
+      - name: Publish verified MVP APK to GitHub Releases
         if: github.ref == 'refs/heads/flosy-android' && github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="flosy-android-v3.6.1"
+          TAG="flosy-mvp-v3.6.2"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.apk --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$TAG" dist/*.apk \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --title "فلوسي Android v3.6.1 — Notification-only Beta (no SMS permission)" \
-              --notes "Flosy v3.6.1 test APKs include a NEW Notification-only flavor without READ_SMS, RECEIVE_SMS, or SEND_SMS. It can collect owner-allowlisted financial-app notifications only with explicit Android Notification Access; SMS content can be observed only when Android delivers it as a visible bank-sender notification from an owner-authorized messaging app. No inbox scan, no Play Protect bypass, and no guarantee that Android will allow installation or Notification Access. Direct RECEIVE_SMS test flavor is compiled but NOT distributed here. Standard beta has no SMS/notification access. All flavors retain current hosted UI, on-device ReceiptML/VoiceNLU postprocessors, local analytics and user-selected Excel report export. Debug-signed: preserve backups and confirm signatures before updating. Never disable Play Protect or uninstall an existing app to get past install conflicts."
+              --title "Flosy MVP v3.6.2 — No SMS or bank notification import" \
+              --notes "Founder-testing Android MVP with manual transactions, receipt OCR, Egyptian Arabic voice entry, account management, analytics, AI assistant and PDF/Excel reports. Package com.flosy.finance.mvp is separate from earlier Flosy installs. The release does not request READ_SMS, RECEIVE_SMS or SEND_SMS; it has no notification listener, bank-message receiver, external relay receiver or text share-import intent. Bank-message import is hidden from MVP UI. Verified by GitHub Actions using aapt, apksigner and ZIP validation. Debug-signed testing build; no guarantee of Play Protect clearance on every Android phone. Requires internet for live hosted UI. Back up existing Flosy financial data before changing apps; the independent package starts with its own local storage. Never disable Play Protect."
           fi
