@@ -152,7 +152,8 @@ function activityRows(){
  let last="",html="";
  for(const t of rows.slice(0,120)){
   if(t.date!==last){last=t.date;html+='<h4 class="u-day-heading">'+esc(shortDate(last))+'</h4>'}
-  const symbol=t.type==="income"?"↙":t.type==="expense"?"↗":"⇄";
+  const fallback=t.type==="income"?"↙":t.type==="expense"?"↗":"⇄";
+   const symbol=t.type==="expense"?(w.FLOSY_REPORT_KIT?.iconFor?.(String(t.description||"")+" "+String(t.category||""))||fallback):fallback;
   const label=t.type==="income"?"دخل":t.type==="expense"?"مصروف":"تحويل";
   const desc=String(t.description||t.category||label).slice(0,100);
   const a=S().accounts?.find(x=>x.id===t.accountId);

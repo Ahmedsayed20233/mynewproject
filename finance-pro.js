@@ -163,8 +163,13 @@
       '<div class="pro-note">هذان الزران لا يحركان أي أموال حقيقية: يُسجلان ما حدث بالفعل فقط داخل فلوسي. إذا كانت الفيزا ائتمانية والمبلغ حدًا ائتمانيًا أو قرضًا وليس رصيدًا مملوكًا لك، لا تستخدم زر المطابقة؛ سجّل الالتزام في «الديون» بدلًا من ذلك. لا تضغط تسجيل التحويل حتى تنفذه فعليًا من البنك.</div></div>';
     html+='<div class="pro-card"><div class="pro-head"><div><h3>حساباتك وأرصدة الأموال</h3><p>أدخل الرصيد الافتتاحي مرة واحدة، وسجّل بعده العمليات عبر حساب محدد. استخدم «مطابقة» لو الرصيد الحالي مختلف عن البنك.</p></div><button class="btn primary" data-pro="add-account">＋ حساب</button></div>';
     html+=line(cashAccounts().map(function(a){
-      var amount=m.balances[a.id]||0;return ['<span class="pro-icon">▣</span> '+esc(a.name),esc(({cash:"نقدية",bank:"حساب بنكي",emergency:"طوارئ",reserve:"احتياطي",thndr:"ثاندر",other:"حساب آخر"})[a.type]||a.type),'<strong class="'+(amount<0?"pro-negative":"")+'">'+money(amount)+'</strong>',
-      '<button class="smallbtn" data-pro="reconcile-account" data-id="'+esc(a.id)+'">مطابقة</button> <button class="smallbtn" data-pro="edit-account" data-id="'+esc(a.id)+'">افتتاحي</button>'];
+      var amount=m.balances[a.id]||0,masked=/^\d{4}$/.test(String(a.last4||""))?' · ••••'+a.last4:"";
+      return ['<span class="pro-icon">▣</span> '+esc(a.name)+esc(masked),
+      esc(({cash:"نقدية",bank:"حساب بنكي",emergency:"طوارئ",reserve:"احتياطي",thndr:"ثاندر",other:"حساب آخر"})[a.type]||a.type)+
+       (a.bankName?' · '+esc(a.bankName):""),
+      '<strong class="'+(amount<0?"pro-negative":"")+'">'+money(amount)+'</strong>',
+      '<button class="smallbtn" data-pro="reconcile-account" data-id="'+esc(a.id)+'">مطابقة</button> <button class="smallbtn" data-pro="edit-account" data-id="'+esc(a.id)+'">افتتاحي</button> '+
+      '<button class="smallbtn" data-pro="account-link" data-id="'+esc(a.id)+'">ربط SMS</button>'];
     }),["الحساب","النوع","الرصيد المحسوب",""]);
     html+='<div class="pro-note">العمليات القديمة المسجلة قبل إضافة الحسابات لا تُوزع تلقائيًا لمنع احتسابها مرتين. أدخل الأرصدة الحالية بدقة وراجع تطابقها مع البنك وثاندر.</div></div>';
     html+='<div class="pro-card"><div class="pro-head"><h3>تحويل بين حساباتك</h3></div><form id="proAccountTransfer" class="pro-grid-fields">'+
@@ -362,9 +367,22 @@
       var an=prompt("اسم الحساب الجديد (مثال: بنك آخر / محفظة إلكترونية)");if(!an||!an.trim())return;
       var a=prompt("الرصيد الافتتاحي الحالي بالجنيه","0");if(a===null)return;var v=Number(a);
       if(!Number.isFinite(v)||v<0){C.toast("أدخل رصيدًا صحيحًا");return}
-      store("accounts",{name:an.trim().slice(0,60),type:"other",opening:v});
+      var bank=prompt("اسم البنك أو المحفظة (اختياري، مثال CIB / NBE / بنك مصر)","");if(bank===null)return;
+       var four=prompt("آخر 4 أرقام من الحساب أو الكارت (اختياري؛ لا تكتب الرقم كاملًا)","");if(four===null)return;
+       four=String(four||"").trim();
+       if(four&&!/^\d{4}$/.test(four)){C.toast("أدخل آخر 4 أرقام فقط أو اتركها فارغة");return;}
+       store("accounts",{name:an.trim().slice(0,60),type:"other",opening:v,bankName:String(bank||"").trim().slice(0,60),last4:four});
     }
-    if(action==="set-visa"){
+    if(action==="account-link"){
+       var account=acc(id);if(!account)return C.toast("الحساب غير موجود");
+       var bank=prompt("اسم البنك أو المحفظة (اختياري)",account.bankName||"");if(bank===null)return;
+       var four=prompt("آخر 4 أرقام فقط لمطابقة SMS والإشعارات",account.last4||"");if(four===null)return;
+       four=String(four||"").trim();
+       if(four&&!/^\d{4}$/.test(four))return C.toast("آخر 4 أرقام فقط، أو اترك الحقل فارغًا");
+       C.mutate(function(st){var a=st.accounts.find(function(x){return x.id===id});if(a){a.bankName=String(bank).trim().slice(0,60);a.last4=four;a.updatedAt=new Date().toISOString()}});
+       C.toast("تم حفظ بيانات المطابقة المحلية للحساب");
+     }
+     if(action==="set-visa"){
       if((st().transactions||[]).some(function(t){return !!t.startingAllocation})){
         C.toast("تم تسجيل تحويل بداية الطوارئ؛ لا تعِد رصيد الفيزا إلى 20 ألف لأن ذلك سيكرر الأموال.");return;
       }

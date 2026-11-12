@@ -151,5 +151,5 @@ function download(state,range){
  a.href=url;a.download="Flosy-"+range.start+"-"+range.end+".xlsx";a.click();
  setTimeout(()=>URL.revokeObjectURL(url),2000);
 }
-w.FLOSY_REPORT_KIT={build,printAppendix,xlsxBytes,download,saveNativeXlsx,version:"3.6.0"};
+w.FLOSY_REPORT_KIT={build,printAppendix,xlsxBytes,download,saveNativeXlsx,iconFor:icon,version:"3.6.1"};
 })(window);
