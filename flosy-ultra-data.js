@@ -69,10 +69,10 @@
    safe:safeMoney,daily,budget:n(state?.settings?.rent)+n(state?.settings?.bills)+n(state?.settings?.living),
    range};
  }
- function budgetCards(s,range){
+ function budgetCards(s,state){
   const recorded=s.transactions.filter(t=>t.type==="expense");
   const spending=c=>recorded.filter(t=>category(t)===c).reduce((sum,t)=>sum+n(t.amount),0);
-  const cfg=s?.settings||{};
+  const cfg=state?.settings||{};
   // Prefer explicitly configured category budgets, otherwise show suggestions as unconfigured.
   const custom=arr(cfg.categoryBudgets||cfg.budgets);
   const names=["الطعام والمطاعم","المواصلات","التسوق","الترفيه"];
