@@ -229,6 +229,9 @@ w.addEventListener?.("flosy:auth-state-change",e=>{
  if(e.detail?.signedIn&&returnAfterLogin){returnAfterLogin=false;C.goto("ai")}
  else view();
 });
-w.FLOSY_AI={render:view,ask,snapshot,answerFree,safeGeminiBody};
+w.FLOSY_AI={render:view,ask,snapshot,answerFree,safeGeminiBody,
+ getLastReply:()=>{const x=conversation.filter(m=>m.role==="assistant");return x[x.length-1]||null},
+ getReplyCount:()=>conversation.filter(m=>m.role==="assistant").length
+};
 view();
 })(window);

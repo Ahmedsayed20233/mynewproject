@@ -13,6 +13,9 @@ on:
       - 'flosy-repair.js'
       - 'flosy-v4-capture.js'
       - 'index.html'
+      - 'flosy-ultra.html'
+      - 'flosy-ultra-*'
+      - 'tests/ultra-browser.cjs'
       - '.github/workflows/flosy-browser-smoke.yml'
   pull_request:
     branches: [flosy-site]
@@ -36,6 +39,8 @@ jobs:
           npx playwright install chromium # Hosted runner already has browser libraries; avoid apt DNS failures
       - name: Exercise voice, receipt and free AI UX
         run: node tests/browser-smoke.cjs
+      - name: Exercise all 12 exact designer screens and 3 themes in Chromium
+        run: node tests/ultra-browser.cjs
       - name: Save successful desktop/mobile screenshot preview
         if: success()
         uses: actions/upload-artifact@v4
@@ -45,6 +50,9 @@ jobs:
             tests/_artifacts/elevate-dashboard.png
             tests/_artifacts/elevate-mobile-390px.png
             tests/_artifacts/flosy-studio-mobile-quick-add.png
+            tests/_artifacts/ultra-emerald-356.png
+            tests/_artifacts/ultra-daylight-356.png
+            tests/_artifacts/ultra-sapphire-356.png
           retention-days: 7
           if-no-files-found: error
       - name: Save desktop and mobile design screenshots
