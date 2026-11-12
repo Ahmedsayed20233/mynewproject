@@ -167,6 +167,7 @@
   snapshot=month;
   renderHome(month);renderAccounts(month);transactionGroups();renderBudget(month);
   renderAnalytics(anal);renderReports(report);renderTips(month);
+  syncNotifications();
   if(w.FLOSY_ULTRA_AI?.setContext)w.FLOSY_ULTRA_AI.setContext(month,C,core);
  }
  function navigate(id){
@@ -302,8 +303,8 @@
    setText(by("receiptScanStatus"),"تم استخراج بيانات فاتورة حقيقية");
   }catch(err){toast(err.message||"لم أقدر أقرأ مبلغ الفاتورة")}
  }
- const native=action=>{if(w.FlosyNative?.postMessage&&w.FLOSY_NATIVE_BRIDGE_AVAILABLE)
-  {w.FlosyNative.postMessage(JSON.stringify({action}));return true;}return false};
+ const native=(action,fields={})=>{if(w.FlosyNative?.postMessage&&w.FLOSY_NATIVE_BRIDGE_AVAILABLE)
+  {try{w.FlosyNative.postMessage(JSON.stringify({action,...fields}));return true}catch{}}return false};
  function startVoice(forAI=false){
   voiceTarget=forAI?"ai":"expense";
   if(!forAI)setText(by("voicePromptText"),"🎙️ جاري الاستماع بالمصري...");
@@ -324,6 +325,8 @@
   const names=["emerald","light","sapphire"];
   if(!names.includes(theme))return;
   w.setTheme(theme);
+  if(w.FLOSY_NATIVE_BRIDGE_AVAILABLE&&w.FlosyNative?.postMessage)
+   try{w.FlosyNative.postMessage(JSON.stringify({action:"ultra-theme",theme}))}catch{}
   try{localStorage.setItem("flosy_ultra_theme_v1",theme)}catch{}
   qa(".ultra-theme-switch button").forEach(b=>b.classList.toggle("active",b.dataset.theme===theme));
  }
@@ -376,6 +379,29 @@
    else toast("المشاركة غير مدعومة على هذا الجهاز");
   }
  }
+ function syncNotifications(){
+  if(!C)return;
+  const rows=core?.FLOSY_REMINDERS?.upcoming?.()||[];
+  const items=rows.filter(x=>x&&!x.paid&&!x.linked&&Number(x.days)>=0&&Number(x.days)<=7)
+   .slice(0,12).map(x=>({id:String(x.key||x.date),date:String(x.date)}));
+  native("notifications-sync",{items});
+ }
+ function openNotifications(){
+  const enabled=lastNativeStatus.enabled===true,granted=lastNativeStatus.permission==="granted";
+  showModal("إشعارات فلوسي المحلية",
+   '<div class="ultra-nav-note">تنبيه قبل الفاتورة بيوم وفي يوم الاستحقاق بعد موافقتك. لا يقرأ فلوسي رسائل البنك أو إشعارات التطبيقات.</div>'+
+   '<p class="text-xs mt-3">'+(enabled?"الإشعارات مفعلة":"الإشعارات متوقفة")+
+   (granted?" · إذن Android متاح":" · اطلب إذن Android")+'</p>'+
+   '<div class="ultra-ai-voicebar" style="margin-top:13px"><button type="button" id="ultraEnableNotify">تفعيل</button>'+
+   '<button type="button" id="ultraTestNotify">تجربة</button>'+
+   '<button type="button" id="ultraStopNotify">إيقاف</button></div>',
+   ()=>false);
+  const form=by("ultraDataForm");const save=q(".ultra-submit",form);if(save)save.hidden=true;
+  by("ultraEnableNotify").onclick=()=>{native("notifications-enable");syncNotifications();toast("اتبع رسالة منح الإذن من Android")};
+  by("ultraTestNotify").onclick=()=>native("notifications-test");
+  by("ultraStopNotify").onclick=()=>{native("notifications-stop");toast("تم إيقاف الإشعارات المحلية")};
+  native("notifications-status");
+ }
  function installEventHooks(){
   // Override mockup demo-only behaviors BEFORE a user can tap; no synthetic financial entries.
   w.goToScreen=function(id){
@@ -427,6 +453,9 @@
     b.onclick=()=>exportReports(["share","excel","pdf"][i]));
   handleFilters();
   if(by("txSearchInput"))by("txSearchInput").value="";
+  // Home bell is an opt-in local due-date reminder, not a fake banking alert.
+  const bell=qa("button",getFrame(2)).find(x=>String(x.getAttribute("onclick")||"").includes("لديك نصيحة"));
+  if(bell){bell.onclick=()=>openNotifications();bell.setAttribute("aria-label","تنبيهات فلوسي المحلية")}
   // All demo chat examples are cleared when the real voice/chat engine initializes.
   if(by("aiChatContainer"))by("aiChatContainer").innerHTML="";
   qa(".phone-frame").forEach(f=>f.classList.remove("ring-4"));
@@ -442,7 +471,7 @@
     const ready=frame.contentWindow;
     if(!ready?.FLOSY_BRIDGE?.getState)throw Error("البيانات غير متاحة");
     core=ready;C=ready.FLOSY_BRIDGE;w.FLOSY_ULTRA_CORE=ready;
-    renderLive(true);renderAccountOptions();
+    renderLive(true);renderAccountOptions();syncNotifications();
     by("ultraLoading")?.remove();d.body.classList.add("ultra-ready");
     w.FLOSY_ULTRA_AI?.activate?.();
     setInterval(()=>renderLive(),1800);
@@ -456,6 +485,9 @@
   const mask=d.createElement("div");mask.id="ultraLoading";mask.className="ultra-loading";
   mask.innerHTML='<div><div class="spinner"></div><p style="text-align:center">جاري تجهيز فلوسي وبياناتك...</p><small id="ultraBridgeStatus"></small></div>';d.body.appendChild(mask);
   installEventHooks();installThemes();mountCore();
+  const badge=qa(".phone-frame[data-screen='1'] .rounded-full").find(el=>
+   /256-Bit|256|مشفر/.test(el.textContent));
+  if(badge)badge.textContent="نسخة تجريبية — حافظ على نسختك الاحتياطية";
   w.goToScreen(2);
  }
  w.FLOSY_ULTRA={
@@ -468,6 +500,9 @@
   nativeVoiceStatus:x=>setText(by("voicePromptText"),x),
   nativeVoiceError:x=>toast(x)};
  // Native Android notification bridge still works in Ultra's main frame.
- w.FLOSY_AURORA={boot:()=>{},onNativeStatus:st=>{lastNativeStatus=st||{};}};
+ w.FLOSY_AURORA={
+   boot:()=>{theme(localStorage.getItem("flosy_ultra_theme_v1")||"emerald");syncNotifications();},
+   onNativeStatus:st=>{lastNativeStatus=st||{};}
+ };
  if(d.readyState==="loading")d.addEventListener("DOMContentLoaded",setup,{once:true});else setup();
 })(window,document);
