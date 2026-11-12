@@ -128,11 +128,28 @@ function xlsxBytes(report){
  let at=0;for(const part of parts){result.set(part,at);at+=part.length}
  return result;
 }
+function saveNativeXlsx(bytes,range){
+ if(w.FLOSY_NATIVE_ANDROID!==true)return false;
+ if(w.FLOSY_NATIVE_XLSX_AVAILABLE!==true || !w.FlosyNative?.postMessage)
+  throw Error("لتحميل Excel من داخل APK استخدم Flosy v3.6 أو افتح الموقع في Chrome.");
+ if(bytes.length>5*1024*1024)throw Error("الملف أكبر من 5MB. اختر فترة أقصر أو افتح الموقع في Chrome.");
+ const post=payload=>w.FlosyNative.postMessage(JSON.stringify(payload));
+ post({action:"xlsx-start",filename:"Flosy-"+range.start+"-"+range.end+".xlsx",size:bytes.length});
+ for(let pos=0;pos<bytes.length;pos+=8192){
+  const part=bytes.subarray(pos,Math.min(pos+8192,bytes.length));
+  let binary="";for(const b of part)binary+=String.fromCharCode(b);
+  post({action:"xlsx-chunk",data:btoa(binary)});
+ }
+ post({action:"xlsx-finish"});
+ return true;
+}
 function download(state,range){
- const r=build(state,range),buffer=xlsxBytes(r),blob=new Blob([buffer],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+ const r=build(state,range),buffer=xlsxBytes(r);
+ if(saveNativeXlsx(buffer,range))return;
+ const blob=new Blob([buffer],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");
  a.href=url;a.download="Flosy-"+range.start+"-"+range.end+".xlsx";a.click();
  setTimeout(()=>URL.revokeObjectURL(url),2000);
 }
-w.FLOSY_REPORT_KIT={build,printAppendix,xlsxBytes,download,version:"3.6.0"};
+w.FLOSY_REPORT_KIT={build,printAppendix,xlsxBytes,download,saveNativeXlsx,version:"3.6.0"};
 })(window);
