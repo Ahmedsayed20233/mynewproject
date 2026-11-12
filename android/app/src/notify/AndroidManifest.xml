@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- No READ_SMS, RECEIVE_SMS, SEND_SMS, Accessibility or inbox scanning. -->
+    <application>
+        <activity android:name=".DirectCaptureSettingsActivity" android:exported="false"/>
+        <!-- Explicit user-controlled Notification Access in Android settings. -->
+        <service android:name=".DirectNotificationListener"
+            android:label="فلوسي — الإشعارات المالية فقط"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService"/>
+            </intent-filter>
+        </service>
+    </application>
+</manifest>
