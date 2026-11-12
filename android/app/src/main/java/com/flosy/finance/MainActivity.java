@@ -62,7 +62,8 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 public class MainActivity extends Activity {
-    private static final String HOME = "https://ahmedsayed20233.github.io/mynewproject/";
+    private static final String ROOT = "https://ahmedsayed20233.github.io/mynewproject/";
+    private static final String HOME = isMvp() ? ROOT + "flosy-ultra.html" : ROOT;
     private static final String HOME_HOST = "ahmedsayed20233.github.io";
     private static final int PICK_FILE = 71;
     private static final int REQ_VOICE = 73;
@@ -72,6 +73,7 @@ public class MainActivity extends Activity {
     private static final int REQ_SAVE_RECEIPT = 77;
     private static final int REQ_SAVE_WORKBOOK = 78;
     private static final int REQ_NOTIFICATIONS = 79;
+    private FlosyUltraSpeech ultraSpeech;
     private WebView webView;
     private ProgressBar loadingBar;
     private ValueCallback<Uri[]> selectedFiles;
@@ -106,20 +108,20 @@ public class MainActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setStatusBarColor(isMvp()?Color.rgb(25,20,50):Color.WHITE);
-        getWindow().setNavigationBarColor(isMvp()?Color.rgb(29,23,57):Color.WHITE);
+        getWindow().setStatusBarColor(isMvp()?Color.rgb(11,19,36):Color.WHITE);
+        getWindow().setNavigationBarColor(isMvp()?Color.rgb(7,12,23):Color.WHITE);
         int ui=isMvp()?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
         if (!isMvp() && Build.VERSION.SDK_INT>=26) ui|=View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
         getWindow().getDecorView().setSystemUiVisibility(ui);
 
         FrameLayout root = new FrameLayout(this);
         webView = new WebView(this);
-        webView.setBackgroundColor(isMvp()?Color.rgb(25,20,50):Color.WHITE);
+        webView.setBackgroundColor(isMvp()?Color.rgb(11,19,36):Color.WHITE);
         root.addView(webView, new FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         loadingBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
         loadingBar.setMax(100);
-        loadingBar.setProgressTintList(ColorStateList.valueOf(isMvp()?Color.rgb(104,70,245):Color.rgb(9,144,129)));
+        loadingBar.setProgressTintList(ColorStateList.valueOf(isMvp()?Color.rgb(16,185,129):Color.rgb(9,144,129)));
         loadingBar.setProgressBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
         FrameLayout.LayoutParams loadingParams = new FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, 5, Gravity.TOP);
@@ -142,7 +144,7 @@ public class MainActivity extends Activity {
         settings.setTextZoom(100);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         // Keep the native WebView canvas white, including startup before CSS loads.
-        webView.setBackgroundColor(isMvp()?Color.rgb(25,20,50):Color.WHITE);
+        webView.setBackgroundColor(isMvp()?Color.rgb(11,19,36):Color.WHITE);
 
         // Modern Android WebView origin-restricted bridge. Never expose Java JS interfaces to iframes.
         // This avoids fragile custom-scheme top-level navigations on recent WebView versions.
@@ -176,6 +178,25 @@ public class MainActivity extends Activity {
                                     Toast.makeText(this,done?"تم إرسال إشعار تجريبي":"فعّل التنبيهات أولًا",Toast.LENGTH_SHORT).show();
                                     sendAuroraStatus();
                                 }
+                                return;
+                            }
+                            if(isMvp() && "ultra-ai-speak".equals(action)){
+                                if(ultraSpeech==null)ultraSpeech=new FlosyUltraSpeech(this);
+                                ultraSpeech.speak(msg.optString("text",""),()->{
+                                    if(webView!=null && pageReady && webView.getUrl()!=null&&
+                                        webView.getUrl().startsWith(HOME)){
+                                        webView.evaluateJavascript(
+                                            "if(window.FLOSY_ULTRA_AI)window.FLOSY_ULTRA_AI.nativeSpeechDone();",null);
+                                    }
+                                });
+                                return;
+                            }
+                            if(isMvp() && "ultra-ai-stop".equals(action)){
+                                if(ultraSpeech!=null)ultraSpeech.stop();
+                                return;
+                            }
+                            if(isMvp() && "ultra-theme".equals(action)){
+                                updateUltraSystemBars(msg.optString("theme","emerald"));
                                 return;
                             }
                             if("voice".equals(action))startEgyptianVoice();
@@ -405,6 +426,21 @@ public class MainActivity extends Activity {
         }
     }
 
+
+    // App chrome uses the exact user's designer theme tokens; the web controls colors.
+    private void updateUltraSystemBars(String theme){
+        int c="light".equals(theme)?Color.rgb(248,250,252):
+            "sapphire".equals(theme)?Color.rgb(12,20,44):Color.rgb(11,19,36);
+        int n="light".equals(theme)?Color.rgb(255,255,255):
+            "sapphire".equals(theme)?Color.rgb(7,11,26):Color.rgb(7,12,23);
+        getWindow().setStatusBarColor(c);
+        getWindow().setNavigationBarColor(n);
+        int flags="light".equals(theme)?View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR:0;
+        if("light".equals(theme)&&Build.VERSION.SDK_INT>=26)
+            flags|=View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        getWindow().getDecorView().setSystemUiVisibility(flags);
+        if(webView!=null)webView.setBackgroundColor(c);
+    }
 
     // Only user-initiated reminders. Android never reads financial-app notifications.
     private void enableLocalReminders(){
@@ -1025,6 +1061,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         releaseSpeech();cleanupPhoto();
+        if(ultraSpeech!=null){ultraSpeech.shutdown();ultraSpeech=null;}
         if (webView != null) {
             webView.destroy();
             webView = null;
