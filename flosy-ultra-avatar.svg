@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="فلوسي AI، مساعد مالي ودود">
+<defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#10B981"/><stop offset=".52" stop-color="#0EA5E9"/><stop offset="1" stop-color="#6366F1"/></linearGradient>
+<linearGradient id="b" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#263A5A"/><stop offset="1" stop-color="#111B32"/></linearGradient></defs>
+<circle cx="64" cy="64" r="60" fill="#071426" stroke="#10B981" stroke-width="2"/>
+<circle cx="64" cy="64" r="51" fill="url(#b)" stroke="#0EA5E9" stroke-opacity=".8"/>
+<rect x="32" y="35" width="64" height="64" rx="25" fill="#D9FFFC" stroke="#38BDF8" stroke-width="3"/>
+<path d="M30 62v-6c0-19 15-34 34-34s34 15 34 34v6" fill="none" stroke="url(#a)" stroke-width="9" stroke-linecap="round"/>
+<rect x="24" y="55" width="13" height="27" rx="6" fill="#10B981" stroke="#7DEBDA" stroke-width="2"/>
+<rect x="91" y="55" width="13" height="27" rx="6" fill="#0EA5E9" stroke="#A3F0FF" stroke-width="2"/>
+<ellipse cx="49" cy="66" rx="6" ry="8" fill="#11253F"/><ellipse cx="79" cy="66" rx="6" ry="8" fill="#11253F"/>
+<circle cx="51" cy="63" r="2" fill="#fff"/><circle cx="81" cy="63" r="2" fill="#fff"/>
+<path d="M50 84q14 12 28 0" fill="none" stroke="#0E8F86" stroke-width="4" stroke-linecap="round"/>
+<circle cx="64" cy="24" r="5" fill="#FBBF24"/><path d="M64 29v7" stroke="#5B708B" stroke-width="3"/>
+<path d="M42 102q22 15 44 0" fill="none" stroke="#15BEA9" stroke-width="3" stroke-linecap="round"/>
+</svg>
