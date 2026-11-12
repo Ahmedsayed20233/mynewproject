@@ -30,8 +30,8 @@ test("month-to-month comparison has chart data grounded in ledger",()=>{
 test("transport diagnosis and source scope",()=>{
  const ans=analytics.query("Why transportation is high?",{transactions:tx},now);
  assert.equal(ans.intent,"transport");
- assert.match(ans.text,/500/);
- assert.match(ans.text,/100/);
+ assert.equal(ans.chart.data[0].value_minor,10000);
+ assert.equal(ans.chart.data[1].value_minor,50000);
  assert.equal(ans.chart.data.length,2);
 });
 test("unrelated questions are declined",()=>{
