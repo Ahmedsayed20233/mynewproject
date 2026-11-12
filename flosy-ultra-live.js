@@ -74,12 +74,15 @@
    '<div class="flex justify-between text-xs font-bold fintech-text-main"><span>'+esc(label)+'</span><span class="text-rose-400 tabular-nums">'+
    (rows.reduce((v,t)=>v+(t.type==="expense"?-n(t.amount):t.type==="income"?n(t.amount):0),0).toFixed(0))+' ج.م</span></div>'+
    '<div class="fintech-list-card rounded-2xl p-3 space-y-2">'+rows.map(txRow).join("")+'</div></section>').join("");
-  const head=q("#txTodayList",f);
-  if(!head)return;
-  // Original 2 static demo groups are replaced with actual dated groups.
-  const children=Array.from(sc.children);
-  children.slice(3).forEach(el=>el.remove());
-  sc.insertAdjacentHTML("beforeend",out||'<div class="ultra-empty">لا توجد معاملات تطابق البحث أو الفلتر.</div>');
+  // Remove demo groups once, then re-render on every filter/search update.
+  let slot=by("ultraTransactionGroups");
+  if(!slot){
+   const children=Array.from(sc.children);
+   children.slice(3).forEach(el=>el.remove());
+   slot=d.createElement("div");slot.id="ultraTransactionGroups";slot.className="space-y-3";
+   sc.appendChild(slot);
+  }
+  slot.innerHTML=out||'<div class="ultra-empty">لا توجد معاملات تطابق البحث أو الفلتر.</div>';
   const title=q("h2",sc);if(title)title.textContent="سجل المعاملات · "+new Date().toLocaleDateString("ar-EG",{month:"long",year:"numeric"});
  }
  function renderBudget(s){
@@ -265,7 +268,9 @@
    '<label>الحساب<select id="ultraCandidateAccount">'+choose+'</select></label>'+
    '<div class="ultra-candidate-actions"><button type="button" id="ultraConfirmCandidate">حفظ بعد المراجعة</button>'+
    '<button type="button" id="ultraDismissCandidate">إلغاء</button></div></div>';
-  const place=by("ultraCandidateBox")||q(".screen-scroll",getFrame(7))||q(".screen-scroll",getFrame(6));
+  const place=by("ultraCandidateBox")||
+   (voiceTarget==="receipt"?getFrame(6)?.children[2]:getFrame(7)?.children[2])||
+   getFrame(7)?.children[2];
   if(place){place.querySelector(".ultra-candidate")?.remove();place.insertAdjacentHTML("beforeend",panel)}
   by("ultraConfirmCandidate").onclick=()=>{
    if(!state().accounts?.some(a=>a.id===by("ultraCandidateAccount").value)){toast("أضف حسابًا أولاً");return}
@@ -283,7 +288,7 @@
   try{
    const row=core?.FLOSY_CAPTURE?.parseVoice?.(spoken);
    if(!row)throw Error("مفيش معاملة مكتملة في الكلام");
-   navigate(7);
+   voiceTarget="expense";navigate(7);
    showCandidate(row,"فهمت الجملة: "+spoken.slice(0,85));
    setText(by("voicePromptText"),"اتعرفنا على الكلام. راجع التفاصيل قبل الحفظ.");
   }catch(e){toast(e.message||"تعذر تحليل الكلام")}
@@ -293,7 +298,7 @@
   try{
    const row=core?.FLOSY_CAPTURE?.parseReceipt?.(receiptText);
    if(!row||!(n(row.amount)>0))throw Error("الصورة لم تعرض إجماليًا واضحًا");
-   navigate(6);showCandidate(row,"فاتورة محللة — راجع المبلغ قبل الحفظ");
+   voiceTarget="receipt";navigate(6);showCandidate(row,"فاتورة محللة — راجع المبلغ قبل الحفظ");
    setText(by("receiptScanStatus"),"تم استخراج بيانات فاتورة حقيقية");
   }catch(err){toast(err.message||"لم أقدر أقرأ مبلغ الفاتورة")}
  }
@@ -350,9 +355,11 @@
    '<p>الدخل: '+fmt(s.income)+' | المصروف: '+fmt(s.expense)+' | صافي التدفق: '+fmt(s.net)+'</p>'+
    '<h2>التصنيفات</h2>'+s.categories.map(x=>'<p>'+esc(x.name)+': '+fmt(x.amount)+'</p>').join("");
   const print=d.createElement("section");print.id="ultraPrint";print.innerHTML=lines;
+  by("ultraPrint")?.remove();
   d.body.appendChild(print);
-  if(!native("print-report")){w.print();setTimeout(()=>print.remove(),1200)}
-  else setTimeout(()=>print.remove(),4500);
+  // Existing native Android print route generates a real A4 print/PDF dialog.
+  if(w.FLOSY_NATIVE_ANDROID){w.location.href="flosyapp://print";}
+  else{w.print();setTimeout(()=>print.remove(),1200)}
  }
  function exportReports(kind){
   if(!C)return toast("انتظر تحميل بياناتك");
@@ -372,13 +379,14 @@
  function installEventHooks(){
   // Override mockup demo-only behaviors BEFORE a user can tap; no synthetic financial entries.
   w.goToScreen=function(id){
-   w.activeScreen=Number(id)||2;
+   // The original designer keeps activeScreen as a global lexical variable.
+   activeScreen=Number(id)||2;
    w.setDisplayMode("interactive");
-   qa(".phone-frame").forEach(f=>f.classList.toggle("ultra-active",Number(f.dataset.screen)===w.activeScreen));
-   qa(".phone-frame").filter(f=>Number(f.dataset.screen)===w.activeScreen)
+   qa(".phone-frame").forEach(f=>f.classList.toggle("ultra-active",Number(f.dataset.screen)===activeScreen));
+   qa(".phone-frame").filter(f=>Number(f.dataset.screen)===activeScreen)
     .forEach(f=>{const scroll=q(".screen-scroll",f);if(scroll)scroll.scrollTop=0});
-   if(w.activeScreen===8)w.FLOSY_ULTRA_AI?.activate?.();
-   if(w.activeScreen===5)renderAccountOptions();
+   if(activeScreen===8)w.FLOSY_ULTRA_AI?.activate?.();
+   if(activeScreen===5)renderAccountOptions();
   };
   w.saveCustomTransaction=saveTransaction;
   w.captureReceiptTransaction=()=>native("receipt-camera")||toast("الكاميرا متاحة في نسخة Android");
