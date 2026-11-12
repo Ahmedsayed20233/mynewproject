@@ -17,6 +17,8 @@ on:
       - 'flosy-elevate.js'
       - 'flosy-studio.js'
       - 'flosy-studio.css'
+      - 'flosy-aurora.css'
+      - 'flosy-aurora.js'
       - 'flosy-capture-v10.css'
       - 'flosy-v5-command.js'
       - 'flosy-v4-family-privacy.js'
@@ -29,7 +31,7 @@ on:
       - 'flosy-account-router.js'
       - 'tests/account-router.test.cjs'
       - 'flosy-report-kit.js'
-      - 'tests/report-kit.test.cjs tests/account-router.test.cjs'
+      - 'tests/aurora.test.cjs'
       - 'supabase/functions/flosy-ai/index.ts'
       - 'service-worker.js'
       - 'tests/v4.test.cjs'
@@ -69,8 +71,9 @@ jobs:
           node --check flosy-v5-private-backup.js
           node --check flosy-elevate.js
           node --check flosy-studio.js
+          node --check flosy-aurora.js
           node --check flosy-repair.js
           node --check flosy-assistant-bridge.js
           node --check service-worker.js
       - name: Run financial safety regression suite
-        run: node --test tests/phase1.test.cjs tests/v4.test.cjs tests/offline-cache.test.cjs tests/direct-capture-ui.test.cjs tests/ai-analytics.test.cjs tests/report-kit.test.cjs
+        run: node --test tests/phase1.test.cjs tests/v4.test.cjs tests/offline-cache.test.cjs tests/direct-capture-ui.test.cjs tests/ai-analytics.test.cjs tests/report-kit.test.cjs tests/aurora.test.cjs

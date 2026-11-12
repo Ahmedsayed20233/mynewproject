@@ -1,1 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="29" fill="#0c2434"/><circle cx="64" cy="64" r="47" fill="#1edbae"/><path d="M32 82L54 62l15 12 27-33" fill="none" stroke="#0b3340" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M77 41h19v19" fill="none" stroke="#0b3340" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Flosy Aurora">
+ <defs><linearGradient id="back" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#181432"/><stop offset="1" stop-color="#392274"/></linearGradient>
+ <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#34E0EE"/><stop offset=".55" stop-color="#7650FF"/><stop offset="1" stop-color="#DB78FE"/></linearGradient></defs>
+ <rect width="128" height="128" rx="29" fill="url(#back)"/>
+ <path d="M34 91V49c0-15 11-25 27-25h39L90 44H64c-7 0-10 4-10 10v8h31L76 81H54v10c0 12-20 12-20 0z" fill="url(#mark)"/>
+ <path d="M34 91V49c0-15 11-25 27-25h39" fill="none" stroke="#94FFFF" stroke-opacity=".38" stroke-width="2"/>
+</svg>
