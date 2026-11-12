@@ -178,7 +178,7 @@
     if(frame.dataset.screen==="5")header=frame.querySelector(".screen-scroll > .space-y-3 > .flex.items-center.justify-between");
     else if(frame.dataset.screen==="8")header=frame.querySelector(".flex-1 > .flex.items-center.justify-between");
     else header=frame.querySelector(".flex-1 > .flex.items-center.justify-between");
-    if(!header)continue;
+    if(!header)return;
     const spacer=Array.from(header.children).find(x=>x.classList.contains("w-8")&&x.tagName==="DIV");
     const b=d.createElement("button");b.type="button";b.className="ultra-more-inline";
     b.setAttribute("aria-label","فتح قائمة المزيد");
