@@ -103,6 +103,11 @@
     '<div class="w-10 h-10 rounded-full border-4 shrink-0 flex items-center justify-center text-[10px] font-black" style="border-color:'+c+'">'+
      (x.configured?x.ratio+"%":"—")+'</div></div>';
   }).join("");
+  const configured=cards.filter(x=>x.configured);
+  const budgetTotal=configured.reduce((v,x)=>v+x.budget,0);
+  const spentTotal=configured.reduce((v,x)=>v+x.spent,0);
+  const badge=q(".screen-scroll > div:first-child .tabular-nums",getFrame(10));
+  if(badge)setText(badge,budgetTotal?Math.round(spentTotal/budgetTotal*100)+"% إجمالي":"لا توجد حدود بعد");
  }
  function renderAnalytics(s){
   const f=getFrame(9),sc=q(".screen-scroll",f);if(!sc)return;
@@ -121,23 +126,36 @@
       '<div class="ultra-empty">لا توجد بيانات لهذا الاختيار</div>');
    }
    const rings=qa("svg circle",donut);const items=s.categories.slice(0,5);
-   let offset=0;for(let i=0;i<rings.length;i++){const share=Math.max(0,Math.min(100,items[i]?.share||0));
-    rings[i].setAttribute("stroke-dasharray",share+" "+(100-share));
-    rings[i].setAttribute("stroke-dashoffset",String(-offset));offset+=share;}
-   const count=q(".absolute",donut);if(count)setText(count,fmt(s.expense));
+   const circumference=2*Math.PI*13.5;let offset=0;
+   for(let i=0;i<rings.length;i++){
+    const share=Math.max(0,Math.min(100,items[i]?.share||0));
+    rings[i].setAttribute("stroke-dasharray",(circumference*share/100)+" "+circumference);
+    rings[i].setAttribute("stroke-dashoffset",String(-circumference*offset/100));
+    offset+=share;
+   }
+   const count=q(".absolute",donut);
+   if(count){const amountText=count.querySelector(".text-xs");if(amountText)setText(amountText,new Intl.NumberFormat("en-US",{maximumFractionDigits:0}).format(s.expense));}
   }
   if(area){
    const values=D.weekly(s.transactions,s.range),max=Math.max(1,...values);
    const svg=q("svg",area);
    if(svg){
-    const old=svg.querySelector("[data-ultra-live-path]");old?.remove();
+    qa("[data-ultra-live-path]",svg).forEach(el=>el.remove());
+    const points=values.map((v,i)=>(35+76*i)+","+(88-66*v/max));
+    const areaPath=d.createElementNS("http://www.w3.org/2000/svg","path");
+    areaPath.setAttribute("data-ultra-live-path","area");
+    areaPath.setAttribute("d","M35,88 L"+points.join(" L")+" L263,88 Z");
+    areaPath.setAttribute("fill","url(#emeraldAreaGrad)");svg.appendChild(areaPath);
     const path=d.createElementNS("http://www.w3.org/2000/svg","polyline");
-    path.setAttribute("data-ultra-live-path","true");
-    path.setAttribute("points",values.map((v,i)=>(20+80*i)+","+(135-95*v/max)).join(" "));
-    path.setAttribute("fill","none");path.setAttribute("stroke","#10B981");
-    path.setAttribute("stroke-width","4");path.setAttribute("stroke-linejoin","round");
-    svg.appendChild(path);
-    qa("path",svg).filter(x=>!x.hasAttribute("data-ultra-live-path")).forEach(x=>x.setAttribute("opacity","0.08"));
+    path.setAttribute("data-ultra-live-path","line");
+    path.setAttribute("points",points.join(" "));
+    path.setAttribute("fill","none");path.setAttribute("stroke","var(--brand-primary)");
+    path.setAttribute("stroke-width","3");path.setAttribute("stroke-linejoin","round");
+    path.setAttribute("stroke-linecap","round");svg.appendChild(path);
+    qa("path",svg).filter(x=>!x.hasAttribute("data-ultra-live-path")).forEach(x=>x.style.display="none");
+    qa("circle",svg).forEach(x=>x.style.display="none");
+    qa("text",svg).slice(0,4).forEach((label,i)=>setText(label,
+     new Intl.NumberFormat("en-US",{maximumFractionDigits:0}).format(max*(1-i/3))));
    }
   }
  }
@@ -153,13 +171,19 @@
  function renderTips(s){
   const sc=q(".screen-scroll",getFrame(12));if(!sc)return;
   const score=q(".fintech-card .w-12",sc);
-  if(score)setText(score,s.income?Math.max(0,Math.min(100,Math.round(50+40*(s.net/Math.max(s.income,1)))))+" /100":"— /100");
+  // A validated financial health score does not exist; never invent one.
+  if(score)score.innerHTML='<span class="text-sm">—</span><span class="text-[8px]">/100</span>';
+  const descriptor=q(".fintech-card p",sc);
+  if(descriptor)setText(descriptor,"نصائح محسوبة من معاملاتك فقط، بدون درجة ائتمانية أو تصنيف غير موثّق.");
   const target=sc.lastElementChild;
   if(target&&!target.classList.contains("ultra-screen12-list")){
    target.className="ultra-screen12-list";
   }
   if(target)target.innerHTML=D.tips(s).map((tip,i)=>'<button type="button" data-ultra-tip="'+i+'">'+
-   '<strong>'+["فرصة لتحسين إنفاقك","ابدأ الادخار الذكي","المتاح الآمن للصرف"][i%3]+'</strong><br>'+esc(tip)+'</button>').join("");
+   '<strong>'+["فرصة لتحسين إنفاقك","ابدأ الادخار الذكي","المتاح الآمن للصرف"][i%3]+'</strong><br>'+esc(tip)+
+   '<br><small>اضغط لمراجعة الخطة</small></button>').join("");
+  qa("[data-ultra-tip]",target).forEach((button,i)=>button.addEventListener("click",()=>
+   navigate(i===2?2:10)));
  }
  function renderLive(force=false){
   if(!C)return;
@@ -408,6 +432,7 @@
  function installEventHooks(){
   // Override mockup demo-only behaviors BEFORE a user can tap; no synthetic financial entries.
   w.goToScreen=function(id){
+   if(Number(id)===2)try{localStorage.setItem("flosy_ultra_onboarding_done_v1","1")}catch{}
    // The original designer keeps activeScreen as a global lexical variable.
    activeScreen=Number(id)||2;
    w.setDisplayMode("interactive");
@@ -427,7 +452,7 @@
   w.addNewDemoBudget=addBudget;
   w.filterTransactions=function(type,btn){
    txFilter=type;
-   qa(".tx-filter-btn",getFrame(4)).forEach(b=>b.classList.remove("btn-primary-cta"));
+   qa('button[onclick^="filterTransactions"]',getFrame(4)).forEach(b=>b.classList.remove("btn-primary-cta"));
    btn?.classList.add("btn-primary-cta");transactionGroups();
   };
   w.searchTransactions=function(query){txQuery=query||"";transactionGroups()};
@@ -477,6 +502,9 @@
     renderLive(true);renderAccountOptions();syncNotifications();
     by("ultraLoading")?.remove();d.body.classList.add("ultra-ready");
     w.FLOSY_ULTRA_AI?.activate?.();
+    try{
+      if(localStorage.getItem("flosy_ultra_onboarding_done_v1")!=="1")w.goToScreen(1);
+    }catch{}
     setInterval(()=>renderLive(),1800);
     status("تم تحميل بياناتك");
    }catch(e){status("تعذر فتح بياناتك: "+e.message)}
