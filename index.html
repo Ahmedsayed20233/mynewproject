@@ -217,11 +217,11 @@
 <section class="page" id="page-reports"><div class="grid reportgrid"><div class="card"><div class="sectiontitle"><h3>الدخل والمصروفات في آخر 6 أشهر</h3><span>بالجنيه المصري</span></div><div class="chart" id="sixChart"></div></div><div class="card"><div class="sectiontitle"><h3>استنتاجات الميزانية</h3><span>حسب البيانات المسجلة</span></div><div id="insights" class="callout"></div></div></div><div class="card" style="margin-top:15px"><h3>مؤشرات الأداء</h3><div id="kpiReport" class="grid kpis"></div></div><div class="card report-builder" style="margin-top:15px">
 <div class="sectiontitle"><h3>تقرير مالي تفصيلي للطباعة PDF</h3><span>أسبوع • 1–24 شهرًا • فترة مخصصة</span></div>
 <div class="report-tools">
-<label>مدة التقرير<select id="reportPeriod" class="chip"><option value="week">آخر 7 أيام</option></select></label>
+<label>مدة التقرير<select id="reportPeriod" class="chip"><option value="day">اليوم المحدد</option><option value="week">آخر 7 أيام</option><option value="fortnight">آخر 14 يومًا</option><option value="quarter">الربع الحالي</option><option value="halfyear">النصف الحالي</option><option value="year">السنة الحالية</option></select></label>
 <label>حتى تاريخ<input type="date" id="reportEnd" class="chip"></label>
 <label id="reportStartWrap" hidden>من تاريخ<input type="date" id="reportStart" class="chip"></label>
 <button id="reportPreviewBtn" class="btn">تحديث المعاينة</button>
-<button id="reportPrintBtn" class="btn primary">🖨 طباعة / حفظ PDF</button>
+<button id="reportPrintBtn" class="btn primary">🖨 طباعة / حفظ PDF</button><button id="reportXlsxBtn" class="btn">⬇ تنزيل Excel (.xlsx)</button>
 </div>
 <p class="footnote">يشمل التقرير كل المعاملات في الفترة المحددة، وفئات المصروفات والفواتير، والمقارنة بالميزانية، والملخص الشهري. من نافذة الطباعة اختَر «حفظ كملف PDF».</p>
 <div id="reportPreview" class="report-preview"></div>
@@ -481,8 +481,12 @@ function reportRange(){
  const endDate=new Date(until+'T12:00:00');
  let start;
  if(period==='custom'){start=$('reportStart').value}
- else if(period==='week'){const d=new Date(endDate);d.setDate(d.getDate()-6);start=reportISO(d)}
- else {const months=Number(period);if(!Number.isInteger(months)||months<1||months>24)throw Error('فترة التقرير غير صالحة');start=reportISO(new Date(endDate.getFullYear(),endDate.getMonth()-months+1,1,12))}
+ else if(period==='day'){start=until}
+  else if(period==='week'||period==='fortnight'){const d=new Date(endDate);d.setDate(d.getDate()-(period==='week'?6:13));start=reportISO(d)}
+  else if(period==='quarter'){start=reportISO(new Date(endDate.getFullYear(),Math.floor(endDate.getMonth()/3)*3,1,12))}
+  else if(period==='halfyear'){start=reportISO(new Date(endDate.getFullYear(),Math.floor(endDate.getMonth()/6)*6,1,12))}
+  else if(period==='year'){start=reportISO(new Date(endDate.getFullYear(),0,1,12))}
+  else {const months=Number(period);if(!Number.isInteger(months)||months<1||months>24)throw Error('فترة التقرير غير صالحة');start=reportISO(new Date(endDate.getFullYear(),endDate.getMonth()-months+1,1,12))}
  if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||Number.isNaN(new Date(start+'T12:00:00').getTime()))throw Error('حدد تاريخ بداية صحيحًا');
  if(start>until)throw Error('تاريخ البداية يجب ألا يتجاوز تاريخ النهاية');
  const days=Math.round((Date.parse(until+'T12:00:00')-Date.parse(start+'T12:00:00'))/86400000)+1;
@@ -508,10 +512,10 @@ function reportTable(headers,rows){
 }
 function reportMoney(n){return '<span class="r-num">'+amount(n)+'</span>'}
 function reportHtml(range){
- const trs=state.transactions.filter(t=>t&&typeof t.date==='string'&&t.date>=range.start&&t.date<=range.end&&Number.isFinite(Number(t.amount))&&Number(t.amount)>=0)
+ const trs=state.transactions.filter(t=>t&&typeof t.date==='string'&&t.date>=range.start&&t.date<=range.end&&Number.isFinite(Number(t.amount))&&Number(t.amount)>=0&&['income','expense','transfer'].includes(t.type)&&!['failed','pending','draft','reversed','cancelled','canceled','deleted','void'].includes(String(t.status||'').toLowerCase())&&t.deleted!==true&&t.isDeleted!==true)
  .slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.createdAt||'').localeCompare(String(b.createdAt||'')));
  const totalIncome=reportSum(trs,'income'),totalExpense=reportSum(trs,'expense'),totalTransfer=reportSum(trs,'transfer');
- const net=totalIncome-totalExpense-totalTransfer;
+ const net=totalIncome-totalExpense; // internal transfers are not consumption
  const budget=reportBudgetProrated(range.start,range.end);
  const usage=budget.total>0?Math.round(totalExpense/budget.total*100):0;
  const groupOf=t=>t.category==='إيجار'?'rent':billCategories.includes(t.category)?'bills':'living';
@@ -561,7 +565,7 @@ function reportHtml(range){
  const stat=(name,value)=>'<div class="r-stat"><small>'+name+'</small><b>'+reportMoney(value)+'</b></div>';
  let html='<article class="report-paper">';
  html+='<header class="r-head"><div><div class="r-brand">↗ فلوسي</div><div class="r-kicker">التقرير المالي الشخصي • نسخة للطباعة</div></div><div><strong>تقرير مالي تفصيلي</strong><div class="r-sub">'+safe(reportDate(range.start))+' — '+safe(reportDate(range.end))+'</div><div class="r-kicker">تاريخ الإصدار: '+safe(printedAt)+'</div></div></header>';
- html+='<div class="r-stats">'+stat('إجمالي الدخل المسجل',totalIncome)+stat('إجمالي المصروفات',totalExpense)+stat('تحويلات الادخار والاستثمار',totalTransfer)+stat('صافي التدفق بعد التحويلات',net)+'</div>';
+ html+='<div class="r-stats">'+stat('إجمالي الدخل المسجل',totalIncome)+stat('إجمالي المصروفات',totalExpense)+stat('تحويلات الادخار والاستثمار',totalTransfer)+stat('صافي الدخل بعد المصروفات',net)+'</div>';
  html+='<div class="r-note">الفترة: '+range.days+' يوم • عدد المعاملات: '+trs.length+' • استخدام ميزانية المصروفات التقديرية: '+usage+'%. مبالغ الدخل والمصروفات هي المعاملات المسجلة فقط، ولا يضيف التطبيق الراتب المخطط تلقائيًا.</div>';
  html+='<h2>1. مقارنة المصروفات بالميزانية</h2>';
  html+=reportTable(['البند','الميزانية التقديرية','الإنفاق الفعلي','المتبقي / التجاوز'],groupRows);
@@ -580,6 +584,7 @@ function reportHtml(range){
  html+='<h2>7. سجل جميع المعاملات بالتفصيل</h2>';
  html+=reportTable(['#','التاريخ','النوع','الفئة / الوجهة','النوع الفرعي','الوصف','المبلغ'],transactionRows);
  if(window.FLOSY_PRO)html+=window.FLOSY_PRO.reportSection();
+  if(window.FLOSY_REPORT_KIT)html+=window.FLOSY_REPORT_KIT.printAppendix(state,range);
  html+='<div class="r-foot">أُنشئ هذا التقرير من تطبيق «فلوسي» باستخدام المعاملات التي سجلها صاحب الحساب. لا يعد تقريرًا مصرفيًا أو مستندًا مدققًا، وقد تتغير النتائج إذا لم تُسجل جميع العمليات.</div>';
  html+='</article>';
  return html;
@@ -627,6 +632,11 @@ function printDetailedReport(){
  $('reportStart').addEventListener('change',onChange);
  $('reportPreviewBtn').addEventListener('click',renderDetailedReportPreview);
  $('reportPrintBtn').addEventListener('click',printDetailedReport);
+  $('reportXlsxBtn').addEventListener('click',()=>{
+    try{if(!window.FLOSY_REPORT_KIT)throw Error('وحدة Excel لم تُحمّل بعد');
+      window.FLOSY_REPORT_KIT.download(state,reportRange());
+    }catch(err){toast('تعذر تصدير Excel: '+err.message)}
+  });
  onChange();
 })();
 
@@ -730,6 +740,8 @@ loadAuthSession();categoryOptions();render();})();
 <script src="flosy-auto-import.js?v=2801"></script>
 <script src="flosy-automate-relay.js?v=3501"></script>
 <script src="flosy-ai-analytics.js?v=1001"></script>
+<script src="flosy-report-kit.js?v=3601"></script>
+<script>document.getElementById('reportPreviewBtn')?.click();</script>
 <script src="flosy-ai.js?v=351"></script>
 <script src="flosy-phase1.js?v=311"></script>
 <script src="flosy-sync-v3.js?v=302"></script>
