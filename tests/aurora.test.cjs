@@ -6,8 +6,9 @@ test("Aurora loads after all legacy design systems and is precached",()=>{
   assert.match(index,/flosy-aurora.css\?v=3700/);
   assert.ok(index.indexOf("flosy-aurora.css")>index.indexOf("flosy-studio.css"));
   assert.ok(index.indexOf("flosy-aurora.js")>index.indexOf("flosy-studio.js"));
+  assert.match(index,/flosy-aurora.js\?v=3701/);
   assert.match(sw,/flosy-aurora.css\?v=3700/);
-  assert.match(sw,/flosy-aurora.js\?v=3700/);
+  assert.match(sw,/flosy-aurora.js\?v=3701/);
 });
 test("brand uses midnight, purple, cyan and coral (not Egyptian bank green-gold)",()=>{
   for(const color of ["#17132F","#6846F5","#32C5E4","#FF7588"])
