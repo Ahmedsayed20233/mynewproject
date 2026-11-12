@@ -38,6 +38,48 @@ const ORIGIN="http://127.0.0.1:8127";
   await page.evaluate(()=>window.goToScreen(2));
   assert.equal(await page.locator('.phone-frame[data-screen="2"]').isVisible(),true);
 
+
+  // UI repair regression: the real phone supplies battery/time, never a fake notch.
+  assert.equal(await page.locator(".dynamic-island").count(),0);
+  assert.equal(await page.locator(".fa-battery-full").count(),0);
+  assert.equal(await page.locator("#ultraThemeSwitch").count(),0);
+  assert.equal(await page.locator(".ultra-more-dock").count(),7);
+  assert.equal(await page.locator(".ultra-more-inline").count(),4);
+  assert.ok((await page.evaluate(()=>window.FLOSY_ULTRA_MORE.features().length))>=28);
+  await page.locator('.phone-frame[data-screen="2"] .ultra-more-dock').click();
+  assert.equal(await page.locator("#ultraMoreOverlay").isVisible(),true);
+  assert.equal(await page.locator("[data-more-theme]").count(),3);
+  await page.locator('[data-more-theme="light"]').click();
+  assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),"light");
+  await page.locator('[data-more-theme="sapphire"]').click();
+  assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),"sapphire");
+  await page.locator('[data-more-theme="emerald"]').click();
+  assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),"emerald");
+  await page.locator("#ultraMoreSearch").fill("الأقساط");
+  const visibleFiltered=await page.locator(".ultra-more-tile:visible").count();
+  assert.ok(visibleFiltered>=1&&visibleFiltered<28,"search should filter restored tools");
+  await page.locator("#ultraMoreSearch").fill("");
+  await page.locator('[data-more-feature="core-ai"]').click();
+  assert.equal(await page.locator("#ultraCoreBar").isVisible(),true);
+  assert.equal(await page.frameLocator("#flosyUltraCore").locator("#page-ai").evaluate(x=>x.classList.contains("active")),true);
+  const coreVisible=await page.locator("#flosyUltraCore").evaluate(x=>getComputedStyle(x).pointerEvents);
+  assert.equal(coreVisible,"auto","the original AI assistant must be interactive");
+  await page.locator("#ultraCoreBack").click();
+  assert.equal(await page.locator("#ultraCoreBar").isVisible(),false);
+  await page.locator('.phone-frame[data-screen="2"] .ultra-more-dock').click();
+  await page.locator('[data-more-feature="core-report"]').click();
+  assert.equal(await page.frameLocator("#flosyUltraCore").locator("#page-reports").evaluate(x=>x.classList.contains("active")),true);
+  await page.locator("#ultraCoreBack").click();
+  await page.locator('.phone-frame[data-screen="2"] .ultra-more-dock').click();
+  await page.locator('[data-more-feature="recurring"]').click();
+  assert.equal(await page.frameLocator("#flosyUltraCore").locator("#page-recurring").evaluate(x=>x.classList.contains("active")),true);
+  await page.locator("#ultraCoreBack").click();
+  await page.locator('.phone-frame[data-screen="2"] .ultra-more-dock').click();
+  await page.locator('[data-more-feature="backup"]').click();
+  assert.equal(await page.frameLocator("#flosyUltraCore").locator("#page-recovery").evaluate(x=>x.classList.contains("active")),true);
+  await page.locator("#ultraCoreBack").click();
+  assert.equal(await page.locator("#ultraMoreOverlay").isVisible(),false);
+
   // The exact original 12 scenes remain accessible; only active scene is visible.
   for(let i=1;i<=12;i++){
    await page.evaluate(n=>window.goToScreen(n),i);
