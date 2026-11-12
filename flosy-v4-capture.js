@@ -252,6 +252,7 @@ function parseReceipt(text){
     merchant:info.merchant||null,invoiceNumber:info.receiptNumber||null,
     receiptDate:info.date||null,receiptTime:info.time||null,currency:"EGP",
     paymentMethod:info.paymentMethod||null,items:info.items||[],
+    itemsSum:info.itemsSum??null,arithmeticConsistent:Boolean(info.arithmeticConsistent),
     subtotal:info.subtotal,discount:info.discount,tax:info.tax,
     paid:info.paid,change:info.change,confidence:info.confidence,
     evidence:info.evidence,modelVersion:info.modelVersion
@@ -271,7 +272,8 @@ function parseReceipt(text){
        cash().some(a=>a.id===autoPrefs().accountId)&&
        info.confidence>=0.86&&Boolean(info.merchant)&&Boolean(info.date)&&
        ["net_total","labeled_total","split_total"].includes(info.evidence)))&&
-      (info.paid===null||info.paid===undefined||Math.abs(info.paid-info.amount)<=0.02)};
+      (info.paid===null||info.paid===undefined||Math.abs(info.paid-info.amount)<=0.02)&&
+      (info.arithmeticContradiction!==true)};
  }
 
  const src=digits(String(text||"").slice(0,12000));
