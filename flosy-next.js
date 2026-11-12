@@ -423,7 +423,7 @@ async function restoreBackup(id){
 }
 function tryAutoSMS(row){
  const cap=window.FLOSY_CAPTURE;
- if(row?.source!=="sms"||!cap?.autoEnabled?.("sms")||!cap?.autoRecord)return false;
+ if(!["sms","instapay","bank_notification"].includes(row?.source)||!cap?.autoEnabled?.("sms")||!cap?.autoRecord)return false;
  try{
   // Bank SMS may be non-financial or contain an authentication code. No ledger
   // write unless both debit/credit direction and transaction amount are explicit.
@@ -434,8 +434,19 @@ function tryAutoSMS(row){
   const d=parseSMS(text,{source:row.source,date:row.date});
   if(!/(?:خصم|سحب|شراء|دفع|تحويل|debited|withdrawn|paid|sent|received|credited|إيداع|استلام)/i.test(text))return false;
   // Extra guard: bank notifications are not bank ledger transactions if ambiguous.
-  d.accountId=cap.resolvedAccount("");
-  d.autoQuality=Boolean(d.accountId)&&Boolean(d.sourceHash)&&Number.isFinite(d.amount)&&d.amount>0;
+  // Only completed events from allowed sources can auto-post; unknown accounts stay in review.
+   if(row.source!=="sms"&&!/(?:تمت?|completed|successful|debited|credited|received|paid|استلمت|اتخصم)/i.test(text))return false;
+   if(/بين حسابات|بين حساباتي|between (?:my|your) accounts|own account/i.test(text))return false;
+   const routed=window.FLOSY_ACCOUNT_ROUTER?.match(C.getState().accounts||[],{
+     text,sender:row.sender,defaultAccountId:cap.autoPrefs?.().accountId||""
+   });
+   d.accountId=routed?.id||"";
+   d.autoQuality=Boolean(d.accountId)&&Boolean(d.sourceHash)&&Number.isFinite(d.amount)&&d.amount>0;
+   // A same-day, same-amount event may have arrived as SMS and InstaPay notification.
+   if(d.accountId&&txs().some(t=>t.accountId===d.accountId&&t.type===d.type&&t.date===d.date&&
+       Math.abs(num(t.amount)-d.amount)<0.005&&
+       /(?:sms|instapay|bank_notification)_auto/.test(String(t.source||""))&&
+       t.sourceHash!==d.sourceHash))return false;
   if(duplicate(d)){
    // This candidate has already been booked; acknowledge only after matching fingerprint.
    return "duplicate";
@@ -448,7 +459,7 @@ function receiveScannedSMS(items){
  Number.isFinite(Number(x.date))&&(x.source==="instapay"||x.source==="bank_notification"||x.source===undefined||x.source==="sms"))
  .map(x=>({id:/^[0-9a-f]{32}$/.test(String(x.id||""))?x.id:"",
  date:Number(x.date),source:x.source==="instapay"?"instapay":x.source==="bank_notification"?"bank_notification":"sms",
- text:x.text.slice(0,1200)})):[];
+ text:x.text.slice(0,1200),sender:String(x.sender||"").slice(0,90)})):[];
  let saved=0,duplicates=0;
  const outstanding=[];
  for(const item of safeItems){
