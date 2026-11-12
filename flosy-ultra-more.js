@@ -209,7 +209,7 @@
    const themeButton=e.target.closest("[data-more-theme]");
    if(themeButton){
     const value=themeButton.dataset.moreTheme;
-    if(Object.hasOwn(themeNames,value)){w.FLOSY_ULTRA?.theme?.(value);syncTheme(value)}
+    if(Object.prototype.hasOwnProperty.call(themeNames,value)){w.FLOSY_ULTRA?.theme?.(value);syncTheme(value)}
    }
   });
   d.addEventListener("keydown",e=>{
@@ -224,6 +224,13 @@
   boot:mount,open:openMenu,close:closeMenu,openCore,closeCore,
   navigate:action,syncTheme,features:()=>all.map(x=>({id:x.id,label:x.label,page:x.page||null,screen:x.screen||null})),
   get isCoreOpen(){return coreOpen}
+ };
+ // Android hardware Back closes the full legacy tool or the More sheet first.
+ const oldBack=w.FLOSY_HANDLE_BACK;
+ w.FLOSY_HANDLE_BACK=()=>{
+  if(open){closeMenu();return "handled"}
+  if(coreOpen){closeCore();return "handled"}
+  return typeof oldBack==="function"?oldBack():"exit";
  };
  if(d.readyState==="loading")d.addEventListener("DOMContentLoaded",mount,{once:true});
  else mount();
