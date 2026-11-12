@@ -84,8 +84,57 @@
    n.textContent=statusLabel();n.dataset.state=lastStatus.permission;
   });
  }
+ const WELCOME_KEY="flosy_aurora_welcome_v1";
+ let welcomeStep=0;
+ const scenes=[
+  {icon:"◈",title:"فلوسك في مكان واحد",subtitle:"تابع الحسابات والمصروفات والمتاح للصرف من شاشة واضحة.",
+   text:"ابدأ بإضافة حساب نقدي أو بنكي، وسجّل رصيدك الحقيقي بدون أرقام افتراضية."},
+  {icon:"🎙",title:"سجّل المصروف بطريقتك",subtitle:"اكتب، اتكلم بالمصري، أو صوّر فاتورة.",
+   text:"راجع المعاملات غير الواضحة؛ الحسابات المالية أهم من التنبؤ التلقائي."},
+  {icon:"◎",title:"خطّط للي جاي",subtitle:"ميزانيات وأهداف وتقارير وتنبيهات للفواتير.",
+   text:"فعّل إشعارات Android باختيارك من الإعدادات، من غير قراءة رسائل البنك."}
+ ];
+ function welcomeRender(){
+  const root=q("#flosyAuroraWelcome");if(!root)return;
+  const scene=scenes[welcomeStep];
+  root.innerHTML='<div class="flosy-welcome-card" role="dialog" aria-modal="true" aria-label="التعرف على فلوسي">'+
+   '<div class="flosy-welcome-brand"><span class="flosy-welcome-logo">F</span> Flosy Aurora</div>'+
+   '<button type="button" class="flosy-welcome-skip" data-aurora-welcome="skip" aria-label="تخطي التعريف">تخطي ×</button>'+
+   '<div class="flosy-welcome-icon" aria-hidden="true">'+scene.icon+'</div>'+
+   '<h2>'+scene.title+'</h2><h3>'+scene.subtitle+'</h3>'+
+   '<p>'+scene.text+'</p>'+
+   '<div class="flosy-welcome-dots" aria-hidden="true">'+scenes.map((_,i)=>'<i'+(i===welcomeStep?' class="on"':'')+'></i>').join("")+'</div>'+
+   '<button type="button" class="flosy-welcome-next" data-aurora-welcome="next">'+
+    (welcomeStep===scenes.length-1?"ابدأ استخدام فلوسي":"التالي")+' ←</button>'+
+   '</div>';
+  root.querySelector("[data-aurora-welcome=next]")?.focus();
+ }
+ function welcomeClose(){
+  q("#flosyAuroraWelcome")?.remove();
+  try{w.localStorage?.setItem(WELCOME_KEY,"done")}catch{}
+ }
+ function onboarding(){
+  if(!nativeReady()||q("#flosyAuroraWelcome"))return;
+  try{if(w.localStorage?.getItem(WELCOME_KEY)==="done")return}catch{}
+  welcomeStep=0;
+  const div=d.createElement("div");div.id="flosyAuroraWelcome";
+  div.className="flosy-welcome-overlay";
+  d.body.appendChild(div);welcomeRender();
+ }
+ d.addEventListener("click",e=>{
+  const x=e.target.closest("[data-aurora-welcome]");if(!x)return;
+  if(x.dataset.auroraWelcome==="skip"||welcomeStep===scenes.length-1){
+   welcomeClose();return;
+  }
+  welcomeStep++;welcomeRender();
+ });
+ d.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&q("#flosyAuroraWelcome"))welcomeClose();
+ });
+
  function boot(){
   intro();if(!nativeReady())return;
+  onboarding();
   notifications();send("notifications-status");sync(true);
   if(!installed){
    installed=true;
