@@ -31,6 +31,9 @@
    '<div class="text-[9px] opacity-60">'+esc(cat)+'</div></div></div>';
  }
  function renderHome(s){
+  // Original onboarding wallet contains illustrative 42,600 EGP — replace with the real user's total.
+  const introBalance=q(".text-2xl.font-black.tabular-nums",getFrame(1));
+  if(introBalance)setText(introBalance,s.hasAccounts?fmt(s.total):"ابدأ من الصفر");
   setText(by("homeSafeBalance"),s.safe===null?"—":fmt(s.safe));
   setSrcCurrency(by("homeTotalIncome"),s.income);
   setSrcCurrency(by("homeTotalExpense"),s.expense);
@@ -149,7 +152,7 @@
  }
  function renderTips(s){
   const sc=q(".screen-scroll",getFrame(12));if(!sc)return;
-  const score=q(".fintech-card .text-3xl",sc);
+  const score=q(".fintech-card .w-12",sc);
   if(score)setText(score,s.income?Math.max(0,Math.min(100,Math.round(50+40*(s.net/Math.max(s.income,1)))))+" /100":"— /100");
   const target=sc.lastElementChild;
   if(target&&!target.classList.contains("ultra-screen12-list")){
