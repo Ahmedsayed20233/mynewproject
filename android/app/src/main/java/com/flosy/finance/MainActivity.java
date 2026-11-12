@@ -70,6 +70,7 @@ public class MainActivity extends Activity {
     private static final int REQ_CAMERA = 75;
     private static final int REQ_AUDIO = 76;
     private static final int REQ_SAVE_RECEIPT = 77;
+    private static final int REQ_SAVE_WORKBOOK = 78;
     private WebView webView;
     private ProgressBar loadingBar;
     private ValueCallback<Uri[]> selectedFiles;
@@ -85,6 +86,10 @@ public class MainActivity extends Activity {
     private Uri photoUri = null;
     private File photoFile = null;
     private String pendingReceiptExport = null;
+    private ByteArrayOutputStream incomingWorkbook = null;
+    private int expectedWorkbookSize = 0;
+    private byte[] pendingWorkbook = null;
+    private String pendingWorkbookName = null;
     private boolean relayWakeReceiverRegistered=false;
     private final BroadcastReceiver relayWakeReceiver=new BroadcastReceiver(){
         @Override public void onReceive(Context context,Intent intent){
@@ -178,6 +183,8 @@ public class MainActivity extends Activity {
                                 if(!receipt.isEmpty() && receipt.length()<=12000)
                                     exportReceiptText(receipt);
                             }
+                            else if("xlsx-start".equals(action)||"xlsx-chunk".equals(action)
+                                ||"xlsx-finish".equals(action))receiveWorkbookPart(action,msg);
                         });
                     }catch(Exception ignored){}
                 });
@@ -281,6 +288,7 @@ public class MainActivity extends Activity {
                         + ("direct".equals(BuildConfig.FLAVOR)?"true":"false") + ";"
                         + "window.FLOSY_NATIVE_VOICE_AVAILABLE=true;"
                         + "window.FLOSY_NATIVE_OCR_AVAILABLE=true;"
+                        + "window.FLOSY_NATIVE_XLSX_AVAILABLE=true;"
                         + "window.FLOSY_NATIVE_BRIDGE_AVAILABLE="+(webMessageReady ? "true" : "false")+";"
                         + "window.FLOSY_NATIVE_BIOMETRIC_AVAILABLE="
                         + (Build.VERSION.SDK_INT >= 28 ? "true" : "false") + ";"
@@ -527,6 +535,66 @@ public class MainActivity extends Activity {
         }
     }
 
+    // XLSX chunks are accepted only through the trusted-origin WebMessageListener.
+    // Workbook bytes stay in RAM until the user explicitly chooses a file location.
+    private void resetWorkbookTransfer(){
+        incomingWorkbook=null;expectedWorkbookSize=0;
+    }
+    private void receiveWorkbookPart(String action,JSONObject msg){
+        if("xlsx-start".equals(action)){
+            int size=msg.optInt("size",0);
+            String name=msg.optString("filename","Flosy-report.xlsx");
+            if(size<=0||size>5*1024*1024){
+                resetWorkbookTransfer();
+                Toast.makeText(this,"تقرير Excel كبير جدًا. اختر فترة أقصر.",Toast.LENGTH_LONG).show();
+                return;
+            }
+            if(!name.matches("Flosy-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4}-[0-9]{2}-[0-9]{2}\\.xlsx"))
+                name="Flosy-report.xlsx";
+            pendingWorkbookName=name;
+            pendingWorkbook=null;
+            expectedWorkbookSize=size;
+            incomingWorkbook=new ByteArrayOutputStream(Math.min(size,65536));
+            return;
+        }
+        if(incomingWorkbook==null)return;
+        if("xlsx-chunk".equals(action)){
+            try{
+                String b64=msg.optString("data","");
+                if(b64.length()==0||b64.length()>12000)throw new IllegalArgumentException("chunk");
+                byte[] chunk=Base64.decode(b64,Base64.DEFAULT);
+                if(chunk.length==0||incomingWorkbook.size()+chunk.length>expectedWorkbookSize)
+                    throw new IllegalArgumentException("length");
+                incomingWorkbook.write(chunk,0,chunk.length);
+            }catch(Exception ex){
+                resetWorkbookTransfer();
+                Toast.makeText(this,"فشل نقل تقرير Excel. أعد المحاولة.",Toast.LENGTH_LONG).show();
+            }
+            return;
+        }
+        if("xlsx-finish".equals(action)){
+            byte[] bytes=incomingWorkbook.toByteArray();
+            boolean zip=bytes.length>=4&&bytes[0]==0x50&&bytes[1]==0x4b
+                &&bytes[2]==0x03&&bytes[3]==0x04;
+            if(bytes.length!=expectedWorkbookSize||!zip){
+                resetWorkbookTransfer();
+                Toast.makeText(this,"الملف غير مكتمل أو ليس Excel صالحًا.",Toast.LENGTH_LONG).show();
+                return;
+            }
+            pendingWorkbook=bytes;
+            resetWorkbookTransfer();
+            try{
+                Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                intent.putExtra(Intent.EXTRA_TITLE,pendingWorkbookName);
+                startActivityForResult(intent,REQ_SAVE_WORKBOOK);
+            }catch(Exception ex){
+                pendingWorkbook=null;
+                Toast.makeText(this,"تعذر فتح حفظ Excel. افتح فلوسي في Chrome.",Toast.LENGTH_LONG).show();
+            }
+        }
+    }
     private void pickNativeReceipt() {
         try {
             Intent intent=new Intent(Intent.ACTION_GET_CONTENT);
@@ -782,6 +850,19 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==REQ_SAVE_WORKBOOK){
+            byte[] payload=pendingWorkbook;pendingWorkbook=null;
+            if(resultCode==RESULT_OK&&data!=null&&data.getData()!=null&&payload!=null){
+                try(OutputStream out=getContentResolver().openOutputStream(data.getData())){
+                    if(out==null)throw new IllegalStateException("No output stream");
+                    out.write(payload);
+                    Toast.makeText(this,"تم حفظ تقرير فلوسي بصيغة Excel.",Toast.LENGTH_LONG).show();
+                }catch(Exception ex){
+                    Toast.makeText(this,"فشل حفظ Excel. جرّب مكان حفظ آخر.",Toast.LENGTH_LONG).show();
+                }
+            }
+            return;
+        }
         if(requestCode==REQ_SAVE_RECEIPT){
             String payload=pendingReceiptExport;
             pendingReceiptExport=null;
