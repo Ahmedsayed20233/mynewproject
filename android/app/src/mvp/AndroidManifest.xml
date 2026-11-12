@@ -3,7 +3,17 @@
     xmlns:tools="http://schemas.android.com/tools">
     <!-- Founder-testing package: no bank-SMS inbox, receiver, notification listener,
          financial-event relay, or ACTION_SEND share-import entry point. -->
+    <!-- Local reminders only, no READ_SMS, RECEIVE_SMS or notification listener. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <application android:label="فلوسي MVP" tools:replace="android:label">
+        <receiver android:name=".FlosyReminderReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+            </intent-filter>
+        </receiver>
         <receiver android:name="com.flosy.finance.AutoRelayReceiver"
             tools:node="remove"/>
         <activity android:name=".MainActivity"
