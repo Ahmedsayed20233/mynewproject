@@ -524,7 +524,8 @@ test("Flosy AI defaults to free mode, API stays optional and offline shell is ve
  assert.match(ai,/mode="free"/);
  assert.match(ai,/answerFree/);
  assert.match(ai,/OpenAI API/);
- assert.ok(sw.includes("flosy-ai.js?v=730"));
+ assert.ok(sw.includes("flosy-ai-analytics.js?v=1001"));
+ assert.ok(sw.includes("flosy-ai.js?v=351"));
  assert.ok(sw.includes("flosy-receipt-ml.js?v=3401"));
  assert.ok(sw.includes("flosy-voice-nlu.js?v=3402"));
  assert.ok(sw.includes("flosy-v4-capture.js?v=3402"));
@@ -797,9 +798,9 @@ test("Automate relay passes authenticated native request and never auto-saves de
 test("Automate web component and cache have matching version without SMS permissions",()=>{
  const index=fs.readFileSync("index.html","utf8");
  const sw=fs.readFileSync("service-worker.js","utf8");
- assert.match(index,/flosy-automate-relay\.js\?v=3102/);
+ assert.match(index,/flosy-automate-relay\.js\?v=3501/);
  assert.match(index,/flosy-automate-relay\.css\?v=2901/);
- assert.match(sw,/flosy-automate-relay\.js\?v=3102/);
+ assert.match(sw,/flosy-automate-relay\.js\?v=3501/);
  assert.match(sw,/flosy-automate-relay\.css\?v=2901/);
  assert.match(index,/id="flosyAutomateRelayRoot"/);
 });

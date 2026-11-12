@@ -1,4 +1,4 @@
-/* Flosy 2.9 — free locally paired Automate-to-Flosy financial event relay.
+/* Flosy native capture UI: handles both Direct Lab and opt-in Automate fallback.
    Shown only in the installed safe Android wrapper. No SMS or notification
    permissions are requested by Flosy. Automate from official Google Play
    receives selected events with permissions controlled by the user.
@@ -26,6 +26,33 @@ function render(){
  if(!enabled()){root.innerHTML="";return}
  const s=info||{},pkg=s.packageName||"com.flosy.finance",paired=s.paired===true;
  const smsAuto=!!w.FLOSY_CAPTURE?.autoEnabled?.("sms");
+ if(s.directAvailable){
+  const nativeOn=s.directEnabled===true;
+  root.innerHTML='<section class="f29-panel"><div class="f29-head"><div>'+
+   '<span class="f29-overline">FLOSY • NATIVE MVP LAB</span><h2>استيراد مباشر من هاتفك — بدون Automate</h2>'+
+   '<p>التقاط الرسائل المالية الجديدة وإشعارات التطبيقات المختارة، بعد موافقتك وصلاحيات Android. لن نقرأ صندوق رسائلك القديم.</p></div>'+
+   '<span class="f29-pill">'+(nativeOn?'المصادر مفعّلة':'غير مفعّل')+'</span></div>'+
+   '<div class="f29-disclosure"><strong>طريقة الاستخدام</strong><p>'+
+   '1. افتح الإعدادات المحلية وحدّد أسماء مرسلي البنوك وتطبيقاتك المالية. '+
+   '2. احفظ موافقتك وامنح إذن إشعارات التطبيقات من إعدادات Android، وإذن SMS إذا سمح النظام به. '+
+   '3. راجع المعاملات المكتشفة، ويمكنك تشغيل الحفظ التلقائي للعمليات المؤكدة من إعدادات Capture.'+
+   '</p><p>إذن SMS مقيّد على بعض أجهزة Android حتى مع موافقتك؛ التقاط إشعارات InstaPay يمكن اختباره منفصلًا. لا توجد علاقة رسمية مع البنوك.</p></div>'+
+   '<div class="f29-controls"><strong>الحالة</strong>'+
+   '<p>رسائل/إشعارات في الانتظار: '+Number(s.pending||0)+
+   ' • '+(smsAuto?'الحفظ التلقائي للمعاملات المؤكدة مفعّل':'الحفظ التلقائي غير مفعّل')+'</p>'+
+   '<div class="f29-buttons">'+
+   '<button class="f29-primary" type="button" data-f29="direct-setup">إعداد الاستيراد المباشر والصلاحيات</button>'+
+   '<button class="f29-secondary" type="button" data-f29="pending">عرض المكتشف</button>'+
+   '<button class="f29-secondary" type="button" data-f29="refresh">تحديث الحالة</button>'+
+   '<button class="f29-secondary" type="button" data-f29="auto-settings">ضبط الحفظ التلقائي</button>'+
+   '<button class="f29-secondary" type="button" data-f29="undo">تراجع عن آخر معاملة تلقائية</button>'+
+   '<button class="f29-secondary" type="button" data-f29="direct-setup">إيقاف المصادر ومسح المرشحات</button></div></div>'+
+   (message?'<p class="f29-feedback" role="status">'+escapeHTML(message)+'</p>':'')+
+   '<p class="f29-small">عند فشل أو غموض الإشعار، لا يُحفظ كمصروف تلقائيًا. هذه النسخة Direct Lab للتجربة على Android وليست نشرًا رسميًا على Google Play.</p>'+
+   '</section>';
+  return;
+ }
+
 
  const relayReasons={
   unsupported:"نسخة Flosy Android الحالية لا توفر تشخيص استقبال Broadcast؛ يلزم تحديث نسخة Android المتوافقة.",
@@ -89,11 +116,12 @@ function nativeStatus(s){
  if(!s||typeof s!=="object")return;
  info={paired:!!s.paired,senders:String(s.senders||"").slice(0,400),
  apps:String(s.apps||"").slice(0,400),pending:Number(s.pending)||0,
+ directAvailable:s.directAvailable===true,directEnabled:s.directEnabled===true,
  packageName:String(s.packageName||"com.flosy.finance").slice(0,100),
  lastDeliveryCode:String(s.lastDeliveryCode||"unsupported").slice(0,50),
  lastDeliveryAt:Number(s.lastDeliveryAt)||0};
  render();
- if(info.paired && info.pending>0 && w.FLOSY_CAPTURE?.autoEnabled?.("sms") &&
+ if((info.paired||info.directEnabled) && info.pending>0 && w.FLOSY_CAPTURE?.autoEnabled?.("sms") &&
     Date.now()-lastAutoPoll>4000){
    lastAutoPoll=Date.now();
    send("relay-pending");
@@ -143,6 +171,7 @@ function ack(id){
 document.addEventListener("click",event=>{
  const btn=event.target?.closest?.("[data-f29]");if(!btn)return;
  const act=btn.dataset.f29;
+ if(act==="direct-setup"){send("direct-capture-settings");return}
  if(act==="pair"){send("relay-pair");return}
  if(act==="copy"){copyToken();return}
  if(act==="configure"){
