@@ -43,8 +43,8 @@ jobs:
       - name: Verify MVP excludes messaging features
         run: |
           set -eu
-          grep -Fq "versionName '3.7.1'" android/app/build.gradle
-          grep -Fq "applicationIdSuffix '.aurora'" android/app/build.gradle
+          grep -Fq "versionName '3.8.0'" android/app/build.gradle
+          grep -Fq "applicationIdSuffix '.ultra'" android/app/build.gradle
           grep -Fq 'tools:node="remove"' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'tools:node="replace"' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'FLOSY_MVP_NO_MESSAGE_IMPORT' android/app/src/main/java/com/flosy/finance/MainActivity.java
@@ -58,6 +58,10 @@ jobs:
           grep -Fq 'FlosyReminderReceiver' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'notifications-enable' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'notifications-sync' android/app/src/main/java/com/flosy/finance/MainActivity.java
+          grep -Fq '/flosy-ultra.html' android/app/src/main/java/com/flosy/finance/MainActivity.java
+          grep -Fq 'ultra-ai-speak' android/app/src/main/java/com/flosy/finance/MainActivity.java
+          grep -Fq 'ar-EG' android/app/src/main/java/com/flosy/finance/FlosyUltraSpeech.java
+          grep -Fq 'TextToSpeech' android/app/src/main/java/com/flosy/finance/FlosyUltraSpeech.java
           grep -Fq 'setAndAllowWhileIdle' android/app/src/main/java/com/flosy/finance/FlosyReminderScheduler.java
           grep -Fq 'RECORD_AUDIO' android/app/src/main/AndroidManifest.xml
           grep -Fq 'ACTION_CREATE_DOCUMENT' android/app/src/main/java/com/flosy/finance/MainActivity.java
@@ -73,8 +77,8 @@ jobs:
           AAPT="$ANDROID_HOME/build-tools/35.0.0/aapt"
           SIGN="$ANDROID_HOME/build-tools/35.0.0/apksigner"
           "$AAPT" dump badging "$APK" | tee /tmp/flosy-mvp-badging.txt
-          grep -q "name='com.flosy.finance.aurora'" /tmp/flosy-mvp-badging.txt
-          grep -q "versionName='3.7.1'" /tmp/flosy-mvp-badging.txt
+          grep -q "name='com.flosy.finance.ultra'" /tmp/flosy-mvp-badging.txt
+          grep -q "versionName='3.8.0'" /tmp/flosy-mvp-badging.txt
           "$AAPT" dump permissions "$APK" | tee /tmp/flosy-mvp-permissions.txt
           if grep -E 'android.permission.(READ_SMS|RECEIVE_SMS|SEND_SMS|READ_CALL_LOG|BIND_NOTIFICATION_LISTENER_SERVICE|BIND_ACCESSIBILITY_SERVICE)' /tmp/flosy-mvp-permissions.txt; then
             echo "BLOCKED: MVP APK contains restricted messages/notification permission"; exit 1
@@ -89,13 +93,13 @@ jobs:
           "$SIGN" verify --verbose "$APK"
           unzip -t "$APK" >/dev/null
           mkdir -p dist
-          cp "$APK" dist/Flosy-Aurora-MVP-v3.7.1.apk
+          cp "$APK" dist/Flosy-Ultra-MVP-v3.8.0.apk
           ls -lh dist/*.apk
 
       - name: Upload MVP testing APK
         uses: actions/upload-artifact@v4
         with:
-          name: Flosy-Aurora-MVP-v3.7.1-Notifications
+          name: Flosy-Ultra-MVP-v3.8.0-AI-Voice
           path: dist/*.apk
           retention-days: 30
           if-no-files-found: error
@@ -105,13 +109,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="flosy-aurora-mvp-v3.7.1"
+          TAG="flosy-ultra-mvp-v3.8.0"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.apk --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$TAG" dist/*.apk \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --title "Flosy Aurora v3.7.1 — independent MVP with local bill notifications" \
-              --notes "Flosy Aurora v3.7.1 founder-testing Android APK: fully revised purple/midnight/cyan/coral RTL design on the connected hosted Flosy site (home, transactions, accounts, budgets, goals, voice, receipts, assistant and reports), updated app icon, and new owner-opt-in LOCAL notifications for recorded unpaid bill/installment dates. Android 13+ requests POST_NOTIFICATIONS on the owner's tap; alarms use inexact AlarmManager, can be delayed by OS battery rules, and reschedule at reboot. No bank SMS/notification reading, READ_SMS, RECEIVE_SMS, SEND_SMS, listener, AutoRelayReceiver, or SMS import intent. Version 3.7.1 package com.flosy.finance.aurora. Android CI verifies merged manifest, permissions, signing and ZIP. APK debug-signed for internal testing; NOT Play-reviewed or physically device-tested. Internet is needed to load/refresh the hosted UI; notifications do not send financial details to remote servers. Separate com.flosy.finance.aurora package installs alongside previous versions to avoid debug-signature update conflicts. It has separate local storage; use verified Flosy backups and sync to bring financial data across. Never bypass Play Protect."
+              --title "Flosy Ultra v3.8.0 — designer-authored 12 screens, themes and Flosy AI voice" \
+              --notes "Flosy Ultra v3.8.0 founder MVP uses user's exact provided 12-screen HTML design and engineering markdown, with runtime binding to the canonical Flosy ledger. Three themes: Emerald Obsidian, Clean Daylight and Royal Sapphire. Responsive 356x760 reference dimensions, 16px screen padding, actual transactions/accounts/budgets/reports and no fake demo postings. Flosy AI character supports Egyptian Arabic STT and voice answers through Android TextToSpeech (ar-EG when installed), with consent-based optional continuous turns and deterministic finance analytics. NO freshly trained local LLM, no guaranteed human-level Egyptian fluency, and no physical-device speech validation. Existing local bill reminders remain optional; no SMS read, bank notifications, or restricted permissions. Package com.flosy.finance.ultra is independent of older test builds because GitHub debug signing may differ. Requires internet for initial hosted UI and external style assets. QA checks Android manifest, signing and ZIP. Back up finance data before migrating; do not disable Play Protect."
           fi
