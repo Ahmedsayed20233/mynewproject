@@ -17,6 +17,8 @@ on:
       - 'flosy-elevate.js'
       - 'flosy-studio.js'
       - 'flosy-studio.css'
+      - 'flosy-aurora.css'
+      - 'flosy-aurora.js'
       - 'flosy-capture-v10.css'
       - 'flosy-v5-command.js'
       - 'flosy-v4-family-privacy.js'
@@ -69,6 +71,7 @@ jobs:
           node --check flosy-v5-private-backup.js
           node --check flosy-elevate.js
           node --check flosy-studio.js
+          node --check flosy-aurora.js
           node --check flosy-repair.js
           node --check flosy-assistant-bridge.js
           node --check service-worker.js
