@@ -141,7 +141,7 @@ function parseBankSMS(source){
  if(dateMatch){let d=new Date(+dateMatch[3],+dateMatch[2]-1,+dateMatch[1]);if(d.getDate()===+dateMatch[1]&&d.getMonth()+1===+dateMatch[2])dt=[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")}
  const merchant=bankName(str);
  return {id:uuid(),date:dt,type:debit?"expense":"income",amount,
-  category:debit?cat(str):"دخل آخر",subcategory:"",accountId:cash()[0]?.id||"",
+  category:debit?cat(str):"دخل آخر",subcategory:"",accountId:global.FLOSY_ACCOUNT_ROUTER?.match(cash(),{text:str,defaultAccountId:autoPrefs().accountId})?.id||"",
   description:merchant+" — معاملة رسالة بنكية تحتاج مراجعة",
   sourceHash:"sms4-"+hash(str.trim().replace(/\s+/g," ").toLowerCase()),source:"sms_reviewed",confidence:"مراجعة مطلوبة"};
 }
