@@ -1,0 +1,2439 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="emerald">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flosy Ultra | فلوسي - الجيل الجديد لإدارة أموالك بذكاء</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Cairo & Tajawal -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <style>
+    /* ==========================================================================
+       1. ADVANCED FINTECH COLOR SYSTEM & CSS VARIABLES (3 LIVE THEMES)
+       ========================================================================== */
+    :root,
+    [data-theme="emerald"] {
+      --bg-page-start: #040914;
+      --bg-page-mid: #081221;
+      --bg-page-end: #051c1a;
+      --phone-bg-top: #0B1324;
+      --phone-bg-bottom: #070C17;
+      --phone-border: #1E293B;
+      --surface-card: rgba(19, 30, 51, 0.82);
+      --surface-elevated: #172540;
+      --surface-white-card: #131F36;
+      --surface-white-text: #F8FAFC;
+      --surface-white-sub: #94A3B8;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-highlight: rgba(16, 185, 129, 0.35);
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --brand-primary: #10B981;
+      --brand-primary-dark: #059669;
+      --brand-secondary: #0EA5E9;
+      --accent-gold: #F59E0B;
+      --danger-rose: #F43F5E;
+      --hero-grad: linear-gradient(135deg, #064E3B 0%, #0F3D4C 52%, #1E293B 100%);
+      --wallet-grad: linear-gradient(135deg, #059669 0%, #0D9488 50%, #0284C7 100%);
+      --cta-grad: linear-gradient(135deg, #10B981 0%, #059669 55%, #0D9488 100%);
+      --cta-shadow: rgba(16, 185, 129, 0.42);
+      --nav-bg: rgba(10, 17, 32, 0.94);
+    }
+
+    /* Theme 2: Clean Daylight FinTech (Accessible High-Contrast Light Mode) */
+    [data-theme="light"] {
+      --bg-page-start: #E2E8F0;
+      --bg-page-mid: #F1F5F9;
+      --bg-page-end: #E6F4F1;
+      --phone-bg-top: #F8FAFC;
+      --phone-bg-bottom: #F1F5F9;
+      --phone-border: #CBD5E1;
+      --surface-card: rgba(255, 255, 255, 0.92);
+      --surface-elevated: #FFFFFF;
+      --surface-white-card: #FFFFFF;
+      --surface-white-text: #0F172A;
+      --surface-white-sub: #64748B;
+      --border-subtle: rgba(15, 23, 42, 0.08);
+      --border-highlight: rgba(5, 150, 105, 0.35);
+      --text-primary: #0F172A;
+      --text-secondary: #475569;
+      --text-muted: #64748B;
+      --brand-primary: #059669;
+      --brand-primary-dark: #047857;
+      --brand-secondary: #0284C7;
+      --accent-gold: #D97706;
+      --danger-rose: #E11D48;
+      --hero-grad: linear-gradient(135deg, #065F46 0%, #047857 55%, #0F766E 100%);
+      --wallet-grad: linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #065F46 100%);
+      --cta-grad: linear-gradient(135deg, #059669 0%, #047857 100%);
+      --cta-shadow: rgba(5, 150, 105, 0.32);
+      --nav-bg: rgba(255, 255, 255, 0.96);
+    }
+
+    /* Theme 3: Royal Sapphire & Champagne Gold */
+    [data-theme="sapphire"] {
+      --bg-page-start: #050814;
+      --bg-page-mid: #0B132B;
+      --bg-page-end: #111A3A;
+      --phone-bg-top: #0C142C;
+      --phone-bg-bottom: #070B1A;
+      --phone-border: #233156;
+      --surface-card: rgba(21, 33, 66, 0.82);
+      --surface-elevated: #1B2A52;
+      --surface-white-card: #152244;
+      --surface-white-text: #F8FAFC;
+      --surface-white-sub: #94A3B8;
+      --border-subtle: rgba(255, 255, 255, 0.09);
+      --border-highlight: rgba(56, 189, 248, 0.4);
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --brand-primary: #38BDF8;
+      --brand-primary-dark: #0284C7;
+      --brand-secondary: #F59E0B;
+      --accent-gold: #FBBF24;
+      --danger-rose: #FB7185;
+      --hero-grad: linear-gradient(135deg, #0C4A6E 0%, #1E3A8A 55%, #172554 100%);
+      --wallet-grad: linear-gradient(135deg, #0284C7 0%, #2563EB 55%, #4F46E5 100%);
+      --cta-grad: linear-gradient(135deg, #0EA5E9 0%, #2563EB 100%);
+      --cta-shadow: rgba(14, 165, 233, 0.42);
+      --nav-bg: rgba(9, 14, 30, 0.95);
+    }
+
+    * {
+      font-family: 'Cairo', 'Tajawal', sans-serif;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.01em;
+    }
+
+    body {
+      background: radial-gradient(circle at 20% 0%, var(--bg-page-end) 0%, var(--bg-page-mid) 45%, var(--bg-page-start) 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background 0.35s ease, color 0.35s ease;
+    }
+
+    /* Ultra-Refined Phone Mockup Frame */
+    .phone-frame {
+      width: 356px;
+      height: 760px;
+      background: linear-gradient(180deg, var(--phone-bg-top) 0%, var(--phone-bg-bottom) 100%);
+      border-radius: 46px;
+      border: 7px solid var(--phone-border);
+      box-shadow: 
+        0 28px 65px -12px rgba(0, 0, 0, 0.65),
+        0 0 0 1px rgba(255, 255, 255, 0.07),
+        inset 0 1px 1px rgba(255, 255, 255, 0.12);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .phone-frame:hover {
+      border-color: var(--border-highlight);
+      box-shadow: 
+        0 32px 70px -10px rgba(0, 0, 0, 0.75),
+        0 0 35px -5px var(--cta-shadow);
+    }
+
+    /* Dynamic Island Notch */
+    .dynamic-island {
+      width: 96px;
+      height: 22px;
+      background: #020617;
+      border-radius: 999px;
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* Surfaces & Cards */
+    .fintech-card {
+      background: var(--surface-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      transition: all 0.25s ease;
+    }
+
+    .fintech-list-card {
+      background: var(--surface-white-card);
+      color: var(--surface-white-text);
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.18);
+    }
+
+    .fintech-text-main { color: var(--text-primary); }
+    .fintech-text-sub { color: var(--text-secondary); }
+    .fintech-text-muted { color: var(--text-muted); }
+
+    .hero-safe-card {
+      background: var(--hero-grad);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: 0 16px 32px -10px rgba(6, 78, 59, 0.55);
+    }
+
+    .wallet-hero-card {
+      background: var(--wallet-grad);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 16px 32px -8px rgba(5, 150, 105, 0.4);
+    }
+
+    .btn-primary-cta {
+      background: var(--cta-grad);
+      color: #FFFFFF;
+      box-shadow: 0 10px 24px -4px var(--cta-shadow);
+    }
+
+    .bottom-nav-dock {
+      background: var(--nav-bg);
+      border-top: 1px solid var(--border-subtle);
+      backdrop-filter: blur(18px);
+    }
+
+    /* Custom Scrollbars */
+    .screen-scroll {
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .screen-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Receipt Paper */
+    .receipt-paper {
+      background: #FCF9F2;
+      color: #1E293B;
+      box-shadow: 0 18px 35px rgba(0, 0, 0, 0.55);
+      position: relative;
+    }
+    .receipt-paper::before {
+      content: "";
+      position: absolute;
+      top: -6px;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: radial-gradient(circle, transparent, transparent 50%, #FCF9F2 50%, #FCF9F2 100%) -7px -4px / 12px 12px repeat-x;
+    }
+    .receipt-paper::after {
+      content: "";
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: radial-gradient(circle, transparent, transparent 50%, #FCF9F2 50%, #FCF9F2 100%) -7px 2px / 12px 12px repeat-x;
+    }
+
+    /* Animations */
+    @keyframes pulseSonic {
+      0% { transform: scale(0.92); opacity: 0.75; }
+      50% { transform: scale(1.16); opacity: 0.25; }
+      100% { transform: scale(0.92); opacity: 0.75; }
+    }
+    .sonic-ring {
+      animation: pulseSonic 2.2s infinite ease-in-out;
+    }
+
+    @keyframes laserSweep {
+      0% { top: 8%; opacity: 0.9; }
+      50% { top: 84%; opacity: 1; }
+      100% { top: 8%; opacity: 0.9; }
+    }
+    .laser-beam {
+      animation: laserSweep 2.5s infinite ease-in-out;
+    }
+
+    /* Privacy Blur Toggle Effect */
+    .privacy-blur {
+      filter: blur(7px);
+      user-select: none;
+      transition: filter 0.25s ease;
+    }
+
+    /* Responsive Showcase Grid */
+    .grid-showcase {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 28px;
+      justify-items: center;
+    }
+    @media (min-width: 1536px) {
+      .grid-showcase-6 {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 16px;
+      }
+      .grid-showcase-6 .phone-frame {
+        transform: scale(0.91);
+        transform-origin: top center;
+        margin-bottom: -62px;
+      }
+    }
+  </style>
+<link rel="stylesheet" href="flosy-ultra-live.css?v=3801"></head>
+<body class="pb-14">
+
+  <!-- ================= TOP ULTRA FINTECH CONTROL HEADER ================= -->
+  <header class="sticky top-0 z-50 backdrop-blur-2xl bg-[#070C17]/85 border-b border-white/10 px-4 py-3 text-white">
+    <div class="max-w-[1840px] mx-auto flex flex-col xl:flex-row items-center justify-between gap-3">
+      
+      <!-- Brand Identity + Color Palette Inspector Trigger -->
+      <div class="flex items-center gap-3 w-full xl:w-auto justify-between xl:justify-start">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-400 via-teal-500 to-sky-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 font-black text-2xl text-slate-950">
+            F
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="font-black text-lg tracking-tight text-white">Flosy <span class="text-emerald-400">Ultra</span> | فلوسي</h1>
+              <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-400/30 font-bold">النسخة الاحترافية المطورة</span>
+            </div>
+            <p class="text-xs text-slate-400">تصميم UI/UX عالمي • ألوان مريحة للعين • سهولة فائقة لجميع العملاء</p>
+          </div>
+        </div>
+
+        <button onclick="toggleColorModal()" class="xl:hidden px-3 py-1.5 rounded-xl bg-white/10 text-xs font-bold text-emerald-300 border border-emerald-400/30">
+          <i class="fa-solid fa-palette ml-1"></i>كود الألوان
+        </button>
+      </div>
+
+      <!-- Center Controls: Theme Switcher + View Mode Switcher + Privacy Toggle -->
+      <div class="flex flex-wrap items-center justify-center gap-2">
+        <!-- Live Theme Color Switcher -->
+        <div class="flex items-center gap-1 bg-slate-900/90 p-1 rounded-2xl border border-white/10">
+          <button onclick="setTheme('emerald')" id="themeBtn_emerald" class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-emerald-600 text-white shadow">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-300"></span>
+            <span>الزمردي الفاخر</span>
+          </button>
+          <button onclick="setTheme('light')" id="themeBtn_light" class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white">
+            <span class="w-2.5 h-2.5 rounded-full bg-white border border-slate-400"></span>
+            <span>النهاري المريح</span>
+          </button>
+          <button onclick="setTheme('sapphire')" id="themeBtn_sapphire" class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white">
+            <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
+            <span>الياقوتي الملكي</span>
+          </button>
+        </div>
+
+        <!-- Mode Switcher (Single Phone vs 12-Screen Grid) -->
+        <div class="flex items-center gap-1 bg-slate-900/90 p-1 rounded-2xl border border-white/10">
+          <button id="btnModeInteractive" onclick="setDisplayMode('interactive')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-300 hover:text-white">
+            <i class="fa-solid fa-mobile-screen-button ml-1.5"></i>تفاعلي (شاشة واحدة)
+          </button>
+          <button id="btnModeGrid" onclick="setDisplayMode('grid')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow">
+            <i class="fa-solid fa-grip ml-1.5"></i>عرض الـ 12 شاشة معاً
+          </button>
+        </div>
+
+        <!-- Privacy Mode & Color Code Inspector -->
+        <button onclick="togglePrivacyMode()" id="btnPrivacyHeader" class="px-3 py-2 rounded-2xl bg-slate-900/90 hover:bg-slate-800 text-xs font-bold text-slate-200 border border-white/10 flex items-center gap-1.5 transition" title="إخفاء أو إظهار الأرصدة المالية">
+          <i class="fa-regular fa-eye text-emerald-400" id="privacyIconHeader"></i>
+          <span>الخصوصية</span>
+        </button>
+
+        <button onclick="toggleColorModal()" class="hidden xl:flex px-3.5 py-2 rounded-2xl bg-emerald-500/15 hover:bg-emerald-500/25 text-xs font-bold text-emerald-300 border border-emerald-400/30 items-center gap-1.5 transition">
+          <i class="fa-solid fa-swatchbook"></i>
+          <span>دليل كود الألوان (Color Code)</span>
+        </button>
+      </div>
+
+      <!-- Quick 12-Screen Jump Bar -->
+      <div id="screenPillsContainer" class="flex items-center gap-1 overflow-x-auto max-w-full py-1 no-scrollbar">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= COLOR SYSTEM & UI/UX DESIGN TOKENS MODAL ================= -->
+  <div id="colorSystemModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-[#0F172A] border border-white/15 rounded-3xl max-w-3xl w-full p-6 text-white shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-white/10 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-palette"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-black">نظام الألوان المعتمد (FinTech Color Code & UI Tokens)</h3>
+            <p class="text-xs text-slate-400">مصمم وفق معايير التباين العالمية WCAG AAA لراحة العين وبناء الثقة المالية</p>
+          </div>
+        </div>
+        <button onclick="toggleColorModal()" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Color Swatches Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+        <div onclick="copyColor('#10B981')" class="cursor-pointer p-3.5 rounded-2xl bg-slate-900 border border-white/10 hover:border-emerald-400 transition flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-[#10B981] shadow-lg shrink-0"></div>
+          <div>
+            <div class="font-extrabold text-white">Emerald Wealth (الأساسي)</div>
+            <div class="text-emerald-400 font-mono font-bold mt-0.5">#10B981</div>
+            <div class="text-[10px] text-slate-400">النمو، الأمان، الأزرار الرئيسية</div>
+          </div>
+        </div>
+
+        <div onclick="copyColor('#0B1324')" class="cursor-pointer p-3.5 rounded-2xl bg-slate-900 border border-white/10 hover:border-emerald-400 transition flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-[#0B1324] border border-white/20 shadow-lg shrink-0"></div>
+          <div>
+            <div class="font-extrabold text-white">Obsidian Navy (الخلفية)</div>
+            <div class="text-sky-400 font-mono font-bold mt-0.5">#0B1324</div>
+            <div class="text-[10px] text-slate-400">عمق فخم يريح العين ليلاً</div>
+          </div>
+        </div>
+
+        <div onclick="copyColor('#172540')" class="cursor-pointer p-3.5 rounded-2xl bg-slate-900 border border-white/10 hover:border-emerald-400 transition flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-[#172540] border border-white/15 shadow-lg shrink-0"></div>
+          <div>
+            <div class="font-extrabold text-white">Elevated Slate (البطاقات)</div>
+            <div class="text-slate-300 font-mono font-bold mt-0.5">#172540</div>
+            <div class="text-[10px] text-slate-400">فصل بصري واضح للبطاقات</div>
+          </div>
+        </div>
+
+        <div onclick="copyColor('#F59E0B')" class="cursor-pointer p-3.5 rounded-2xl bg-slate-900 border border-white/10 hover:border-amber-400 transition flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-[#F59E0B] shadow-lg shrink-0"></div>
+          <div>
+            <div class="font-extrabold text-white">Champagne Gold (الادخار)</div>
+            <div class="text-amber-400 font-mono font-bold mt-0.5">#F59E0B</div>
+            <div class="text-[10px] text-slate-400">الأهداف الذكية، التنبيهات، الثروة</div>
+          </div>
+        </div>
+
+        <div onclick="copyColor('#0EA5E9')" class="cursor-pointer p-3.5 rounded-2xl bg-slate-900 border border-white/10 hover:border-sky-400 transition flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-[#0EA5E9] shadow-lg shrink-0"></div>
+          <div>
+            <div class="font-extrabold text-white">Trust Cyan (الذكاء الاصطناعي)</div>
+            <div class="text-sky-400 font-mono font-bold mt-0.5">#0EA5E9</div>
+            <div class="text-[10px] text-slate-400">المساعد الذكي، المسح الضوئي، التقارير</div>
+          </div>
+        </div>
+
+        <div onclick="copyColor('#F43F5E')" class="cursor-pointer p-3.5 rounded-2xl bg-slate-900 border border-white/10 hover:border-rose-400 transition flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-[#F43F5E] shadow-lg shrink-0"></div>
+          <div>
+            <div class="font-extrabold text-white">Coral Rose (المصروفات)</div>
+            <div class="text-rose-400 font-mono font-bold mt-0.5">#F43F5E</div>
+            <div class="text-[10px] text-slate-400">المصروفات والسحب دون إزعاج بصري</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-4 text-xs space-y-1.5">
+        <div class="font-extrabold text-emerald-300 flex items-center gap-2">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span>أهم تحسينات الـ UI/UX التي تم تطبيقها لجميع العملاء:</span>
+        </div>
+        <ul class="list-disc list-inside text-slate-300 space-y-1 leading-relaxed">
+          <li><strong>أرقام جدوليّة متناسقة (Tabular Numerals):</strong> قراءة فورية للأرصدة والمبالغ بدون أي تشتت.</li>
+          <li><strong>إدخال ذكي بلمسة واحدة:</strong> أزرار مبالغ سريعة (+50، +100، +250، +500 ج.م) وشبكة تصنيفات مرئية واضحة لكبار السن والشباب.</li>
+          <li><strong>مفتاح خصوصية فوري:</strong> إخفاء الأرصدة بضغطة زر عند فتح التطبيق في الأماكن العامة.</li>
+          <li><strong>3 ثيمات حية:</strong> الوضع الزمردي الداكن، الوضع النهاري الأبيض فائق الوضوح، والوضع الياقوتي الملكي.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Feedback Notification -->
+  <div id="toastBox" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 transform translate-y-4">
+    <div class="bg-slate-900/95 text-white px-5 py-3 rounded-2xl shadow-2xl border border-emerald-400/40 flex items-center gap-3 text-xs sm:text-sm font-bold backdrop-blur-xl">
+      <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+        <i class="fa-solid fa-check"></i>
+      </span>
+      <span id="toastText">تمت العملية بنجاح!</span>
+    </div>
+  </div>
+
+  <!-- ================= MAIN WORKSPACE ================= -->
+  <main class="max-w-[1860px] mx-auto px-3 sm:px-6 pt-5">
+
+    <!-- Interactive Helper Bar (shown in Single-Phone Mode) -->
+    <div id="interactiveBanner" class="max-w-2xl mx-auto mb-5 fintech-card rounded-2xl px-4 py-2.5 hidden items-center justify-between gap-2 text-xs">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+        <span class="fintech-text-main font-semibold">الوضع التفاعلي نشط: جرب إضافة معاملة أو مسح فاتورة أو التحدث للمساعد الذكي!</span>
+      </div>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button onclick="prevScreen()" class="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 font-bold">السابق</button>
+        <span id="currentScreenCounter" class="font-extrabold px-1.5 tabular-nums">1 / 12</span>
+        <button onclick="nextScreen()" class="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 font-bold">التالي</button>
+      </div>
+    </div>
+
+    <!-- Container holding all 12 Phone Screens -->
+    <div id="phonesWrapper" class="grid-showcase grid-showcase-6">
+
+      <!-- ===================================================================
+           SCREEN 1: شاشة البداية (Ultra Onboarding)
+      ==================================================================== -->
+      <div class="phone-frame" data-screen="1" data-title="1. شاشة البداية">
+        <div class="dynamic-island">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-slate-800 border border-slate-600"></span>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="px-6 pt-3 pb-1 flex items-center justify-between text-[11px] font-bold fintech-text-main z-10">
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-battery-full text-emerald-400"></i>
+            <i class="fa-solid fa-wifi text-[10px]"></i>
+          </div>
+          <span class="tabular-nums">9:41</span>
+        </div>
+
+        <!-- Ambient Emerald & Gold Glows -->
+        <div class="absolute top-14 -right-12 w-56 h-56 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-20 -left-12 w-56 h-56 bg-sky-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="flex-1 flex flex-col items-center justify-between px-6 pt-5 pb-6 z-10 text-center">
+          <!-- Brand Mark & Tagline -->
+          <div class="flex flex-col items-center mt-2">
+            <div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-400 via-teal-500 to-sky-600 p-0.5 shadow-2xl shadow-emerald-500/30 mb-3">
+              <div class="w-full h-full bg-[#070C17] rounded-[22px] flex items-center justify-center relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-tr from-emerald-500/25 to-sky-400/20"></div>
+                <span class="text-4xl font-black bg-gradient-to-r from-emerald-300 via-teal-200 to-amber-300 bg-clip-text text-transparent relative z-10">F</span>
+              </div>
+            </div>
+
+            <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold mb-1">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span>حماية بنكية مشفرة 256-Bit</span>
+            </div>
+
+            <h2 class="text-3xl font-black tracking-tight fintech-text-main">Flosy <span class="text-emerald-400">فلوسي</span></h2>
+            <p class="fintech-text-sub text-xs font-semibold mt-1.5 leading-relaxed">
+              مساعدك المالي الذكي لإدارة مصروفاتك،<br/>تحقيق أهدافك، وتنمية مدخراتك بسهولة
+            </p>
+          </div>
+
+          <!-- 3D FinTech Smart Card & Wealth Illustration -->
+          <div class="relative w-full py-2 flex flex-col items-center">
+            <div class="w-full rounded-3xl p-4 wallet-hero-card text-white shadow-2xl transform -rotate-2 hover:rotate-0 transition duration-300 relative overflow-hidden">
+              <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
+              <div class="flex items-center justify-between text-xs opacity-90 mb-3">
+                <span class="font-bold flex items-center gap-1.5">
+                  <i class="fa-solid fa-sparkles text-amber-300"></i>
+                  محفظة فلوسي الذكية
+                </span>
+                <i class="fa-solid fa-wifi rotate-90"></i>
+              </div>
+              <div class="text-right my-2">
+                <div class="text-[10px] text-emerald-100">إجمالي صافي الثروة</div>
+                <div class="text-2xl font-black tabular-nums tracking-tight">42,600.00 ج.م</div>
+              </div>
+              <div class="flex items-center justify-between text-[10px] pt-2 border-t border-white/15">
+                <span class="bg-white/20 px-2.5 py-0.5 rounded-full font-bold">+12% نمو الادخار</span>
+                <span class="font-mono tracking-widest">•••• 8492</span>
+              </div>
+            </div>
+
+            <!-- 3 Quick Feature Pills -->
+            <div class="grid grid-cols-3 gap-2 w-full mt-3">
+              <div class="fintech-card rounded-2xl p-2 text-center">
+                <i class="fa-solid fa-microphone-lines text-emerald-400 text-sm"></i>
+                <div class="text-[10px] font-bold fintech-text-main mt-1">تسجيل صوتي</div>
+              </div>
+              <div class="fintech-card rounded-2xl p-2 text-center">
+                <i class="fa-solid fa-receipt text-sky-400 text-sm"></i>
+                <div class="text-[10px] font-bold fintech-text-main mt-1">قارئ فواتير</div>
+              </div>
+              <div class="fintech-card rounded-2xl p-2 text-center">
+                <i class="fa-solid fa-robot text-amber-400 text-sm"></i>
+                <div class="text-[10px] font-bold fintech-text-main mt-1">مستشار ذكي</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Primary CTA -->
+          <div class="w-full space-y-2.5">
+            <button onclick="goToScreen(2)" class="w-full py-3.5 rounded-2xl btn-primary-cta font-extrabold text-sm hover:scale-[1.01] active:scale-95 transition flex items-center justify-center gap-2">
+              <span>ابدأ تجربتك المالية الآن</span>
+              <i class="fa-solid fa-arrow-left text-xs"></i>
+            </button>
+            <button onclick="goToScreen(2)" class="text-[11px] fintech-text-sub hover:underline block mx-auto font-semibold">
+              لديك حساب بالفعل؟ <span class="text-emerald-400 font-extrabold">تسجيل الدخول السريع</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="w-28 h-1 bg-slate-500/40 rounded-full mx-auto mb-2"></div>
+      </div>
+
+      <!-- ===================================================================
+           SCREEN 2: الرئيسية (Smart Home Dashboard)
+      ==================================================================== -->
+      <div class="phone-frame" data-screen="2" data-title="2. الرئيسية">
+        <div class="dynamic-island">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-slate-800"></span>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="px-6 pt-3 pb-1 flex items-center justify-between text-[11px] font-bold fintech-text-main">
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-battery-full text-emerald-400"></i>
+            <i class="fa-solid fa-wifi text-[10px]"></i>
+          </div>
+          <span class="tabular-nums">9:41</span>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 screen-scroll px-4 pt-2 pb-4 space-y-3">
+          <!-- Top Greeting & Privacy Toggle -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 font-black text-sm shadow">
+                أ
+              </div>
+              <div>
+                <h2 class="text-sm font-extrabold fintech-text-main flex items-center gap-1">
+                  <span>مرحباً بك في فلوسي</span>
+                  <span>👋</span>
+                </h2>
+                <p class="text-[10px] fintech-text-sub">وضعك المالي ممتاز ومستقر اليوم</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button onclick="togglePrivacyMode()" class="w-8 h-8 rounded-xl fintech-card flex items-center justify-center fintech-text-sub hover:text-emerald-400" title="إخفاء/إظهار الأرصدة">
+                <i class="fa-regular fa-eye text-xs privacy-eye-icon"></i>
+              </button>
+              <button onclick="showToast('لديك نصيحة ادخار جديدة في شاشة التوصيات 💡')" class="w-8 h-8 rounded-xl fintech-card flex items-center justify-center fintech-text-sub relative">
+                <i class="fa-regular fa-bell text-xs"></i>
+                <span class="w-2 h-2 rounded-full bg-emerald-400 absolute top-1.5 right-1.5"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Hero Card: Safe to Spend + Daily Allowance Guide -->
+          <div class="hero-safe-card rounded-3xl p-4 text-white relative overflow-hidden">
+            <div class="flex items-center justify-between gap-2 relative z-10">
+              <div class="space-y-1">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 text-emerald-200 text-[10px] font-bold">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <span>المتبقي الآمن للصرف</span>
+                </div>
+                <div class="text-2xl font-black tabular-nums balance-sensitive" id="homeSafeBalance">8,250 ج.م</div>
+                <p class="text-[10px] text-emerald-100/80 tabular-nums">من ميزانيتك الشهرية 15,000 ج.م</p>
+              </div>
+
+              <!-- Circular Progress Gauge -->
+              <div class="relative w-16 h-16 flex items-center justify-center shrink-0">
+                <svg class="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
+                  <circle cx="32" cy="32" r="26" stroke="rgba(255,255,255,0.14)" stroke-width="6" fill="none" />
+                  <circle id="homeGaugeCircle" cx="32" cy="32" r="26" stroke="#34D399" stroke-width="6" stroke-dasharray="163" stroke-dashoffset="73" stroke-linecap="round" fill="none" />
+                </svg>
+                <div class="absolute text-center">
+                  <span class="text-xs font-black tabular-nums" id="homeSafePercent">55%</span>
+                  <div class="text-[8px] text-emerald-200">متاح</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Smart Daily Allowance Strip (UX Enhancement) -->
+            <div class="mt-3 pt-2.5 border-t border-white/15 flex items-center justify-between text-[10px] text-emerald-100">
+              <span class="flex items-center gap-1">
+                <i class="fa-solid fa-calendar-check text-amber-300"></i>
+                <span>حد الصرف اليومي الموصى به:</span>
+              </span>
+              <span class="font-extrabold text-white bg-white/15 px-2 py-0.5 rounded-lg tabular-nums balance-sensitive">458 ج.م / يوم</span>
+            </div>
+          </div>
+
+          <!-- Income & Expenses Dual Cards -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <div class="fintech-card rounded-2xl p-3 flex items-center justify-between">
+              <div>
+                <span class="text-[10px] fintech-text-sub font-semibold block">إجمالي الدخل</span>
+                <span class="text-xs font-black fintech-text-main tabular-nums balance-sensitive mt-0.5 block" id="homeTotalIncome">15,000 ج.م</span>
+              </div>
+              <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-xs">
+                <i class="fa-solid fa-arrow-trend-up"></i>
+              </div>
+            </div>
+
+            <div class="fintech-card rounded-2xl p-3 flex items-center justify-between">
+              <div>
+                <span class="text-[10px] fintech-text-sub font-semibold block">إجمالي المصروفات</span>
+                <span class="text-xs font-black fintech-text-main tabular-nums balance-sensitive mt-0.5 block" id="homeTotalExpense">6,750 ج.م</span>
+              </div>
+              <div class="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center text-xs">
+                <i class="fa-solid fa-arrow-trend-down"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3 Ergonomic Quick Action Buttons -->
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="goToScreen(5)" class="py-2.5 px-2 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-600/25 flex flex-col items-center justify-center gap-1 hover:scale-[1.02] active:scale-95 transition">
+              <div class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-xs">
+                <i class="fa-solid fa-plus"></i>
+              </div>
+              <span class="text-[11px] font-extrabold">إضافة يدوية</span>
+            </button>
+
+            <button onclick="goToScreen(6)" class="py-2.5 px-2 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-lg shadow-sky-600/25 flex flex-col items-center justify-center gap-1 hover:scale-[1.02] active:scale-95 transition">
+              <div class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-xs">
+                <i class="fa-solid fa-camera"></i>
+              </div>
+              <span class="text-[11px] font-extrabold">مسح فاتورة</span>
+            </button>
+
+            <button onclick="goToScreen(7)" class="py-2.5 px-2 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-600/25 flex flex-col items-center justify-center gap-1 hover:scale-[1.02] active:scale-95 transition">
+              <div class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-xs">
+                <i class="fa-solid fa-microphone"></i>
+              </div>
+              <span class="text-[11px] font-extrabold">أمر صوتي</span>
+            </button>
+          </div>
+
+          <!-- Recent Transactions -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-xs font-extrabold fintech-text-main">أحدث المعاملات</h3>
+              <button onclick="goToScreen(4)" class="text-[11px] text-emerald-400 font-bold hover:underline">عرض السجل الكامل</button>
+            </div>
+
+            <div id="homeRecentTransactions" class="fintech-list-card rounded-2xl p-3 space-y-2.5">
+              <!-- Item 1 -->
+              <div class="flex items-center justify-between border-b border-slate-500/10 pb-2">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-sm">
+                    <i class="fa-solid fa-utensils"></i>
+                  </div>
+                  <div>
+                    <div class="text-xs font-extrabold">مطعم ووجبات</div>
+                    <div class="text-[10px] opacity-60">اليوم، 7:24 م • الحساب الرئيسي</div>
+                  </div>
+                </div>
+                <div class="text-left tabular-nums">
+                  <div class="text-xs font-black text-rose-500 balance-sensitive">-320 ج.م</div>
+                  <div class="text-[9px] opacity-60">اليوم</div>
+                </div>
+              </div>
+
+              <!-- Item 2 -->
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-9 h-9 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center text-sm">
+                    <i class="fa-solid fa-car-side"></i>
+                  </div>
+                  <div>
+                    <div class="text-xs font-extrabold">مواصلات</div>
+                    <div class="text-[10px] opacity-60">اليوم، 5:10 م • الحساب الرئيسي</div>
+                  </div>
+                </div>
+                <div class="text-left tabular-nums">
+                  <div class="text-xs font-black text-rose-500 balance-sensitive">-60 ج.م</div>
+                  <div class="text-[9px] opacity-60">اليوم</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav-dock px-4 py-2 flex items-center justify-between text-[10px] fintech-text-sub">
+          <button onclick="goToScreen(2)" class="flex flex-col items-center gap-0.5 text-emerald-400 font-extrabold">
+            <i class="fa-solid fa-house text-sm"></i>
+            <span>الرئيسية</span>
+          </button>
+          <button onclick="goToScreen(4)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-receipt text-sm"></i>
+            <span>المعاملات</span>
+          </button>
+          <button onclick="goToScreen(5)" class="w-11 h-11 -mt-5 rounded-full btn-primary-cta flex items-center justify-center border-2 border-[#0B1324]">
+            <i class="fa-solid fa-plus text-base"></i>
+          </button>
+          <button onclick="goToScreen(9)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-chart-pie text-sm"></i>
+            <span>التحليلات</span>
+          </button>
+          <button onclick="goToScreen(3)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-wallet text-sm"></i>
+            <span>حساباتي</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ===================================================================
+           SCREEN 3: حساباتي (Accounts & Wealth Hub)
+      ==================================================================== -->
+      <div class="phone-frame" data-screen="3" data-title="3. حساباتي">
+        <div class="dynamic-island">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-slate-800"></span>
+        </div>
+
+        <div class="px-6 pt-3 pb-1 flex items-center justify-between text-[11px] font-bold fintech-text-main">
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-battery-full text-emerald-400"></i>
+            <i class="fa-solid fa-wifi text-[10px]"></i>
+          </div>
+          <span class="tabular-nums">9:41</span>
+        </div>
+
+        <div class="flex-1 screen-scroll px-4 pt-2 pb-4 space-y-3.5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-black fintech-text-main">حساباتي ومحافظي</h2>
+              <p class="text-[11px] fintech-text-sub">تابع جميع أرصدتك وبطاقاتك في مكان واحد</p>
+            </div>
+            <button onclick="goToScreen(9)" class="w-9 h-9 rounded-xl fintech-card flex items-center justify-center text-emerald-400">
+              <i class="fa-solid fa-chart-line text-sm"></i>
+            </button>
+          </div>
+
+          <!-- Total Net Worth Card -->
+          <div class="wallet-hero-card rounded-3xl p-4 text-white flex items-center justify-between relative overflow-hidden">
+            <div class="space-y-1 z-10">
+              <span class="text-xs text-emerald-100 font-semibold">إجمالي الرصيد المتاح</span>
+              <div class="text-2xl font-black tabular-nums balance-sensitive" id="accountsTotalBalance">42,600 ج.م</div>
+              <span class="inline-block text-[10px] bg-white/15 px-2.5 py-0.5 rounded-full font-bold">3 حسابات نشطة</span>
+            </div>
+            <div class="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center text-2xl text-amber-300 shadow-inner">
+              <i class="fa-solid fa-vault"></i>
+            </div>
+          </div>
+
+          <!-- Accounts List -->
+          <div id="accountsListContainer" class="space-y-2.5">
+            <!-- Account 1 -->
+            <div onclick="showToast('الحساب الرئيسي: متاح للصرف والتحويل الفوري 💳')" class="fintech-card rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:border-emerald-400/50">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-400/30 flex items-center justify-center text-emerald-400 text-base">
+                  <i class="fa-solid fa-wallet"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-extrabold fintech-text-main">الحساب الرئيسي</div>
+                  <div class="text-[10px] fintech-text-sub">بطاقة الخصم المباشر •••• 4012</div>
+                </div>
+              </div>
+              <div class="text-left tabular-nums">
+                <div class="text-sm font-black fintech-text-main balance-sensitive">20,000 ج.م</div>
+                <span class="text-[9px] text-emerald-400 font-bold">نشط</span>
+              </div>
+            </div>
+
+            <!-- Account 2 -->
+            <div onclick="showToast('حساب التوفير: عائد سنوي متوقع 18% 📈')" class="fintech-card rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:border-amber-400/50">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-400/30 flex items-center justify-center text-amber-400 text-base">
+                  <i class="fa-solid fa-piggy-bank"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-extrabold fintech-text-main">حساب التوفير الذكي</div>
+                  <div class="text-[10px] fintech-text-sub">عائد ادخاري شهري</div>
+                </div>
+              </div>
+              <div class="text-left tabular-nums">
+                <div class="text-sm font-black fintech-text-main balance-sensitive">15,000 ج.م</div>
+                <span class="text-[9px] text-amber-400 font-bold">+1,500 هذا الشهر</span>
+              </div>
+            </div>
+
+            <!-- Account 3 -->
+            <div onclick="showToast('بطاقة الائتمان: موعد السداد القادم 25 نوفمبر 📅')" class="fintech-card rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:border-sky-400/50">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-sky-500/15 border border-sky-400/30 flex items-center justify-center text-sky-400 text-base">
+                  <i class="fa-solid fa-credit-card"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-extrabold fintech-text-main">بطاقة الائتمان</div>
+                  <div class="text-[10px] fintech-text-sub">المتبقي للسداد بدون فوائد</div>
+                </div>
+              </div>
+              <div class="text-left tabular-nums">
+                <div class="text-sm font-black fintech-text-main balance-sensitive">7,600 ج.م</div>
+                <span class="text-[9px] text-sky-400 font-bold">حد ائتماني آمن</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add New Account CTA -->
+          <button onclick="addNewDemoAccount()" class="w-full py-3 rounded-2xl border border-dashed border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 text-xs font-extrabold transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-circle-plus"></i>
+            <span>إضافة حساب أو محفظة إلكترونية</span>
+          </button>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav-dock px-4 py-2 flex items-center justify-between text-[10px] fintech-text-sub">
+          <button onclick="goToScreen(2)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-house text-sm"></i>
+            <span>الرئيسية</span>
+          </button>
+          <button onclick="goToScreen(4)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-receipt text-sm"></i>
+            <span>المعاملات</span>
+          </button>
+          <button onclick="goToScreen(5)" class="w-11 h-11 -mt-5 rounded-full btn-primary-cta flex items-center justify-center border-2 border-[#0B1324]">
+            <i class="fa-solid fa-plus text-base"></i>
+          </button>
+          <button onclick="goToScreen(9)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-chart-pie text-sm"></i>
+            <span>التحليلات</span>
+          </button>
+          <button onclick="goToScreen(3)" class="flex flex-col items-center gap-0.5 text-emerald-400 font-extrabold">
+            <i class="fa-solid fa-wallet text-sm"></i>
+            <span>حساباتي</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ===================================================================
+           SCREEN 4: المعاملات (Transactions & Search Hub)
+      ==================================================================== -->
+      <div class="phone-frame" data-screen="4" data-title="4. المعاملات">
+        <div class="dynamic-island">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-slate-800"></span>
+        </div>
+
+        <div class="px-6 pt-3 pb-1 flex items-center justify-between text-[11px] font-bold fintech-text-main">
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-battery-full text-emerald-400"></i>
+            <i class="fa-solid fa-wifi text-[10px]"></i>
+          </div>
+          <span class="tabular-nums">9:41</span>
+        </div>
+
+        <div class="flex-1 screen-scroll px-4 pt-2 pb-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-black fintech-text-main">سجل المعاملات</h2>
+            <span class="text-[11px] text-emerald-400 font-bold tabular-nums">نوفمبر 2026</span>
+          </div>
+
+          <!-- Instant Live Search Bar (UX Upgrade) -->
+          <div class="fintech-card rounded-2xl px-3 py-2 flex items-center gap-2">
+            <i class="fa-solid fa-magnifying-glass text-xs fintech-text-sub"></i>
+            <input id="txSearchInput" oninput="searchTransactions(this.value)" type="text" placeholder="ابحث عن مطعم، مواصلات، راتب..." class="bg-transparent text-xs fintech-text-main w-full focus:outline-none" />
+          </div>
+
+          <!-- Filter Pills -->
+          <div class="flex items-center gap-1.5 text-[11px]">
+            <button onclick="filterTransactions('all', this)" class="tx-filter-btn px-3.5 py-1.5 rounded-full btn-primary-cta font-extrabold">الكل</button>
+            <button onclick="filterTransactions('expense', this)" class="tx-filter-btn px-3 py-1.5 rounded-full fintech-card fintech-text-sub font-bold">مصروفات</button>
+            <button onclick="filterTransactions('income', this)" class="tx-filter-btn px-3 py-1.5 rounded-full fintech-card fintech-text-sub font-bold">إيرادات</button>
+            <button onclick="filterTransactions('transfer', this)" class="tx-filter-btn px-3 py-1.5 rounded-full fintech-card fintech-text-sub font-bold">تحويلات</button>
+          </div>
+
+          <!-- Today Group -->
+          <div>
+            <div class="flex items-center justify-between text-[11px] font-bold fintech-text-sub mb-1.5">
+              <span>اليوم</span>
+              <span class="tabular-nums">-425 ج.م</span>
+            </div>
+            <div id="txTodayList" class="fintech-list-card rounded-2xl p-3 space-y-2.5">
+              <!-- Restaurant -->
+              <div class="tx-item flex items-center justify-between border-b border-slate-500/10 pb-2" data-type="expense" data-title="مطعم">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center">
+                    <i class="fa-solid fa-utensils"></i>
+                  </div>
+                  <div>
+                    <div class="text-xs font-extrabold">مطعم</div>
+                    <div class="text-[10px] opacity-60">7:24 م • وجبة غداء</div>
+                  </div>
+                </div>
+                <div class="text-left tabular-nums">
+                  <div class="text-xs font-black text-rose-500 balance-sensitive">-320 ج.م</div>
+                  <div class="text-[9px] opacity-60">الحساب الرئيسي</div>
+                </div>
+              </div>
+
+              <!-- Transport -->
+              <div class="tx-item flex items-center justify-between border-b border-slate-500/10 pb-2" data-type="expense" data-title="مواصلات">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-9 h-9 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center">
+                    <i class="fa-solid fa-car-side"></i>
+                  </div>
+                  <div>
+                    <div class="text-xs font-extrabold">مواصلات</div>
+                    <div class="text-[10px] opacity-60">5:10 م • رحلة أوبر</div>
+                  </div>
+                </div>
+                <div class="text-left tabular-nums">
+                  <div class="text-xs font-black text-rose-500 balance-sensitive">-60 ج.م</div>
+                  <div class="text-[9px] opacity-60">الحساب الرئيسي</div>
+                </div>
+              </div>
+
+              <!-- Drinks -->
+              <div class="tx-item flex items-center justify-between" data-type="expense" data-title="مشروبات وقهوة">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-9 h-9 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center">
+                    <i class="fa-solid fa-mug-hot"></i>
+                  </div>
+                  <div>
+                    <div class="text-xs font-extrabold">مشروبات</div>
+                    <div class="text-[10px] opacity-60">2:30 م • كافيه</div>
+                  </div>
+                </div>
+                <div class="text-left tabular-nums">
+                  <div class="text-xs font-black text-rose-500 balance-sensitive">-45 ج.م</div>
+                  <div class="text-[9px] opacity-60">الحساب الرئيسي</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Yesterday Group -->
+          <div>
+            <div class="flex items-center justify-between text-[11px] font-bold fintech-text-sub mb-1.5">
+              <span>أمس</span>
+              <span class="tabular-nums text-emerald-400">+14,510 ج.م</span>
+            </div>
+            <div class="fintech-list-card rounded-2xl p-3 space-y-2.5">
+              <!-- Supermarket -->
+              <div class="tx-item flex items-center justify-between border-b border-slate-500/10 pb-2" data-type="expense" data-title="سوبر ماركت">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-9 h-9 rounded-xl bg-purple-500/15 text-purple-400 flex items-center justify-center">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                  </div>
+                  <div>
+                    <div class="text-xs font-extrabold">سوبر ماركت</div>
+                    <div class="text-[10px] opacity-60">8:15 م • مستلزمات منزلية</div>
+                  </div>
+                </div>
+                <div class="text-left tabular-nums">
+                  <div class="text-xs font-black text-rose-500 balance-sensitive">-490 ج.م</div>
+                  <div class="text-[9px] opacity-60">بطاقة الائتمان</div>
+                </div>
+              </div>
+
+              <!-- Salary -->
+              <div class="tx-item flex items-center justify-between" data-type="income" data-title="راتب شهري">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                  </div>
+                  <div>
+                    <div class="text-xs font-extrabold">راتب</div>
+                    <div class="text-[10px] opacity-60">12:00 م • تحويل بنكي</div>
+                  </div>
+                </div>
+                <div class="text-left tabular-nums">
+                  <div class="text-xs font-black text-emerald-500 balance-sensitive">+15,000 ج.م</div>
+                  <div class="text-[9px] opacity-60">الحساب الرئيسي</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav-dock px-4 py-2 flex items-center justify-between text-[10px] fintech-text-sub">
+          <button onclick="goToScreen(2)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-house text-sm"></i>
+            <span>الرئيسية</span>
+          </button>
+          <button onclick="goToScreen(4)" class="flex flex-col items-center gap-0.5 text-emerald-400 font-extrabold">
+            <i class="fa-solid fa-receipt text-sm"></i>
+            <span>المعاملات</span>
+          </button>
+          <button onclick="goToScreen(5)" class="w-11 h-11 -mt-5 rounded-full btn-primary-cta flex items-center justify-center border-2 border-[#0B1324]">
+            <i class="fa-solid fa-plus text-base"></i>
+          </button>
+          <button onclick="goToScreen(9)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-chart-pie text-sm"></i>
+            <span>التحليلات</span>
+          </button>
+          <button onclick="goToScreen(3)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-wallet text-sm"></i>
+            <span>حساباتي</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ===================================================================
+           SCREEN 5: إضافة معاملة (Frictionless 1-Tap Smart Entry)
+      ==================================================================== -->
+      <div class="phone-frame" data-screen="5" data-title="5. إضافة معاملة">
+        <div class="dynamic-island">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-slate-800"></span>
+        </div>
+
+        <div class="px-6 pt-3 pb-1 flex items-center justify-between text-[11px] font-bold fintech-text-main">
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-battery-full text-emerald-400"></i>
+            <i class="fa-solid fa-wifi text-[10px]"></i>
+          </div>
+          <span class="tabular-nums">9:41</span>
+        </div>
+
+        <div class="flex-1 screen-scroll px-4 pt-2 pb-4 flex flex-col justify-between">
+          <div class="space-y-3">
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+              <button onclick="goToScreen(2)" class="w-8 h-8 rounded-full fintech-card flex items-center justify-center fintech-text-sub hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+              <h2 class="text-base font-black fintech-text-main">إضافة معاملة سريعة</h2>
+              <button onclick="goToScreen(6)" class="text-[11px] text-emerald-400 font-bold" title="تصوير فاتورة">
+                <i class="fa-solid fa-camera"></i>
+              </button>
+            </div>
+
+            <!-- 3 Segmented Type Tabs -->
+            <div class="grid grid-cols-3 gap-2">
+              <button id="tabTypeExpense" onclick="selectTxType('expense')" class="py-2.5 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 text-white font-extrabold text-xs shadow-lg shadow-rose-500/25 flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-arrow-up text-[10px]"></i>
+                <span>مصروف</span>
+              </button>
+              <button id="tabTypeIncome" onclick="selectTxType('income')" class="py-2.5 rounded-2xl fintech-card text-emerald-400 font-extrabold text-xs flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-arrow-down text-[10px]"></i>
+                <span>دخل</span>
+              </button>
+              <button id="tabTypeTransfer" onclick="selectTxType('transfer')" class="py-2.5 rounded-2xl fintech-card text-sky-400 font-extrabold text-xs flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-right-left text-[10px]"></i>
+                <span>تحويل</span>
+              </button>
+            </div>
+
+            <!-- Big Clear Amount Display + Quick Add Chips (UX Upgrade for All Ages) -->
+            <div class="fintech-card rounded-2xl p-3 text-center space-y-2 border border-emerald-500/25">
+              <label class="block text-[10px] fintech-text-sub font-bold">حدد المبلغ (ج.م)</label>
+              <div class="flex items-center justify-center gap-2">
+                <input id="inputTxAmount" type="number" value="320" class="bg-transparent text-center fintech-text-main font-black text-2xl w-36 focus:outline-none tabular-nums" />
+                <span class="text-xs font-extrabold text-emerald-400">ج.م</span>
+              </div>
+              <!-- Quick-Add Chips -->
+              <div class="flex items-center justify-center gap-1.5 pt-1">
+                <button onclick="adjustTxAmount(50)" class="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 text-[10px] font-extrabold tabular-nums">+50</button>
+                <button onclick="adjustTxAmount(100)" class="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 text-[10px] font-extrabold tabular-nums">+100</button>
+                <button onclick="adjustTxAmount(250)" class="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 text-[10px] font-extrabold tabular-nums">+250</button>
+                <button onclick="adjustTxAmount(500)" class="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 text-[10px] font-extrabold tabular-nums">+500</button>
+              </div>
+            </div>
+
+            <!-- Visual 1-Tap Category Selector Grid -->
+            <div>
+              <label class="block text-[11px] fintech-text-sub font-bold mb-1.5">اختر التصنيف بلمسة واحدة</label>
+              <div class="grid grid-cols-3 gap-1.5 text-[11px]" id="categoryGridPicker">
+                <button type="button" onclick="pickCategory('مطعم ووجبات', this)" class="cat-chip py-2 px-2 rounded-xl bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-extrabold flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-utensils text-amber-400"></i>
+                  <span>مطعم</span>
+                </button>
+                <button type="button" onclick="pickCategory('مواصلات', this)" class="cat-chip py-2 px-2 rounded-xl fintech-card fintech-text-main font-bold flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-car-side text-sky-400"></i>
+                  <span>مواصلات</span>
+                </button>
+                <button type="button" onclick="pickCategory('سوبر ماركت', this)" class="cat-chip py-2 px-2 rounded-xl fintech-card fintech-text-main font-bold flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-cart-shopping text-purple-400"></i>
+                  <span>تسوق</span>
+                </button>
+                <button type="button" onclick="pickCategory('مشروبات', this)" class="cat-chip py-2 px-2 rounded-xl fintech-card fintech-text-main font-bold flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-mug-hot text-orange-400"></i>
+                  <span>مشروبات</span>
+                </button>
+                <button type="button" onclick="pickCategory('فواتير وخدمات', this)" class="cat-chip py-2 px-2 rounded-xl fintech-card fintech-text-main font-bold flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-bolt text-yellow-400"></i>
+                  <span>فواتير</span>
+                </button>
+                <button type="button" onclick="pickCategory('راتب ودخل', this)" class="cat-chip py-2 px-2 rounded-xl fintech-card fintech-text-main font-bold flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-sack-dollar text-emerald-400"></i>
+                  <span>راتب</span>
+                </button>
+              </div>
+              <input type="hidden" id="inputTxCategory" value="مطعم ووجبات" />
+            </div>
+
+            <!-- Account & Notes -->
+            <div class="grid grid-cols-2 gap-2">
+              <div class="fintech-card rounded-xl px-3 py-2">
+                <span class="text-[9px] fintech-text-sub block">الحساب</span>
+                <div class="text-xs font-extrabold fintech-text-main flex items-center gap-1.5 mt-0.5">
+                  <i class="fa-solid fa-wallet text-emerald-400 text-[10px]"></i>
+                  <span>الحساب الرئيسي</span>
+                </div>
+              </div>
+              <div class="fintech-card rounded-xl px-3 py-2">
+                <span class="text-[9px] fintech-text-sub block">التاريخ</span>
+                <div class="text-xs font-extrabold fintech-text-main flex items-center gap-1.5 mt-0.5">
+                  <i class="fa-regular fa-calendar text-sky-400 text-[10px]"></i>
+                  <span>اليوم، 13 نوفمبر</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="fintech-card rounded-xl px-3.5 py-2">
+              <input id="inputTxNote" type="text" value="غذاء مع الأصدقاء" placeholder="أضف ملاحظة قصيرة..." class="bg-transparent fintech-text-main text-xs w-full focus:outline-none" />
+            </div>
+          </div>
+
+          <!-- Save Button -->
+          <button onclick="saveCustomTransaction()" class="w-full py-3.5 rounded-2xl btn-primary-cta font-extrabold text-sm hover:scale-[1.01] active:scale-95 transition flex items-center justify-center gap-2 mt-2">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>حفظ المعاملة وتحديث الرصيد</span>
+          </button>
+        </div>
+
+        <div class="w-28 h-1 bg-slate-500/40 rounded-full mx-auto mb-2"></div>
+      </div>
+
+      <!-- ===================================================================
+           SCREEN 6: تصوير فاتورة (AI OCR Receipt Scanner)
+      ==================================================================== -->
+      <div class="phone-frame" data-screen="6" data-title="6. تصوير فاتورة">
+        <div class="dynamic-island">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-slate-800"></span>
+        </div>
+
+        <div class="px-6 pt-3 pb-1 flex items-center justify-between text-[11px] font-bold fintech-text-main">
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-battery-full text-emerald-400"></i>
+            <i class="fa-solid fa-wifi text-[10px]"></i>
+          </div>
+          <span class="tabular-nums">9:41</span>
+        </div>
+
+        <div class="flex-1 flex flex-col justify-between px-4 pt-2 pb-5">
+          <div class="flex items-center justify-between">
+            <button onclick="goToScreen(2)" class="w-8 h-8 rounded-full fintech-card flex items-center justify-center fintech-text-sub">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="text-center">
+              <h2 class="text-sm font-black fintech-text-main">الماسح الذكي للفواتير (AI OCR)</h2>
+              <p class="text-[10px] text-emerald-400 font-semibold">استخراج تلقائي للأصناف والإجمالي</p>
+            </div>
+            <div class="w-8"></div>
+          </div>
+
+          <!-- Scanner Viewfinder -->
+          <div class="relative rounded-3xl bg-gradient-to-b from-[#1E293B] to-[#0F172A] p-4 border border-emerald-500/30 shadow-2xl my-1 overflow-hidden">
+            <!-- Emerald Scanner Corner Guides -->
+            <div class="w-6 h-6 border-t-4 border-r-4 border-emerald-400 rounded-tr-lg absolute top-3 right-3"></div>
+            <div class="w-6 h-6 border-t-4 border-l-4 border-emerald-400 rounded-tl-lg absolute top-3 left-3"></div>
+            <div class="w-6 h-6 border-b-4 border-r-4 border-emerald-400 rounded-br-lg absolute bottom-14 right-3"></div>
+            <div class="w-6 h-6 border-b-4 border-l-4 border-emerald-400 rounded-bl-lg absolute bottom-14 left-3"></div>
+
+            <!-- Laser Scan Line -->
+            <div class="laser-beam absolute left-3 right-3 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_#10B981] z-20 pointer-events-none"></div>
+
+            <!-- Paper Receipt -->
+            <div class="receipt-paper rounded-xl p-3.5 mx-auto max-w-[235px] text-xs space-y-2">
+              <div class="flex items-center justify-between border-b border-dashed border-slate-400 pb-1.5">
+                <span class="font-black text-base text-slate-900">فاتورة ضريبية</span>
+                <span class="bg-emerald-100 text-emerald-800 text-[9px] font-extrabold px-2 py-0.5 rounded">مطعم</span>
+              </div>
+              <div class="text-[10px] text-slate-600 flex justify-between border-b border-dashed border-slate-300 pb-1.5 tabular-nums">
+                <span>رقم: #458732</span>
+                <span>12/11/2026</span>
+              </div>
+              <div class="space-y-1 text-[11px] border-b border-dashed border-slate-400 pb-2 tabular-nums">
+                <div class="flex justify-between font-bold">
+                  <span>برجر مشوي</span>
+                  <span>180.00</span>
+                </div>
+                <div class="flex justify-between font-bold">
+                  <span>بطاطس مقرمشة</span>
+                  <span>60.00</span>
+                </div>
+                <div class="flex justify-between font-bold">
+                  <span>مشروب غازي</span>
+                  <span>40.00</span>
+                </div>
+              </div>
+              <div class="flex justify-between items-center pt-0.5 font-black text-sm text-emerald-800 tabular-nums">
+                <span>الإجمالي المستخرج</span>
+                <span>280.00 ج.م</span>
+              </div>
+            </div>
+
+            <!-- AI Status Pill -->
+            <div class="mt-3.5 bg-slate-950/90 border border-emerald-400/40 text-emerald-300 rounded-full py-1.5 px-4 mx-auto w-max flex items-center gap-2 text-[11px] font-extrabold shadow-lg">
+              <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i>
+              <span id="receiptScanStatus">تم التعرف على 3 أصناف (280 ج.م)</span>
+            </div>
+          </div>
+
+          <!-- Confirm & Capture Bar -->
+          <div class="flex items-center justify-between gap-2">
+            <button onclick="showToast('تم تفعيل الإضاءة المساعدة ⚡')" class="w-11 h-11 rounded-2xl fintech-card flex items-center justify-center fintech-text-main">
+              <i class="fa-solid fa-bolt text-amber-400"></i>
+            </button>
+            <button onclick="captureReceiptTransaction()" class="flex-1 py-3.5 rounded-2xl btn-primary-cta font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg">
+              <i class="fa-solid fa-camera-rotate"></i>
+              <span>تأكيد وإضافة الفاتورة (280 ج.م)</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="w-28 h-1 bg-slate-500/40 rounded-full mx-auto mb-2"></div>
+      </div>
+
+      <!-- ===================================================================
+           SCREEN 7: إضافة بالصوت (AI Voice Command Assistant)
+      ==================================================================== -->
+      <div class="phone-frame" data-screen="7" data-title="7. إضافة بالصوت">
+        <div class="dynamic-island">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-slate-800"></span>
+        </div>
+
+        <div class="px-6 pt-3 pb-1 flex items-center justify-between text-[11px] font-bold fintech-text-main">
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-battery-full text-emerald-400"></i>
+            <i class="fa-solid fa-wifi text-[10px]"></i>
+          </div>
+          <span class="tabular-nums">9:41</span>
+        </div>
+
+        <div class="flex-1 flex flex-col justify-between px-5 pt-2 pb-5 text-center">
+          <div class="flex items-center justify-between">
+            <button onclick="goToScreen(2)" class="w-8 h-8 rounded-full fintech-card flex items-center justify-center fintech-text-sub">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h2 class="text-base font-black fintech-text-main">التسجيل الصوتي الذكي</h2>
+            <div class="w-8"></div>
+          </div>
+
+          <!-- Sonic Microphone Orb -->
+          <div class="my-auto flex flex-col items-center">
+            <div class="relative flex items-center justify-center w-32 h-32">
+              <div class="sonic-ring absolute inset-0 rounded-full bg-emerald-500/25 blur-xl"></div>
+              <div class="sonic-ring absolute inset-2 rounded-full border-2 border-emerald-400/40"></div>
+              <button onclick="triggerVoiceListening()" class="relative z-10 w-22 h-22 w-20 h-20 rounded-full btn-primary-cta shadow-[0_0_35px_rgba(16,185,129,0.65)] flex items-center justify-center text-white text-2xl hover:scale-105 active:scale-95 transition">
+                <i class="fa-solid fa-microphone-lines"></i>
+              </button>
+            </div>
+
+            <h3 id="voicePromptText" class="text-base font-black fintech-text-main mt-3">تحدث بطبيعية.. فلوسي يفهمك</h3>
+            <p class="text-[11px] fintech-text-sub mt-0.5 mb-3">اضغط على أي جملة بالأسفل لتجربة الإضافة الفورية:</p>
+
+            <!-- Interactive Voice Command Cards -->
+            <div class="w-full space-y-2 text-right">
+              <button onclick="addVoiceTransaction('مواصلات', 150, 'expense')" class="w-full p-3 rounded-2xl fintech-card hover:border-emerald-400 flex items-center justify-between transition group">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-8 h-8 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center text-xs">
+                    <i class="fa-solid fa-car"></i>
+                  </span>
+                  <span class="text-xs font-extrabold fintech-text-main">"دفعت 150 جنيه في المواصلات"</span>
+                </div>
+                <span class="text-[10px] text-rose-400 font-black tabular-nums">-150 ج.م</span>
+              </button>
+
+              <button onclick="addVoiceTransaction('قهوة ومشروبات', 40, 'expense')" class="w-full p-3 rounded-2xl fintech-card hover:border-emerald-400 flex items-center justify-between transition group">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center text-xs">
+                    <i class="fa-solid fa-mug-saucer"></i>
+                  </span>
+                  <span class="text-xs font-extrabold fintech-text-main">"اشتريت قهوة بـ 40 جنيه"</span>
+                </div>
+                <span class="text-[10px] text-rose-400 font-black tabular-nums">-40 ج.م</span>
+              </button>
+
+              <button onclick="addVoiceTransaction('راتب شهري', 15000, 'income')" class="w-full p-3 rounded-2xl fintech-card hover:border-emerald-400 flex items-center justify-between transition group">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-xs">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                  </span>
+                  <span class="text-xs font-extrabold fintech-text-main">"مستلم راتب 15,000 جنيه"</span>
+                </div>
+                <span class="text-[10px] text-emerald-400 font-black tabular-nums">+15,000 ج.م</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="w-28 h-1 bg-slate-500/40 rounded-full mx-auto mb-2"></div>
+      </div>
+
+      <!-- ===================================================================
+           SCREEN 8: المساعد الذكي لفلوسي (Flosy AI Financial Copilot)
+      ==================================================================== -->
+      <div class="phone-frame" data-screen="8" data-title="8. المساعد الذكي">
+        <div class="dynamic-island">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-slate-800"></span>
+        </div>
+
+        <div class="px-6 pt-3 pb-1 flex items-center justify-between text-[11px] font-bold fintech-text-main">
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-battery-full text-emerald-400"></i>
+            <i class="fa-solid fa-wifi text-[10px]"></i>
+          </div>
+          <span class="tabular-nums">9:41</span>
+        </div>
+
+        <div class="flex-1 flex flex-col justify-between px-4 pt-1 pb-3 overflow-hidden">
+          <!-- AI Copilot Header -->
+          <div class="flex items-center justify-between border-b border-slate-500/15 pb-2">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-emerald-500 to-sky-500 p-0.5 shadow">
+                <div class="w-full h-full bg-[#0B1324] rounded-[14px] flex items-center justify-center text-emerald-400 text-sm">
+                  <i class="fa-solid fa-robot"></i>
+                </div>
+              </div>
+              <div>
+                <h2 class="text-xs font-black fintech-text-main">المساعد الذكي لفلوسي</h2>
+                <div class="flex items-center gap-1 text-[9px] text-emerald-400 font-bold">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>متصل الآن • يحلل محفظتك لحظياً</span>
+                </div>
+              </div>
+            </div>
+            <button onclick="goToScreen(2)" class="w-7 h-7 rounded-lg fintech-card flex items-center justify-center fintech-text-sub text-xs">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+          </div>
+
+          <!-- Chat Messages Stream -->
+          <div id="aiChatContainer" class="flex-1 screen-scroll py-2.5 space-y-2.5">
+            <!-- User Question -->
+            <div class="flex justify-end">
+              <div class="btn-primary-cta text-white text-xs font-extrabold px-3.5 py-2 rounded-2xl rounded-tl-sm shadow">
+                كيف أنفقت هذا الشهر؟
+              </div>
+            </div>
+
+            <!-- AI Intro -->
+            <div class="fintech-list-card text-xs font-extrabold px-3.5 py-2 rounded-2xl rounded-tr-sm w-max">
+              إليك ملخص وتحليل إنفاقك هذا الشهر 📊:
+            </div>
+
+            <!-- Rich Visual Analytics Card Inside Chat -->
+            <div class="fintech-card rounded-2xl p-3 space-y-2.5 border border-emerald-500/30">
+              <div class="flex items-center justify-between border-b border-slate-500/15 pb-2">
+                <div>
+                  <span class="text-[10px] fintech-text-sub">إجمالي المصروفات</span>
+                  <div class="text-base font-black fintech-text-main tabular-nums">6,750 ج.م</div>
+                </div>
+                <span class="px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 text-[10px] font-extrabold">
+                  ↓ 12% أوفر من الشهر الماضي
+                </span>
+              </div>
+
+              <!-- Donut Chart + Breakdown -->
+              <div class="flex items-center justify-between gap-2">
+                <div class="w-20 h-20 relative flex items-center justify-center shrink-0">
+                  <svg class="w-20 h-20 -rotate-90" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="13" fill="none" stroke="#F59E0B" stroke-width="5.5" stroke-dasharray="35 100" stroke-dashoffset="0"></circle>
+                    <circle cx="18" cy="18" r="13" fill="none" stroke="#0EA5E9" stroke-width="5.5" stroke-dasharray="20 100" stroke-dashoffset="-35"></circle>
+                    <circle cx="18" cy="18" r="13" fill="none" stroke="#A855F7" stroke-width="5.5" stroke-dasharray="15 100" stroke-dashoffset="-55"></circle>
+                    <circle cx="18" cy="18" r="13" fill="none" stroke="#F43F5E" stroke-width="5.5" stroke-dasharray="10 100" stroke-dashoffset="-70"></circle>
+                    <circle cx="18" cy="18" r="13" fill="none" stroke="#10B981" stroke-width="5.5" stroke-dasharray="20 100" stroke-dashoffset="-80"></circle>
+                  </svg>
+                  <span class="absolute text-[9px] font-black fintech-text-main tabular-nums">55%</span>
+                </div>
+
+                <div class="flex-1 space-y-1 text-[10px] fintech-text-main tabular-nums">
+                  <div class="flex items-center justify-between">
+                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-400"></span>الطعام والمطاعم</span>
+                    <span class="font-extrabold">35%</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-sky-400"></span>المواصلات</span>
+                    <span class="font-extrabold">20%</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-purple-400"></span>التسوق</span>
+                    <span class="font-extrabold">15%</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-400"></span>الفواتير</span>
+                    <span class="font-extrabold">10%</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span>أخرى</span>
+                    <span class="font-extrabold">20%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- AI Smart Summary -->
+            <div class="fintech-list-card text-[11px] font-bold p-3 rounded-2xl leading-relaxed">
+              استخدمت <span class="text-emerald-500 font-black">55%</span> فقط من ميزانيتك، وأداؤك المالي أفضل بـ <span class="text-emerald-500 font-black">12%</span> عن الشهر الماضي 👏
+            </div>
+
+            <!-- Quick Question Chips -->
+            <div class="flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar">
+              <button onclick="askQuickQuestion('كم أستطيع توفيره هذا الشهر؟')" class="px-2.5 py-1 rounded-full fintech-card text-[10px] font-bold text-emerald-400 whitespace-nowrap">💡 كم أستطيع توفيره؟</button>
+              <button onclick="askQuickQuestion('ما هو أعلى بند مصروفات؟')" class="px-2.5 py-1 rounded-full fintech-card text-[10px] font-bold text-sky-400 whitespace-nowrap">🍔 أعلى بند صرف؟</button>
+            </div>
+          </div>
+
+          <!-- Input Bar -->
+          <div class="fintech-list-card rounded-full p-1.5 flex items-center justify-between shadow-lg">
+            <button onclick="sendAiMessage()" class="w-8 h-8 rounded-full btn-primary-cta flex items-center justify-center text-xs shrink-0">
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+            <input id="aiChatInput" onkeydown="if(event.key==='Enter') sendAiMessage()" type="text" placeholder="اسأل فلوسي عن مصروفاتك..." class="bg-transparent text-xs px-2.5 w-full focus:outline-none" />
+            <button onclick="goToScreen(7)" class="w-8 h-8 rounded-full text-emerald-500 flex items-center justify-center text-sm shrink-0">
+              <i class="fa-solid fa-microphone"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="w-28 h-1 bg-slate-500/40 rounded-full mx-auto mb-2"></div>
+      </div>
+
+      <!-- ===================================================================
+           SCREEN 9: التحليلات (Deep Financial Analytics)
+      ==================================================================== -->
+      <div class="phone-frame" data-screen="9" data-title="9. التحليلات">
+        <div class="dynamic-island">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-slate-800"></span>
+        </div>
+
+        <div class="px-6 pt-3 pb-1 flex items-center justify-between text-[11px] font-bold fintech-text-main">
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-battery-full text-emerald-400"></i>
+            <i class="fa-solid fa-wifi text-[10px]"></i>
+          </div>
+          <span class="tabular-nums">9:41</span>
+        </div>
+
+        <div class="flex-1 screen-scroll px-4 pt-2 pb-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-black fintech-text-main">التحليلات الذكية</h2>
+            <span class="text-[10px] px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 font-bold">تحديث لحظي</span>
+          </div>
+
+          <!-- Period Selector -->
+          <div class="flex items-center gap-1.5 text-[11px]">
+            <button class="px-3.5 py-1.5 rounded-full btn-primary-cta font-extrabold">هذا الشهر</button>
+            <button class="px-3 py-1.5 rounded-full fintech-card fintech-text-sub font-bold">الشهر الماضي</button>
+            <button class="px-3 py-1.5 rounded-full fintech-card fintech-text-sub font-bold">آخر 3 أشهر</button>
+          </div>
+
+          <!-- Top Expense Summary Card -->
+          <div class="fintech-card rounded-2xl p-3.5 flex items-center justify-between">
+            <div>
+              <span class="text-[11px] fintech-text-sub font-semibold">إجمالي المصروفات</span>
+              <div class="text-xl font-black fintech-text-main tabular-nums mt-0.5 balance-sensitive">6,750 ج.م</div>
+              <div class="text-[10px] text-emerald-400 font-extrabold mt-0.5">↓ 12% أقل من الشهر الماضي</div>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-400/30 flex items-end justify-center gap-1 p-2.5">
+              <span class="w-1.5 h-3 bg-emerald-400 rounded-sm"></span>
+              <span class="w-1.5 h-5 bg-emerald-400 rounded-sm"></span>
+              <span class="w-1.5 h-7 bg-amber-400 rounded-sm"></span>
+            </div>
+          </div>
+
+          <!-- Donut Breakdown Card -->
+          <div class="fintech-card rounded-2xl p-3.5 flex items-center justify-between gap-3">
+            <div class="flex-1 space-y-1.5 text-[10px] fintech-text-main tabular-nums">
+              <div class="flex items-center justify-between">
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>الطعام</span>
+                <span class="font-extrabold">35%</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>المواصلات</span>
+                <span class="font-extrabold">20%</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>التسوق</span>
+                <span class="font-extrabold">15%</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>الفواتير</span>
+                <span class="font-extrabold">10%</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>أخرى</span>
+                <span class="font-extrabold">20%</span>
+              </div>
+            </div>
+
+            <div class="w-24 h-24 relative flex items-center justify-center shrink-0">
+              <svg class="w-24 h-24 -rotate-90" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="13.5" fill="none" stroke="#F59E0B" stroke-width="5" stroke-dasharray="35 100" stroke-dashoffset="0"></circle>
+                <circle cx="18" cy="18" r="13.5" fill="none" stroke="#0EA5E9" stroke-width="5" stroke-dasharray="20 100" stroke-dashoffset="-35"></circle>
+                <circle cx="18" cy="18" r="13.5" fill="none" stroke="#A855F7" stroke-width="5" stroke-dasharray="15 100" stroke-dashoffset="-55"></circle>
+                <circle cx="18" cy="18" r="13.5" fill="none" stroke="#F43F5E" stroke-width="5" stroke-dasharray="10 100" stroke-dashoffset="-70"></circle>
+                <circle cx="18" cy="18" r="13.5" fill="none" stroke="#10B981" stroke-width="5" stroke-dasharray="20 100" stroke-dashoffset="-80"></circle>
+              </svg>
+              <div class="absolute text-center tabular-nums">
+                <div class="text-xs font-black fintech-text-main">6,750</div>
+                <div class="text-[9px] fintech-text-sub">ج.م</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spline Area Chart: Monthly Spending Trend -->
+          <div class="fintech-card rounded-2xl p-3.5 space-y-2">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-extrabold fintech-text-main">تطور المصروفات خلال الشهر</h3>
+              <span class="text-[10px] text-emerald-400 font-bold">نطاق آمن</span>
+            </div>
+            <div class="relative h-28 w-full pt-2">
+              <svg viewBox="0 0 280 100" class="w-full h-full overflow-visible">
+                <defs>
+                  <linearGradient id="emeraldAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#10B981" stop-opacity="0.45"/>
+                    <stop offset="100%" stop-color="#10B981" stop-opacity="0.0"/>
+                  </linearGradient>
+                </defs>
+                <line x1="25" y1="15" x2="270" y2="15" stroke="rgba(148,163,184,0.12)" stroke-width="1"/>
+                <line x1="25" y1="40" x2="270" y2="40" stroke="rgba(148,163,184,0.12)" stroke-width="1"/>
+                <line x1="25" y1="65" x2="270" y2="65" stroke="rgba(148,163,184,0.12)" stroke-width="1"/>
+                <line x1="25" y1="88" x2="270" y2="88" stroke="rgba(148,163,184,0.12)" stroke-width="1"/>
+                <text x="20" y="18" fill="#94a3b8" font-size="8" text-anchor="end">1,200</text>
+                <text x="20" y="43" fill="#94a3b8" font-size="8" text-anchor="end">900</text>
+                <text x="20" y="68" fill="#94a3b8" font-size="8" text-anchor="end">600</text>
+                <text x="20" y="88" fill="#94a3b8" font-size="8" text-anchor="end">300</text>
+                <path d="M35,70 C75,45 100,68 135,60 C170,52 195,18 225,22 C245,25 255,45 265,42 L265,88 L35,88 Z" fill="url(#emeraldAreaGrad)"/>
+                <path d="M35,70 C75,45 100,68 135,60 C170,52 195,18 225,22 C245,25 255,45 265,42" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="70" cy="56" r="3.5" fill="#0B1324" stroke="#10B981" stroke-width="2"/>
+                <circle cx="135" cy="60" r="3.5" fill="#0B1324" stroke="#10B981" stroke-width="2"/>
+                <circle cx="215" cy="21" r="4" fill="#F59E0B" stroke="#fff" stroke-width="1.5"/>
+                <circle cx="265" cy="42" r="3.5" fill="#0B1324" stroke="#10B981" stroke-width="2"/>
+              </svg>
+            </div>
+            <div class="flex justify-between text-[9px] fintech-text-sub px-2">
+              <span>الأسبوع 1</span>
+              <span>الأسبوع 2</span>
+              <span>الأسبوع 3</span>
+              <span>الأسبوع 4</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav-dock px-4 py-2 flex items-center justify-between text-[10px] fintech-text-sub">
+          <button onclick="goToScreen(2)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-house text-sm"></i>
+            <span>الرئيسية</span>
+          </button>
+          <button onclick="goToScreen(4)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-receipt text-sm"></i>
+            <span>المعاملات</span>
+          </button>
+          <button onclick="goToScreen(5)" class="w-11 h-11 -mt-5 rounded-full btn-primary-cta flex items-center justify-center border-2 border-[#0B1324]">
+            <i class="fa-solid fa-plus text-base"></i>
+          </button>
+          <button onclick="goToScreen(9)" class="flex flex-col items-center gap-0.5 text-emerald-400 font-extrabold">
+            <i class="fa-solid fa-chart-pie text-sm"></i>
+            <span>التحليلات</span>
+          </button>
+          <button onclick="goToScreen(10)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-bullseye text-sm"></i>
+            <span>الميزانيات</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ===================================================================
+           SCREEN 10: الميزانيات (Smart Budgets & Limits)
+      ==================================================================== -->
+      <div class="phone-frame" data-screen="10" data-title="10. الميزانيات">
+        <div class="dynamic-island">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-slate-800"></span>
+        </div>
+
+        <div class="px-6 pt-3 pb-1 flex items-center justify-between text-[11px] font-bold fintech-text-main">
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-battery-full text-emerald-400"></i>
+            <i class="fa-solid fa-wifi text-[10px]"></i>
+          </div>
+          <span class="tabular-nums">9:41</span>
+        </div>
+
+        <div class="flex-1 screen-scroll px-4 pt-2 pb-4 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-black fintech-text-main">الميزانيات الشهرية</h2>
+              <p class="text-[11px] fintech-text-sub">تحكم في مصروفاتك وحقق أهدافك بسهولة</p>
+            </div>
+            <span class="text-xs font-black text-emerald-400 bg-emerald-500/15 px-2.5 py-1 rounded-xl tabular-nums">61% إجمالي</span>
+          </div>
+
+          <!-- Budgets Container -->
+          <div id="budgetsListContainer" class="space-y-2.5">
+            <!-- Food -->
+            <div class="fintech-list-card rounded-2xl p-3 flex items-center justify-between gap-2.5">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-lg shrink-0">
+                <i class="fa-solid fa-burger"></i>
+              </div>
+              <div class="flex-1">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs font-extrabold">الطعام والمطاعم</span>
+                  <span class="text-[10px] text-amber-500 font-bold">متبقي 600 ج.م</span>
+                </div>
+                <div class="text-[10px] opacity-60 font-semibold mt-0.5 tabular-nums">1,400 من 2,000 ج.م</div>
+                <div class="w-full h-2 bg-slate-500/20 rounded-full mt-1.5 overflow-hidden">
+                  <div class="h-full bg-amber-500 rounded-full" style="width: 70%"></div>
+                </div>
+              </div>
+              <div class="w-10 h-10 rounded-full border-4 border-amber-500 flex items-center justify-center text-[10px] font-black tabular-nums shrink-0">
+                70%
+              </div>
+            </div>
+
+            <!-- Transport -->
+            <div class="fintech-list-card rounded-2xl p-3 flex items-center justify-between gap-2.5">
+              <div class="w-10 h-10 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center text-lg shrink-0">
+                <i class="fa-solid fa-car"></i>
+              </div>
+              <div class="flex-1">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs font-extrabold">المواصلات</span>
+                  <span class="text-[10px] text-emerald-400 font-bold">متبقي 320 ج.م</span>
+                </div>
+                <div class="text-[10px] opacity-60 font-semibold mt-0.5 tabular-nums">480 من 800 ج.م</div>
+                <div class="w-full h-2 bg-slate-500/20 rounded-full mt-1.5 overflow-hidden">
+                  <div class="h-full bg-emerald-500 rounded-full" style="width: 60%"></div>
+                </div>
+              </div>
+              <div class="w-10 h-10 rounded-full border-4 border-emerald-500 flex items-center justify-center text-[10px] font-black tabular-nums shrink-0">
+                60%
+              </div>
+            </div>
+
+            <!-- Shopping -->
+            <div class="fintech-list-card rounded-2xl p-3 flex items-center justify-between gap-2.5">
+              <div class="w-10 h-10 rounded-xl bg-purple-500/15 text-purple-400 flex items-center justify-center text-lg shrink-0">
+                <i class="fa-solid fa-bag-shopping"></i>
+              </div>
+              <div class="flex-1">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs font-extrabold">التسوق</span>
+                  <span class="text-[10px] text-emerald-400 font-bold">متبقي 750 ج.م</span>
+                </div>
+                <div class="text-[10px] opacity-60 font-semibold mt-0.5 tabular-nums">750 من 1,500 ج.م</div>
+                <div class="w-full h-2 bg-slate-500/20 rounded-full mt-1.5 overflow-hidden">
+                  <div class="h-full bg-emerald-500 rounded-full" style="width: 50%"></div>
+                </div>
+              </div>
+              <div class="w-10 h-10 rounded-full border-4 border-emerald-500 flex items-center justify-center text-[10px] font-black tabular-nums shrink-0">
+                50%
+              </div>
+            </div>
+
+            <!-- Entertainment -->
+            <div class="fintech-list-card rounded-2xl p-3 flex items-center justify-between gap-2.5">
+              <div class="w-10 h-10 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center text-lg shrink-0">
+                <i class="fa-solid fa-gamepad"></i>
+              </div>
+              <div class="flex-1">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs font-extrabold">الترفيه</span>
+                  <span class="text-[10px] text-emerald-400 font-bold">متبقي 200 ج.م</span>
+                </div>
+                <div class="text-[10px] opacity-60 font-semibold mt-0.5 tabular-nums">300 من 500 ج.م</div>
+                <div class="w-full h-2 bg-slate-500/20 rounded-full mt-1.5 overflow-hidden">
+                  <div class="h-full bg-emerald-500 rounded-full" style="width: 60%"></div>
+                </div>
+              </div>
+              <div class="w-10 h-10 rounded-full border-4 border-emerald-500 flex items-center justify-center text-[10px] font-black tabular-nums shrink-0">
+                60%
+              </div>
+            </div>
+          </div>
+
+          <button onclick="addNewDemoBudget()" class="w-full py-3 rounded-2xl btn-primary-cta font-extrabold text-xs shadow-lg hover:scale-[1.01] transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-plus"></i>
+            <span>إنشاء ميزانية جديدة</span>
+          </button>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav-dock px-4 py-2 flex items-center justify-between text-[10px] fintech-text-sub">
+          <button onclick="goToScreen(2)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-house text-sm"></i>
+            <span>الرئيسية</span>
+          </button>
+          <button onclick="goToScreen(4)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-receipt text-sm"></i>
+            <span>المعاملات</span>
+          </button>
+          <button onclick="goToScreen(5)" class="w-11 h-11 -mt-5 rounded-full btn-primary-cta flex items-center justify-center border-2 border-[#0B1324]">
+            <i class="fa-solid fa-plus text-base"></i>
+          </button>
+          <button onclick="goToScreen(11)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-file-invoice text-sm"></i>
+            <span>التقارير</span>
+          </button>
+          <button onclick="goToScreen(10)" class="flex flex-col items-center gap-0.5 text-emerald-400 font-extrabold">
+            <i class="fa-solid fa-bullseye text-sm"></i>
+            <span>الميزانيات</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ===================================================================
+           SCREEN 11: التقارير (Executive Financial Reports)
+      ==================================================================== -->
+      <div class="phone-frame" data-screen="11" data-title="11. التقارير">
+        <div class="dynamic-island">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-slate-800"></span>
+        </div>
+
+        <div class="px-6 pt-3 pb-1 flex items-center justify-between text-[11px] font-bold fintech-text-main">
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-battery-full text-emerald-400"></i>
+            <i class="fa-solid fa-wifi text-[10px]"></i>
+          </div>
+          <span class="tabular-nums">9:41</span>
+        </div>
+
+        <div class="flex-1 screen-scroll px-4 pt-2 pb-4 space-y-3">
+          <h2 class="text-lg font-black fintech-text-main">التقارير المالية</h2>
+
+          <!-- Period Filter -->
+          <div class="flex items-center gap-1.5 text-[11px]">
+            <button class="px-3.5 py-1.5 rounded-full btn-primary-cta font-extrabold">شهري</button>
+            <button class="px-3 py-1.5 rounded-full fintech-card fintech-text-sub font-bold">ربع سنوي</button>
+            <button class="px-3 py-1.5 rounded-full fintech-card fintech-text-sub font-bold">نصف سنوي</button>
+            <button class="px-3 py-1.5 rounded-full fintech-card fintech-text-sub font-bold">سنوي</button>
+          </div>
+
+          <!-- Executive Report Card -->
+          <div class="hero-safe-card rounded-3xl p-4 text-center text-white space-y-2 relative overflow-hidden">
+            <div class="w-14 h-14 mx-auto bg-white/15 backdrop-blur-md rounded-2xl flex items-center justify-center text-2xl text-emerald-300 shadow-inner">
+              <i class="fa-solid fa-file-chart-column"></i>
+            </div>
+            <h3 class="text-sm font-black pt-0.5">تقرير شهر نوفمبر 2026</h3>
+            <p class="text-[10px] text-emerald-100/90 leading-relaxed">
+              ملخص شامل لمصروفاتك ودخلك وتحليلاتك ونصائح مخصصة لك
+            </p>
+          </div>
+
+          <!-- 3 Export Action Cards -->
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="showToast('تم إنشاء رابط آمن لمشاركة التقرير 📤')" class="fintech-list-card rounded-2xl p-2.5 text-center hover:scale-105 transition">
+              <div class="w-8 h-8 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center mx-auto mb-1">
+                <i class="fa-solid fa-share-nodes"></i>
+              </div>
+              <div class="text-[11px] font-extrabold">مشاركة</div>
+              <div class="text-[9px] opacity-60">إرسال التقرير</div>
+            </button>
+
+            <button onclick="showToast('تم تصدير جدول المعاملات بصيغة Excel 📊')" class="fintech-list-card rounded-2xl p-2.5 text-center hover:scale-105 transition">
+              <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center mx-auto mb-1">
+                <i class="fa-solid fa-file-excel"></i>
+              </div>
+              <div class="text-[11px] font-extrabold">Excel</div>
+              <div class="text-[9px] opacity-60">تحميل إكسل</div>
+            </button>
+
+            <button onclick="showToast('تم تجهيز التقرير الرسمي بصيغة PDF 📄')" class="fintech-list-card rounded-2xl p-2.5 text-center hover:scale-105 transition">
+              <div class="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-500 flex items-center justify-center mx-auto mb-1">
+                <i class="fa-solid fa-file-pdf"></i>
+              </div>
+              <div class="text-[11px] font-extrabold">PDF</div>
+              <div class="text-[9px] opacity-60">تحميل تقرير</div>
+            </button>
+          </div>
+
+          <!-- Key Report Highlights -->
+          <div class="fintech-card rounded-2xl p-3.5 space-y-2.5">
+            <h4 class="text-xs font-extrabold fintech-text-main border-b border-slate-500/15 pb-1.5">أبرز مؤشرات التقرير</h4>
+            <div class="flex items-center justify-between text-xs tabular-nums">
+              <span class="fintech-text-sub flex items-center gap-2">
+                <i class="fa-solid fa-circle-arrow-down text-emerald-400"></i>
+                <span>إجمالي الدخل</span>
+              </span>
+              <span class="font-black fintech-text-main balance-sensitive">15,000 ج.م</span>
+            </div>
+            <div class="flex items-center justify-between text-xs tabular-nums">
+              <span class="fintech-text-sub flex items-center gap-2">
+                <i class="fa-solid fa-circle-arrow-up text-rose-400"></i>
+                <span>إجمالي المصروفات</span>
+              </span>
+              <span class="font-black fintech-text-main balance-sensitive">6,750 ج.م</span>
+            </div>
+            <div class="flex items-center justify-between text-xs tabular-nums">
+              <span class="fintech-text-sub flex items-center gap-2">
+                <i class="fa-solid fa-shield-heart text-amber-400"></i>
+                <span>معدل الادخار الصافي</span>
+              </span>
+              <span class="font-black text-emerald-400">55% (ممتاز)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav-dock px-4 py-2 flex items-center justify-between text-[10px] fintech-text-sub">
+          <button onclick="goToScreen(2)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-house text-sm"></i>
+            <span>الرئيسية</span>
+          </button>
+          <button onclick="goToScreen(4)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-receipt text-sm"></i>
+            <span>المعاملات</span>
+          </button>
+          <button onclick="goToScreen(5)" class="w-11 h-11 -mt-5 rounded-full btn-primary-cta flex items-center justify-center border-2 border-[#0B1324]">
+            <i class="fa-solid fa-plus text-base"></i>
+          </button>
+          <button onclick="goToScreen(11)" class="flex flex-col items-center gap-0.5 text-emerald-400 font-extrabold">
+            <i class="fa-solid fa-file-invoice text-sm"></i>
+            <span>التقارير</span>
+          </button>
+          <button onclick="goToScreen(12)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-lightbulb text-sm"></i>
+            <span>توصيات</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ===================================================================
+           SCREEN 12: نصائح وتوصيات فلوسي (Personalized Smart Wealth Tips)
+      ==================================================================== -->
+      <div class="phone-frame" data-screen="12" data-title="12. نصائح وتوصيات">
+        <div class="dynamic-island">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-slate-800"></span>
+        </div>
+
+        <div class="px-6 pt-3 pb-1 flex items-center justify-between text-[11px] font-bold fintech-text-main">
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-battery-full text-emerald-400"></i>
+            <i class="fa-solid fa-wifi text-[10px]"></i>
+          </div>
+          <span class="tabular-nums">9:41</span>
+        </div>
+
+        <div class="flex-1 screen-scroll px-4 pt-2 pb-4 space-y-3">
+          <h2 class="text-base font-black fintech-text-main text-center">نصائح وتوصيات فلوسي الذكية</h2>
+
+          <!-- Financial Health Score Card -->
+          <div class="fintech-card rounded-3xl p-3.5 flex items-center justify-between border border-amber-400/30">
+            <div class="space-y-0.5">
+              <span class="text-[10px] text-amber-400 font-extrabold flex items-center gap-1">
+                <i class="fa-solid fa-crown"></i>
+                <span>مؤشر اللياقة المالية</span>
+              </span>
+              <div class="text-sm font-black fintech-text-main">توصيات مخصصة لأنماط إنفاقك</div>
+              <p class="text-[10px] fintech-text-sub">اضغط على أي توصية لتفعيلها فوراً</p>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-400 flex flex-col items-center justify-center font-black tabular-nums shrink-0">
+              <span class="text-sm">88</span>
+              <span class="text-[8px]">/100</span>
+            </div>
+          </div>
+
+          <!-- 3 Actionable Recommendation Cards -->
+          <div class="space-y-2.5">
+            <!-- Card 1: Emerald -->
+            <div onclick="showToast('تم تفعيل تنبيه التوفير الذكي للمطاعم (يوفر ~450 ج.م شهرياً) 🍴')" class="cursor-pointer rounded-2xl p-3.5 bg-gradient-to-r from-emerald-800/90 to-teal-700/90 border border-emerald-400/30 flex items-center justify-between gap-3 text-white shadow-lg hover:scale-[1.01] transition">
+              <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-emerald-200 text-lg shrink-0">
+                <i class="fa-solid fa-utensils"></i>
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-xs font-black">وفر أكثر في المطاعم</h3>
+                  <span class="text-[9px] bg-white/20 px-2 py-0.5 rounded-full font-bold">تفعيل</span>
+                </div>
+                <p class="text-[10px] text-emerald-100 mt-0.5 leading-relaxed">
+                  مصروفات المطاعم أعلى بـ 25% من متوسطك السابق.
+                </p>
+              </div>
+            </div>
+
+            <!-- Card 2: Ocean Blue -->
+            <div onclick="showToast('تم تخصيص 1,500 ج.م شهرياً في خطة الادخار الذكي تلقائياً 📈')" class="cursor-pointer rounded-2xl p-3.5 bg-gradient-to-r from-sky-800/90 to-blue-800/90 border border-sky-400/30 flex items-center justify-between gap-3 text-white shadow-lg hover:scale-[1.01] transition">
+              <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-amber-300 text-lg shrink-0">
+                <i class="fa-solid fa-sack-dollar"></i>
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-xs font-black">ابدأ الادخار الذكي</h3>
+                  <span class="text-[9px] bg-white/20 px-2 py-0.5 rounded-full font-bold">1,500 ج.م</span>
+                </div>
+                <p class="text-[10px] text-sky-100 mt-0.5 leading-relaxed">
+                  يمكنك تخصيص 1,500 ج.م شهرياً لتحقيق هدف استثماري.
+                </p>
+              </div>
+            </div>
+
+            <!-- Card 3: Champagne Gold -->
+            <div onclick="showToast('تم إنشاء صندوق هدف شراء السيارة (12,000 ج.م خلال 6 أشهر) 🚗')" class="cursor-pointer rounded-2xl p-3.5 bg-gradient-to-r from-amber-700/90 to-orange-700/90 border border-amber-300/30 flex items-center justify-between gap-3 text-white shadow-lg hover:scale-[1.01] transition">
+              <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-amber-200 text-lg shrink-0">
+                <i class="fa-solid fa-car-side"></i>
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-xs font-black">هدف قريب</h3>
+                  <span class="text-[9px] bg-white/20 px-2 py-0.5 rounded-full font-bold">6 أشهر</span>
+                </div>
+                <p class="text-[10px] text-amber-100 mt-0.5 leading-relaxed">
+                  يمكنك ادخار 12,000 ج.م خلال 6 أشهر لشراء سيارة.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav-dock px-4 py-2 flex items-center justify-between text-[10px] fintech-text-sub">
+          <button onclick="goToScreen(2)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-house text-sm"></i>
+            <span>الرئيسية</span>
+          </button>
+          <button onclick="goToScreen(4)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-receipt text-sm"></i>
+            <span>المعاملات</span>
+          </button>
+          <button onclick="goToScreen(5)" class="w-11 h-11 -mt-5 rounded-full btn-primary-cta flex items-center justify-center border-2 border-[#0B1324]">
+            <i class="fa-solid fa-plus text-base"></i>
+          </button>
+          <button onclick="goToScreen(11)" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+            <i class="fa-solid fa-file-invoice text-sm"></i>
+            <span>التقارير</span>
+          </button>
+          <button onclick="goToScreen(12)" class="flex flex-col items-center gap-0.5 text-emerald-400 font-extrabold">
+            <i class="fa-solid fa-lightbulb text-sm"></i>
+            <span>توصيات</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ================= APPLICATION JAVASCRIPT ================= -->
+  <script>
+    // Reactive Financial State
+    let displayMode = 'grid';
+    let currentTheme = 'emerald';
+    let privacyHidden = false;
+    let activeScreen = 2;
+    let selectedTxType = 'expense';
+    let safeSpendBalance = 8250;
+    let totalIncome = 15000;
+    let totalExpense = 6750;
+    let totalAccountsBalance = 42600;
+
+    const screenNames = [
+      { id: 1, name: '1. البداية' },
+      { id: 2, name: '2. الرئيسية' },
+      { id: 3, name: '3. حساباتي' },
+      { id: 4, name: '4. المعاملات' },
+      { id: 5, name: '5. إضافة معاملة' },
+      { id: 6, name: '6. تصوير فاتورة' },
+      { id: 7, name: '7. إضافة بالصوت' },
+      { id: 8, name: '8. المساعد الذكي' },
+      { id: 9, name: '9. التحليلات' },
+      { id: 10, name: '10. الميزانيات' },
+      { id: 11, name: '11. التقارير' },
+      { id: 12, name: '12. توصيات فلوسي' }
+    ];
+
+    function initApp() {
+      renderScreenPills();
+      setDisplayMode('grid');
+    }
+
+    // Theme Switching (Emerald / Clean Light / Royal Sapphire)
+    function setTheme(themeName) {
+      currentTheme = themeName;
+      document.documentElement.setAttribute('data-theme', themeName);
+
+      ['emerald', 'light', 'sapphire'].forEach(t => {
+        const btn = document.getElementById(`themeBtn_${t}`);
+        if (!btn) return;
+        if (t === themeName) {
+          btn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-emerald-600 text-white shadow';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white';
+        }
+      });
+
+      const labels = {
+        emerald: 'تم تفعيل الثيم الزمردي الفاخر (Emerald & Obsidian) ✨',
+        light: 'تم تفعيل الوضع النهاري المريح للعين (Clean Light Mode) ☀️',
+        sapphire: 'تم تفعيل الثيم الياقوتي الملكي (Royal Sapphire & Gold) 💎'
+      };
+      showToast(labels[themeName]);
+    }
+
+    // Privacy Mode (Blur Sensitive Balances)
+    function togglePrivacyMode() {
+      privacyHidden = !privacyHidden;
+      document.querySelectorAll('.balance-sensitive').forEach(el => {
+        el.classList.toggle('privacy-blur', privacyHidden);
+      });
+      const icon = document.getElementById('privacyIconHeader');
+      if (icon) {
+        icon.className = privacyHidden ? 'fa-regular fa-eye-slash text-amber-400' : 'fa-regular fa-eye text-emerald-400';
+      }
+      showToast(privacyHidden ? 'تم إخفاء الأرصدة لحماية خصوصيتك 🔒' : 'تم إظهار الأرصدة المالية 👁️');
+    }
+
+    // Color System Modal
+    function toggleColorModal() {
+      const modal = document.getElementById('colorSystemModal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
+    }
+
+    function copyColor(hex) {
+      const temp = document.createElement('textarea');
+      temp.value = hex;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+      showToast(`تم نسخ كود اللون ${hex} بنجاح 🎨`);
+    }
+
+    // Render Top Screen Navigation Pills
+    function renderScreenPills() {
+      const container = document.getElementById('screenPillsContainer');
+      container.innerHTML = screenNames.map(s => `
+        <button
+          onclick="selectScreenFromBar(${s.id})"
+          class="px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition ${
+            s.id === activeScreen
+              ? 'bg-emerald-600 text-white shadow'
+              : 'bg-white/5 text-slate-300 hover:bg-white/15'
+          }"
+        >
+          ${s.name}
+        </button>
+      `).join('');
+    }
+
+    function selectScreenFromBar(screenId) {
+      activeScreen = screenId;
+      if (displayMode === 'grid') {
+        setDisplayMode('interactive');
+      } else {
+        updateView();
+      }
+    }
+
+    function setDisplayMode(mode) {
+      displayMode = mode;
+      const btnInteractive = document.getElementById('btnModeInteractive');
+      const btnGrid = document.getElementById('btnModeGrid');
+      const wrapper = document.getElementById('phonesWrapper');
+      const banner = document.getElementById('interactiveBanner');
+
+      if (mode === 'interactive') {
+        btnInteractive.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow';
+        btnGrid.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-300 hover:text-white';
+        wrapper.className = 'flex justify-center items-start py-2';
+        banner.classList.remove('hidden');
+        banner.classList.add('flex');
+      } else {
+        btnGrid.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold transition bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow';
+        btnInteractive.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold transition text-slate-300 hover:text-white';
+        wrapper.className = 'grid-showcase grid-showcase-6';
+        banner.classList.add('hidden');
+        banner.classList.remove('flex');
+      }
+      updateView();
+    }
+
+    function updateView() {
+      const frames = document.querySelectorAll('.phone-frame');
+      frames.forEach(frame => {
+        const sId = parseInt(frame.getAttribute('data-screen'));
+        if (displayMode === 'interactive') {
+          frame.style.display = sId === activeScreen ? 'flex' : 'none';
+        } else {
+          frame.style.display = 'flex';
+        }
+      });
+
+      const counter = document.getElementById('currentScreenCounter');
+      if (counter) counter.textContent = `${activeScreen} / 12`;
+
+      renderScreenPills();
+    }
+
+    function goToScreen(screenId) {
+      activeScreen = screenId;
+      if (displayMode === 'grid') {
+        const targetFrame = document.querySelector(`.phone-frame[data-screen="${screenId}"]`);
+        if (targetFrame) {
+          targetFrame.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          targetFrame.classList.add('ring-4', 'ring-emerald-400');
+          setTimeout(() => targetFrame.classList.remove('ring-4', 'ring-emerald-400'), 1400);
+        }
+        renderScreenPills();
+      } else {
+        updateView();
+      }
+    }
+
+    function nextScreen() {
+      activeScreen = activeScreen < 12 ? activeScreen + 1 : 1;
+      updateView();
+    }
+
+    function prevScreen() {
+      activeScreen = activeScreen > 1 ? activeScreen - 1 : 12;
+      updateView();
+    }
+
+    // Toast Helper
+    let toastTimeout;
+    function showToast(message) {
+      const box = document.getElementById('toastBox');
+      const text = document.getElementById('toastText');
+      text.textContent = message;
+      box.classList.remove('opacity-0', 'translate-y-4');
+      box.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        box.classList.add('opacity-0', 'translate-y-4');
+        box.classList.remove('opacity-100', 'translate-y-0');
+      }, 2800);
+    }
+
+    // Screen 4: Search & Filter Transactions
+    function searchTransactions(query) {
+      const q = query.trim().toLowerCase();
+      document.querySelectorAll('.tx-item').forEach(item => {
+        const title = (item.getAttribute('data-title') || item.innerText).toLowerCase();
+        item.style.display = title.includes(q) ? 'flex' : 'none';
+      });
+    }
+
+    function filterTransactions(type, btnEl) {
+      document.querySelectorAll('.tx-filter-btn').forEach(b => {
+        b.className = 'tx-filter-btn px-3 py-1.5 rounded-full fintech-card fintech-text-sub font-bold';
+      });
+      btnEl.className = 'tx-filter-btn px-3.5 py-1.5 rounded-full btn-primary-cta font-extrabold';
+
+      document.querySelectorAll('.tx-item').forEach(item => {
+        const itemType = item.getAttribute('data-type');
+        item.style.display = (type === 'all' || itemType === type) ? 'flex' : 'none';
+      });
+    }
+
+    // Screen 5: Smart Entry Helpers
+    function adjustTxAmount(delta) {
+      const input = document.getElementById('inputTxAmount');
+      const current = parseFloat(input.value) || 0;
+      input.value = current + delta;
+    }
+
+    function pickCategory(catName, btnEl) {
+      document.getElementById('inputTxCategory').value = catName;
+      document.querySelectorAll('#categoryGridPicker .cat-chip').forEach(b => {
+        b.className = 'cat-chip py-2 px-2 rounded-xl fintech-card fintech-text-main font-bold flex items-center justify-center gap-1.5';
+      });
+      btnEl.className = 'cat-chip py-2 px-2 rounded-xl bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-extrabold flex items-center justify-center gap-1.5';
+    }
+
+    function selectTxType(type) {
+      selectedTxType = type;
+      const btnExp = document.getElementById('tabTypeExpense');
+      const btnInc = document.getElementById('tabTypeIncome');
+      const btnTrf = document.getElementById('tabTypeTransfer');
+
+      btnExp.className = 'py-2.5 rounded-2xl fintech-card text-rose-400 font-extrabold text-xs flex items-center justify-center gap-1.5';
+      btnInc.className = 'py-2.5 rounded-2xl fintech-card text-emerald-400 font-extrabold text-xs flex items-center justify-center gap-1.5';
+      btnTrf.className = 'py-2.5 rounded-2xl fintech-card text-sky-400 font-extrabold text-xs flex items-center justify-center gap-1.5';
+
+      if (type === 'expense') {
+        btnExp.className = 'py-2.5 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 text-white font-extrabold text-xs shadow-lg shadow-rose-500/25 flex items-center justify-center gap-1.5';
+      } else if (type === 'income') {
+        btnInc.className = 'py-2.5 rounded-2xl btn-primary-cta text-white font-extrabold text-xs flex items-center justify-center gap-1.5';
+      } else {
+        btnTrf.className = 'py-2.5 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 text-white font-extrabold text-xs flex items-center justify-center gap-1.5';
+      }
+    }
+
+    // Insert Transaction & Sync All Screens
+    function insertTransactionToDOM(title, amount, type) {
+      const isIncome = type === 'income';
+      if (isIncome) {
+        totalIncome += amount;
+        safeSpendBalance += amount;
+        totalAccountsBalance += amount;
+      } else {
+        totalExpense += amount;
+        safeSpendBalance = Math.max(0, safeSpendBalance - amount);
+        totalAccountsBalance -= amount;
+      }
+
+      document.getElementById('homeSafeBalance').textContent = `${safeSpendBalance.toLocaleString()} ج.م`;
+      document.getElementById('homeTotalIncome').textContent = `${totalIncome.toLocaleString()} ج.م`;
+      document.getElementById('homeTotalExpense').textContent = `${totalExpense.toLocaleString()} ج.م`;
+      document.getElementById('accountsTotalBalance').textContent = `${totalAccountsBalance.toLocaleString()} ج.م`;
+
+      const pct = Math.min(100, Math.round((safeSpendBalance / totalIncome) * 100));
+      document.getElementById('homeSafePercent').textContent = `${pct}%`;
+
+      const iconClass = isIncome ? 'fa-sack-dollar' : 'fa-utensils';
+      const iconBg = isIncome ? 'bg-emerald-500/15 text-emerald-500' : 'bg-amber-500/15 text-amber-500';
+      const sign = isIncome ? '+' : '-';
+      const amountColor = isIncome ? 'text-emerald-500' : 'text-rose-500';
+
+      const newHtml = `
+        <div class="tx-item flex items-center justify-between border-b border-slate-500/10 pb-2" data-type="${type}" data-title="${title}">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl ${iconBg} flex items-center justify-center">
+              <i class="fa-solid ${iconClass}"></i>
+            </div>
+            <div>
+              <div class="text-xs font-extrabold">${title}</div>
+              <div class="text-[10px] opacity-60">الآن • تمت الإضافة فوراً</div>
+            </div>
+          </div>
+          <div class="text-left tabular-nums">
+            <div class="text-xs font-black ${amountColor} balance-sensitive">${sign}${amount.toLocaleString()} ج.م</div>
+            <div class="text-[9px] opacity-60">الحساب الرئيسي</div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('txTodayList').insertAdjacentHTML('afterbegin', newHtml);
+      document.getElementById('homeRecentTransactions').insertAdjacentHTML('afterbegin', newHtml);
+    }
+
+    function saveCustomTransaction() {
+      const amount = parseFloat(document.getElementById('inputTxAmount').value) || 0;
+      const category = document.getElementById('inputTxCategory').value;
+      if (amount <= 0) {
+        showToast('يرجى إدخال مبلغ صحيح أكبر من صفر');
+        return;
+      }
+      insertTransactionToDOM(category, amount, selectedTxType);
+      showToast(`تم حفظ "${category}" بقيمة ${amount.toLocaleString()} ج.م وتحديث الأرصدة ✅`);
+      goToScreen(4);
+    }
+
+    // Screen 6: Capture Receipt
+    function captureReceiptTransaction() {
+      const statusEl = document.getElementById('receiptScanStatus');
+      statusEl.textContent = 'تمت إضافة الفاتورة بنجاح (280 ج.م) ✅';
+      insertTransactionToDOM('فاتورة مطعم (مسح ذكي)', 280, 'expense');
+      showToast('تم مسح الفاتورة ضوئياً وإضافة 280 ج.م للمعاملات 📸');
+      setTimeout(() => {
+        goToScreen(4);
+      }, 1000);
+    }
+
+    // Screen 7: Voice Assistant
+    function triggerVoiceListening() {
+      const prompt = document.getElementById('voicePromptText');
+      prompt.textContent = '🎙️ جاري الاستماع وتحليل صوتك بالذكاء الاصطناعي...';
+      showToast('تحدث الآن أو اختر إحدى الجمل السريعة بالأسفل 🎤');
+      setTimeout(() => {
+        prompt.textContent = 'تحدث بطبيعية.. فلوسي يفهمك';
+      }, 3000);
+    }
+
+    function addVoiceTransaction(title, amount, type) {
+      insertTransactionToDOM(title, amount, type);
+      showToast(`تم تسجيل الأمر الصوتي: "${title}" (${amount.toLocaleString()} ج.م) 🎤`);
+      goToScreen(4);
+    }
+
+    // Screen 3: Add Demo Account
+    function addNewDemoAccount() {
+      const container = document.getElementById('accountsListContainer');
+      const html = `
+        <div class="fintech-card rounded-2xl p-3.5 flex items-center justify-between border border-emerald-400/40">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-teal-500/15 border border-teal-400/30 flex items-center justify-center text-teal-400 text-base">
+              <i class="fa-solid fa-mobile-retro"></i>
+            </div>
+            <div>
+              <div class="text-xs font-extrabold fintech-text-main">محفظة فودافون / إنستا باي</div>
+              <div class="text-[10px] fintech-text-sub">تم الربط الفوري</div>
+            </div>
+          </div>
+          <div class="text-left tabular-nums">
+            <div class="text-sm font-black fintech-text-main balance-sensitive">5,000 ج.م</div>
+            <span class="text-[9px] text-emerald-400 font-bold">جديد</span>
+          </div>
+        </div>
+      `;
+      container.insertAdjacentHTML('beforeend', html);
+      totalAccountsBalance += 5000;
+      document.getElementById('accountsTotalBalance').textContent = `${totalAccountsBalance.toLocaleString()} ج.م`;
+      showToast('تم ربط المحفظة الإلكترونية برصيد 5,000 ج.م بنجاح 💳');
+    }
+
+    // Screen 10: Add Demo Budget
+    function addNewDemoBudget() {
+      const container = document.getElementById('budgetsListContainer');
+      const html = `
+        <div class="fintech-list-card rounded-2xl p-3 flex items-center justify-between gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-teal-500/15 text-teal-500 flex items-center justify-center text-lg shrink-0">
+            <i class="fa-solid fa-heart-pulse"></i>
+          </div>
+          <div class="flex-1">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-extrabold">الصحة والرياضة</span>
+              <span class="text-[10px] text-emerald-400 font-bold">متبقي 750 ج.م</span>
+            </div>
+            <div class="text-[10px] opacity-60 font-semibold mt-0.5 tabular-nums">250 من 1,000 ج.م</div>
+            <div class="w-full h-2 bg-slate-500/20 rounded-full mt-1.5 overflow-hidden">
+              <div class="h-full bg-emerald-500 rounded-full" style="width: 25%"></div>
+            </div>
+          </div>
+          <div class="w-10 h-10 rounded-full border-4 border-emerald-500 flex items-center justify-center text-[10px] font-black tabular-nums shrink-0">
+            25%
+          </div>
+        </div>
+      `;
+      container.insertAdjacentHTML('beforeend', html);
+      showToast('تم إنشاء ميزانية جديدة "الصحة والرياضة" بقيمة 1,000 ج.م 🎯');
+    }
+
+    // Screen 8: Interactive AI Copilot
+    function askQuickQuestion(qText) {
+      document.getElementById('aiChatInput').value = qText;
+      sendAiMessage();
+    }
+
+    function sendAiMessage() {
+      const input = document.getElementById('aiChatInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const chat = document.getElementById('aiChatContainer');
+      chat.insertAdjacentHTML('beforeend', `
+        <div class="flex justify-end">
+          <div class="btn-primary-cta text-white text-xs font-extrabold px-3.5 py-2 rounded-2xl rounded-tl-sm shadow">
+            ${text}
+          </div>
+        </div>
+      `);
+      input.value = '';
+      chat.scrollTop = chat.scrollHeight;
+
+      setTimeout(() => {
+        chat.insertAdjacentHTML('beforeend', `
+          <div class="fintech-list-card text-[11px] font-bold p-3 rounded-2xl leading-relaxed border border-emerald-500/30">
+            💡 <strong>تحليل فلوسي الذكي:</strong> رصيدك الآمن للصرف حالياً هو <span class="text-emerald-500 font-black">${safeSpendBalance.toLocaleString()} ج.م</span>. إذا التزمت بحد الصرف اليومي (458 ج.م) ستتمكن من ادخار <span class="text-amber-500 font-black">1,850 ج.م</span> إضافية بنهاية هذا الشهر!
+          </div>
+        `);
+        chat.scrollTop = chat.scrollHeight;
+      }, 500);
+    }
+
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
+<script src="flosy-ultra-live.js?v=3801"></script></body>
+</html>
