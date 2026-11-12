@@ -33,6 +33,9 @@ const ORIGIN="http://127.0.0.1:8127";
   assert.equal(initial.app,0);
   assert.ok(!String(initial.safe).includes("8,250"),"Design sample balances must not appear as real");
   assert.ok(initial.width<=358,"Ultra mobile body should not overflow viewport "+JSON.stringify(initial));
+  // First launch honors the designer's exact onboarding screen; next enters live home.
+  assert.equal(await page.locator('.phone-frame[data-screen="1"]').isVisible(),true);
+  await page.evaluate(()=>window.goToScreen(2));
   assert.equal(await page.locator('.phone-frame[data-screen="2"]').isVisible(),true);
 
   // The exact original 12 scenes remain accessible; only active scene is visible.
@@ -43,6 +46,19 @@ const ORIGIN="http://127.0.0.1:8127";
   }
   await page.evaluate(()=>window.goToScreen(3));
   assert.ok(await page.locator("#accountsListContainer").isVisible());
+  await page.evaluate(()=>window.goToScreen(9));
+  const analytic=await page.locator('.phone-frame[data-screen="9"] .screen-scroll').innerText();
+  assert.ok(!analytic.includes("6,750 ج.م"),"No fake 6,750 expense should remain in analytics");
+  await page.evaluate(()=>window.goToScreen(10));
+  const budget=await page.locator('.phone-frame[data-screen="10"] .screen-scroll').innerText();
+  assert.ok(!budget.includes("61% إجمالي"),"Fake budget completion must be replaced");
+  await page.evaluate(()=>window.goToScreen(11));
+  const report=await page.locator('.phone-frame[data-screen="11"] .screen-scroll').innerText();
+  assert.ok(!report.includes("15,000 ج.م"),"Report must not show the designer's synthetic income");
+  await page.evaluate(()=>window.goToScreen(12));
+  const tips=await page.locator('.phone-frame[data-screen="12"] .screen-scroll').innerText();
+  assert.ok(!tips.includes("12,000 ج.م"),"Unvalidated car goal must not appear");
+  assert.ok(!tips.includes("88"),"Financial health 88/100 is only a mockup");
   const before=await page.evaluate(()=>window.FLOSY_ULTRA_CORE.FLOSY_BRIDGE.getState().transactions.length);
   await page.evaluate(()=>window.goToScreen(5));
   await page.locator("#inputTxAmount").fill("75");
