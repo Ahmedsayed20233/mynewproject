@@ -377,3 +377,38 @@ progress::-webkit-progress-value,.progress i:not(.over):not(.warn),.f2-progress 
  .flosy-ai-bubble{max-width:95%!important}
  #page-reports .report-tools{padding:10px}
 }
+
+/* Founder MVP onboarding — 3 illustrated, accessible, skippable RTL screens. */
+.flosy-welcome-overlay{position:fixed;inset:0;z-index:105;display:grid;place-items:center;
+ padding:16px;background:#0B0723E8;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.flosy-welcome-card{position:relative;direction:rtl;isolation:isolate;overflow:hidden;
+ width:min(430px,100%);min-height:560px;padding:25px 28px 29px;border-radius:29px;
+ border:1px solid #A78BF5;box-shadow:0 22px 80px #0007;
+ background:radial-gradient(circle at 0% 12%,#22C6EA60 0%,transparent 34%),
+ linear-gradient(155deg,#3C2376 0%,#6846F5 61%,#21173C 100%);color:#FFF;
+ display:flex;flex-direction:column;align-items:center;text-align:center}
+.flosy-welcome-card:before{content:"";position:absolute;z-index:-1;right:-70px;top:175px;
+ width:250px;height:250px;border:40px solid #FFFFFF15;border-radius:50%}
+.flosy-welcome-brand{align-self:flex-start;display:flex;align-items:center;gap:9px;
+ font-size:15px;font-weight:900;color:#FFF}
+.flosy-welcome-logo{display:grid;place-items:center;width:36px;height:36px;
+ border-radius:12px;background:linear-gradient(135deg,#25D8EA,#7D52FF);font:900 23px/1 sans-serif}
+.flosy-welcome-skip{position:absolute;left:24px;top:28px;border:0;background:#FFFFFF26;
+ color:#FFF;padding:7px 12px;border-radius:99px;font-weight:800;font-size:11px}
+.flosy-welcome-icon{margin:43px 0 18px;width:134px;height:134px;border-radius:38px;
+ display:grid;place-items:center;background:linear-gradient(145deg,#FFFFFF35,#D5CAFF22);
+ border:1px solid #FFFFFF65;box-shadow:0 15px 40px #180B5A55;font-size:72px;color:#FFF}
+.flosy-welcome-card h2{font-size:28px;font-weight:900;line-height:1.5;color:#FFF!important;margin:12px 0 6px}
+.flosy-welcome-card h3{font-size:14px;font-weight:800;line-height:1.7;color:#F3EFFF!important;margin:0}
+.flosy-welcome-card p{font-size:12px;color:#E2D9FF;line-height:1.95;margin:14px 0 auto;max-width:315px}
+.flosy-welcome-dots{display:flex;gap:8px;justify-content:center;margin:16px 0}
+.flosy-welcome-dots i{width:7px;height:7px;border-radius:100px;background:#D9CBFF70;transition:width .16s}
+.flosy-welcome-dots i.on{width:26px;background:#46DDF4}
+.flosy-welcome-next{width:100%;min-height:52px;background:#FFF;color:#5031B6;
+ border:0;border-radius:15px;font-weight:900;font-size:13px;box-shadow:0 8px 22px #1B0C4745}
+.flosy-welcome-next:hover{background:#EEE9FF}
+@media(max-width:390px){.flosy-welcome-card{min-height:525px;padding:21px}
+ .flosy-welcome-icon{width:116px;height:116px;font-size:62px;margin-top:36px}
+ .flosy-welcome-card h2{font-size:24px}}
+@media(prefers-reduced-motion:reduce){.flosy-welcome-dots i{transition:none}}
+@media print{.flosy-welcome-overlay{display:none!important}}
