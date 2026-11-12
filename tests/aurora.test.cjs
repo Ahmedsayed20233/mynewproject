@@ -40,3 +40,8 @@ test("Aurora UI module safely loads without DOM or native Android",()=>{
   assert.doesNotThrow(()=>win.FLOSY_AURORA.boot());
   assert.equal(typeof handlers.click,"function");
 });
+
+test("native due-date payload excludes stale overdue bills",()=>{
+  assert.match(js,/x\.days>=0/);
+  assert.match(js,/x\.days<=7/);
+});
