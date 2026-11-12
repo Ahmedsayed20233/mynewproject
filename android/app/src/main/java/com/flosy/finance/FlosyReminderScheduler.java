@@ -127,7 +127,7 @@ public final class FlosyReminderScheduler {
                 }catch(Exception ignored){}
             }
         }
-        prefs(c).edit().putString(PENDING_IDS,String.join(",",ids)).apply();
+        prefs(c).edit().putString(PENDING_IDS,android.text.TextUtils.join(",",ids)).apply();
     }
     public static void notifyDue(Context c){
         if(!enabled(c)||!permission(c))return;
