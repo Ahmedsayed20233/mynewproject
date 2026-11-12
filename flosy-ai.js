@@ -8,7 +8,7 @@ const escapeHTML=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;"
 const fmt=n=>new Intl.NumberFormat("ar-EG",{maximumFractionDigits:2}).format(Number(n)||0)+" جنيه";
 const num=x=>Number.isFinite(Number(x))&&Number(x)>=0?Number(x):0;
 const selected=()=>String($("flosyAiQuestion")?.value||"");
-const prompts=["أحلل ميزانيتي إزاي؟","أبني صندوق طوارئ مناسب؟","إزاي أنظم مصروفاتي؟","رتب لي أقساطي","إيه أكبر فئات الصرف؟"];
+const prompts=["صرفت كام الشهر ده؟","اعرض أكبر فئات الصرف","الشهر ده مقابل اللي فات","ليه المواصلات زادت؟","Roast me about my expenses","ارسم منحنى الصرف اليومي"];
 let conversation=[],loading=false,consent=false,error="",mode="free",returnAfterLogin=false;
 function dateString(d){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")}
 function snapshot(){
@@ -116,7 +116,7 @@ function view(){
  '<div class="flosy-ai-promptrow">'+prompts.map(p=>'<button type="button" class="f2-toolbutton" data-ai-prompt="'+escapeHTML(p)+'">'+escapeHTML(p)+'</button>').join("")+'</div>'+
  '<div class="flosy-ai-messages" id="flosyAiMessages" role="log" aria-live="polite">'+
  (conversation.length?conversation.map(x=>'<div class="flosy-ai-bubble '+(x.role==="user"?"user":"assistant")+'"><div class="flosy-ai-speaker">'+(x.role==="user"?"أنت":x.kind==="gemini"?"Gemini Free":x.kind==="api"?"OpenAI API":"Flosy المحلي")+
- '</div><div>'+escapeHTML(x.content).replace(/\n/g,"<br>")+'</div></div>').join(""):
+ '</div><div>'+escapeHTML(x.content).replace(/\n/g,"<br>")+'</div>'+(x.role==="assistant"&&x.chart?w.FLOSY_LOCAL_ANALYTICS?.renderChart?.(x.chart)||"":"")+'</div>').join(""):
  '<div class="f2-empty">اسأل عن الميزانية والطوارئ والأقساط. الخدمة المجانية لا تحتاج تسجيل دخول أو مفتاح API.</div>')+
  (loading?'<div class="flosy-ai-loading">جارٍ التحليل…</div>':"")+'</div>'+
  (error?'<div class="f2-warning">'+escapeHTML(error)+'</div>':"")+
@@ -148,7 +148,8 @@ async function ask(question){
  consent=Boolean($("flosyAiConsent")?.checked);
  conversation.push({role:"user",content:q});error="";
  if(selectedMode==="free"){
-  conversation.push({role:"assistant",kind:"free",content:answerFree(q)});
+  const local=w.FLOSY_LOCAL_ANALYTICS?.query?.(q,C.getState(),new Date());
+  conversation.push({role:"assistant",kind:"free",content:local?.text||answerFree(q),chart:local?.chart||null});
   view();return;
  }
  if(!C.getSession()){error="سجّل الدخول بحساب Flosy لاستخدام Gemini، أو استخدم المساعد المحلي بدون تسجيل.";view();return}

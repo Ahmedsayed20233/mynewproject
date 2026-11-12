@@ -52,6 +52,7 @@ jobs:
           node --check flosy-phase1.js
           node --check flosy-next.js
           node --check flosy-automate-relay.js
+          node --check flosy-ai-analytics.js
           node --check flosy-ai.js
           node --check flosy-v4-capture.js
           node --check flosy-v4-bank.js
@@ -66,4 +67,4 @@ jobs:
           node --check flosy-assistant-bridge.js
           node --check service-worker.js
       - name: Run financial safety regression suite
-        run: node --test tests/phase1.test.cjs tests/v4.test.cjs tests/offline-cache.test.cjs tests/direct-capture-ui.test.cjs
+        run: node --test tests/phase1.test.cjs tests/v4.test.cjs tests/offline-cache.test.cjs tests/direct-capture-ui.test.cjs tests/ai-analytics.test.cjs
