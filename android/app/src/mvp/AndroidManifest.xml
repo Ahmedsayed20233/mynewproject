@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- Founder-testing package: no bank-SMS inbox, receiver, notification listener,
+         financial-event relay, or ACTION_SEND share-import entry point. -->
+    <application android:label="فلوسي MVP">
+        <receiver android:name="com.flosy.finance.AutoRelayReceiver"
+            tools:node="remove"/>
+        <activity android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"
+            tools:node="replace">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
