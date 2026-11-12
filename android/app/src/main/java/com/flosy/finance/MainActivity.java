@@ -62,7 +62,8 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 public class MainActivity extends Activity {
-    private static final String HOME = "https://ahmedsayed20233.github.io/mynewproject/flosy-ultra.html";
+    private static final String ROOT = "https://ahmedsayed20233.github.io/mynewproject/";
+    private static final String HOME = isMvp() ? ROOT + "flosy-ultra.html" : ROOT;
     private static final String HOME_HOST = "ahmedsayed20233.github.io";
     private static final int PICK_FILE = 71;
     private static final int REQ_VOICE = 73;
