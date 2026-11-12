@@ -65,9 +65,16 @@ jobs:
               android/app/src/main/java/com/flosy/finance/MainActivity.java; then
             echo "Blocked: retired broad SMS/notification scanner still referenced"; exit 1
           fi
-          grep -Fq "versionName '3.6.0'" android/app/build.gradle
+          grep -Fq "versionName '3.6.1'" android/app/build.gradle
           grep -Fq 'private static final String HOME = "https://ahmedsayed20233.github.io/mynewproject/"' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'receiveNativeReceiptImage' android/app/src/main/java/com/flosy/finance/MainActivity.java
+          # Notify build has user-controlled Notification Access but NO SMS read/receive permission.
+          if grep -Eq 'uses-permission[^>]*android.permission.(READ_SMS|RECEIVE_SMS|SEND_SMS)' android/app/src/notify/AndroidManifest.xml; then
+            echo "Notify flavor cannot request SMS permissions"; exit 1
+          fi
+          grep -Fq 'android.permission.BIND_NOTIFICATION_LISTENER_SERVICE' android/app/src/notify/AndroidManifest.xml
+          grep -Fq 'notify {' android/app/build.gradle
+          grep -Fq 'allowedNativeSender(this,title.toString())' android/app/src/direct/java/com/flosy/finance/DirectNotificationListener.java
           grep -Fq 'AUTO_RELAY_QUEUE_UPDATED' android/app/src/main/java/com/flosy/finance/AutoRelayReceiver.java
           grep -q 'android.intent.action.SEND' android/app/src/main/AndroidManifest.xml
           grep -q 'com.flosy.finance.REVIEW_EXTERNAL_FINANCIAL_EVENT' android/app/src/main/AndroidManifest.xml
@@ -90,7 +97,7 @@ jobs:
 
       - name: Compile all Android MVP flavors
         run: |
-          gradle -p android --no-daemon --stacktrace assembleStandardDebug assembleSmsDebug assembleDirectDebug
+          gradle -p android --no-daemon --stacktrace assembleStandardDebug assembleSmsDebug assembleDirectDebug assembleNotifyDebug
 
       - name: Validate and stage APKs
         run: |
@@ -98,23 +105,31 @@ jobs:
           STANDARD="android/app/build/outputs/apk/standard/debug/app-standard-debug.apk"
           SMS="android/app/build/outputs/apk/sms/debug/app-sms-debug.apk"
           DIRECT="android/app/build/outputs/apk/direct/debug/app-direct-debug.apk"
+          NOTIFY="android/app/build/outputs/apk/notify/debug/app-notify-debug.apk"
           test -s "$STANDARD"
           test -s "$SMS"
           test -s "$DIRECT"
+          test -s "$NOTIFY"
           mkdir -p dist
-          cp "$STANDARD" dist/Flosy-Android-Standard-v3.6.0.apk
-          cp "$SMS" dist/Flosy-Safe-Automate-v3.6.0-ReceiptML-VoiceNLU.apk
-          cp "$DIRECT" dist/Flosy-Direct-Capture-Lab-v3.6.0.apk
-          for APK in "$STANDARD" "$SMS"; do
+          cp "$STANDARD" dist/Flosy-Android-Standard-v3.6.1.apk
+          cp "$SMS" dist/Flosy-Safe-Automate-v3.6.1-ReceiptML-VoiceNLU.apk
+          # Direct Lab is compiled for regression testing, NOT published for sideload.
+          cp "$NOTIFY" dist/Flosy-Notifications-No-SMS-v3.6.1.apk
+          for APK in "$STANDARD" "$SMS" "$NOTIFY"; do
             "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | head -8
             "$ANDROID_HOME/build-tools/35.0.0/aapt" dump permissions "$APK" | tee /tmp/flosy-permissions.txt
             if grep -Eq 'android.permission.(READ_SMS|RECEIVE_SMS|SEND_SMS|BIND_NOTIFICATION_LISTENER_SERVICE|BIND_ACCESSIBILITY_SERVICE)' /tmp/flosy-permissions.txt; then
               echo "Unsafe declared permission found in $APK"; exit 1
             fi
           done
-          # Direct Lab intentionally requests RECEIVE_SMS; Standard and SMS do not.
+          # Direct Lab intentionally requests RECEIVE_SMS, but is never distributed in this release.
+          # Notify must NOT request SMS permissions, despite using user-granted notification listener.
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump permissions "$DIRECT" | tee /tmp/direct-permissions.txt
           grep -q 'android.permission.RECEIVE_SMS' /tmp/direct-permissions.txt
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump permissions "$NOTIFY" | tee /tmp/notify-permissions.txt
+          if grep -Eq 'android.permission.(READ_SMS|RECEIVE_SMS|SEND_SMS|READ_CALL_LOG)' /tmp/notify-permissions.txt; then
+            echo "Blocked: restricted messaging permissions in Notify APK"; exit 1
+          fi
           if grep -Eq 'android.permission.(READ_SMS|SEND_SMS|BIND_ACCESSIBILITY_SERVICE)' /tmp/direct-permissions.txt; then
             echo 'Unexpected permission in Direct Lab'; exit 1
           fi
@@ -125,23 +140,23 @@ jobs:
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Flosy-Android-v3.6.0-Direct-Capture-Lab
+          name: Flosy-Android-v3.6.1-Safe-Notification-Beta
           path: dist/*.apk
           retention-days: 30
           if-no-files-found: error
 
-      - name: Publish two APKs as GitHub Release
+      - name: Publish permission-minimized APKs as GitHub Release
         if: github.ref == 'refs/heads/flosy-android' && github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="flosy-android-v3.6.0"
+          TAG="flosy-android-v3.6.1"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.apk --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$TAG" dist/*.apk \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --title "فلوسي Android v3.6.0 — ReceiptML + VoiceNLU + Safe Automate + Gemini Free" \
-              --notes "Flosy v3.6 adds local multi-sheet Excel export through Android user-selected document picker; report data stays on-device. Flosy Safe Automate v3.6.0: receives authorized bank SMS from the user's Automate flow using an allowlisted sender + pairing token; stores all non-secret allowlisted SMS in an AES-GCM local queue (OTP/PIN/CVV excluded). The latest Flosy website loaded by the APK offers opt-in automatic saving of clearly recognized SMS and Egyptian Arabic spoken transactions, and itemized Arabic/English receipt extraction. Its offline ReceiptML module uses a synthetically trained numerical-line classifier and Tesseract Arabic/English after native Latin ML Kit. VoiceNLU is an offline synthetically trained Egyptian-Arabic intent classifier; the Android speech-to-text service may use the network depending on device. Both synthetic models require real-world testing, no guarantee of reading every receipt. New Flosy AI Gemini API Free mode uses the owner's Supabase function only if GEMINI_ENABLED is true and an unbilled Google AI Studio Free Tier project is configured; it does NOT use Google AI Pro subscription quota. Gemini AI chat currently receives only generic non-identifying labels/rounded ratios, not raw SMS, voice, photos or account data. Gemini-powered parsing of SMS/voice/receipts is not yet enabled. App UI requires internet for current hosted site updates. This is a debug-signed TESTING APK, not a Play-approved production release. GitHub Actions debug signing may differ from earlier APKs: backup and validate cloud sync before updating; NEVER uninstall old app merely to bypass signature conflicts without restoring backup. Do NOT disable Play Protect. Standard and Safe Automate have no restricted SMS permission. The separate Direct Lab APK requests hard-restricted RECEIVE_SMS and notification access via explicit Android consent, so Play/installer may deny SMS. New transactions may be captured directly without Automate if permissions are granted. Debug-only; no historical inbox scan. Incomplete events go to review."
+              --title "فلوسي Android v3.6.1 — Notification-only Beta (no SMS permission)" \
+              --notes "Flosy v3.6.1 test APKs include a NEW Notification-only flavor without READ_SMS, RECEIVE_SMS, or SEND_SMS. It can collect owner-allowlisted financial-app notifications only with explicit Android Notification Access; SMS content can be observed only when Android delivers it as a visible bank-sender notification from an owner-authorized messaging app. No inbox scan, no Play Protect bypass, and no guarantee that Android will allow installation or Notification Access. Direct RECEIVE_SMS test flavor is compiled but NOT distributed here. Standard beta has no SMS/notification access. All flavors retain current hosted UI, on-device ReceiptML/VoiceNLU postprocessors, local analytics and user-selected Excel report export. Debug-signed: preserve backups and confirm signatures before updating. Never disable Play Protect or uninstall an existing app to get past install conflicts."
           fi

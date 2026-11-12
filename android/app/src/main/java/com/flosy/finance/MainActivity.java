@@ -285,7 +285,7 @@ public class MainActivity extends Activity {
                         + "false;"
                         + "window.FLOSY_NATIVE_RELAY_AVAILABLE=true;"
                         + "window.FLOSY_NATIVE_DIRECT_CAPTURE_AVAILABLE="
-                        + ("direct".equals(BuildConfig.FLAVOR)?"true":"false") + ";"
+                        + (("direct".equals(BuildConfig.FLAVOR)||"notify".equals(BuildConfig.FLAVOR))?"true":"false") + ";"
                         + "window.FLOSY_NATIVE_VOICE_AVAILABLE=true;"
                         + "window.FLOSY_NATIVE_OCR_AVAILABLE=true;"
                         + "window.FLOSY_NATIVE_XLSX_AVAILABLE=true;"
@@ -444,7 +444,7 @@ public class MainActivity extends Activity {
             }).show();
     }
     private void openDirectCaptureSettings(){
-        if(!"direct".equals(BuildConfig.FLAVOR))return;
+        if(!("direct".equals(BuildConfig.FLAVOR)||"notify".equals(BuildConfig.FLAVOR)))return;
         try{
             Intent i=new Intent();
             i.setClassName(getPackageName(),"com.flosy.finance.DirectCaptureSettingsActivity");
@@ -455,8 +455,8 @@ public class MainActivity extends Activity {
         try{
             JSONObject data=new JSONObject();
             data.put("paired",AutoRelayStore.paired(this));
-            data.put("directAvailable","direct".equals(BuildConfig.FLAVOR));
-            data.put("directEnabled","direct".equals(BuildConfig.FLAVOR)&&AutoRelayStore.directEnabled(this));
+            data.put("directAvailable",("direct".equals(BuildConfig.FLAVOR)||"notify".equals(BuildConfig.FLAVOR)));
+            data.put("directEnabled",("direct".equals(BuildConfig.FLAVOR)||"notify".equals(BuildConfig.FLAVOR))&&AutoRelayStore.directEnabled(this));
             data.put("senders",AutoRelayStore.senders(this));
             data.put("apps",AutoRelayStore.apps(this));
             data.put("pending",AutoRelayStore.pending(this).length());

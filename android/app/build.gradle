@@ -21,8 +21,8 @@ android {
         applicationId 'com.flosy.finance'
         minSdk 24
         targetSdk 35
-        versionCode 37
-        versionName '3.6.0'
+        versionCode 38
+        versionName '3.6.1'
     }
 
 
@@ -43,6 +43,19 @@ android {
             dimension 'permissionLevel'
             applicationIdSuffix '.direct'
             // Experimental user-opt-in capture: hard-restricted RECEIVE_SMS may be denied.
+        }
+        notify {
+            dimension 'permissionLevel'
+            applicationIdSuffix '.notify'
+            // User-allowed financial notifications ONLY; no SMS receive/read permissions.
+        }
+    }
+
+    // Share reviewed notification/capture classes with the no-SMS Notify flavor.
+    // The notify manifest intentionally registers no SMS receiver or SMS permission.
+    sourceSets {
+        notify {
+            java.srcDirs += ['src/direct/java']
         }
     }
 

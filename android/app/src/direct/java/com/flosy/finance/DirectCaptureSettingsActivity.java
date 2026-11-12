@@ -22,6 +22,7 @@ import android.widget.Toast;
 /** Native opt-in screen; it never requests bank credentials. */
 public final class DirectCaptureSettingsActivity extends Activity {
     private static final int SMS_REQUEST=101;
+    private final boolean notificationsOnly="notify".equals(BuildConfig.FLAVOR);
     private LinearLayout layout;
     private EditText senders,apps;
     private CheckBox consent;
@@ -34,12 +35,14 @@ public final class DirectCaptureSettingsActivity extends Activity {
         layout.setPadding(25,25,25,25);
         layout.setBackgroundColor(Color.WHITE);
         scroll.addView(layout);setContentView(scroll);
-        label("فلوسي — التقاط مباشر بدون Automate",22);
-        label("جرّب على هاتفك فقط. تابع مرسلي البنوك والتطبيقات التي تختارها. لا نقرأ الرسائل القديمة.",14);
-        label("المرسلون الحقيقيون (مفصولون بفاصلة)",14);
+        label(notificationsOnly?"فلوسي — إشعارات مالية بدون صلاحيات SMS":"فلوسي — التقاط مباشر بدون Automate",22);
+        label(notificationsOnly?
+            "نسخة تجربة للإشعارات المسموح بها فقط. لا تقرأ صندوق SMS، وقد تحتاج موافقة Android على الوصول للإشعارات. الرسائل النصية لا تُستورد إلا إذا ظهرت كإشعار من تطبيق رسائل مسموح به.":
+            "جرّب على هاتفك فقط. تابع مرسلي البنوك والتطبيقات التي تختارها. لا نقرأ الرسائل القديمة.",14);
+        label(notificationsOnly?"مرسلو البنوك المسموحون من إشعارات تطبيق الرسائل (اختياري)":"المرسلون الحقيقيون (مفصولون بفاصلة)",14);
         senders=new EditText(this);
         senders.setHint("CIB,NBE");senders.setText(AutoRelayStore.senders(this));layout.addView(senders);
-        label("حزم تطبيقات الإشعارات المالية",14);
+        label("حزم تطبيقات الإشعارات المالية المسموح بها (مثال InstaPay أو تطبيق الرسائل)",14);
         apps=new EditText(this);
         apps.setHint("com.egyptianbanks.instapay");apps.setText(AutoRelayStore.apps(this));layout.addView(apps);
         consent=new CheckBox(this);consent.setText("أوافق على التقاط الأحداث من هذه المصادر فقط");
@@ -51,7 +54,7 @@ public final class DirectCaptureSettingsActivity extends Activity {
             consent.setChecked(ok&&consent.isChecked());
             toast(ok?"تم الحفظ؛ امنح الصلاحيات من الخطوات التالية":"أضف مصدرًا أولًا");
         });
-        button("منح إذن SMS للرسائل الجديدة",()->{
+        if(!notificationsOnly)button("منح إذن SMS للرسائل الجديدة",()->{
             if(!AutoRelayStore.directEnabled(this)||AutoRelayStore.senders(this).isEmpty()){
                 toast("فعّل الموافقة وحدد مرسلًا أولًا");return;
             }
@@ -67,20 +70,23 @@ public final class DirectCaptureSettingsActivity extends Activity {
             catch(Exception e){toast("إعدادات الإشعارات غير متاحة");}
         });
         button("فحص الصلاحيات",()->{
-            boolean sms=checkSelfPermission(Manifest.permission.RECEIVE_SMS)==PackageManager.PERMISSION_GRANTED;
+            boolean sms=!notificationsOnly&&checkSelfPermission(Manifest.permission.RECEIVE_SMS)==PackageManager.PERMISSION_GRANTED;
             boolean notif=false;
             if(Build.VERSION.SDK_INT>=27){
                 NotificationManager nm=(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
                 notif=nm!=null&&nm.isNotificationListenerAccessGranted(
                     new ComponentName(this,DirectNotificationListener.class));
             }
-            toast("SMS: "+(sms?"ممنوح":"غير ممنوح")+"، الإشعارات: "+(notif?"ممنوحة":"غير مؤكدة"));
+            toast(notificationsOnly?"لا توجد صلاحيات SMS مطلوبة؛ وصول الإشعارات: "+(notif?"ممنوح":"غير ممنوح"):
+                "SMS: "+(sms?"ممنوح":"غير ممنوح")+"، الإشعارات: "+(notif?"ممنوحة":"غير مؤكدة"));
         });
         button("إيقاف الاستيراد ومسح المرشحات",()->{
             AutoRelayStore.setDirectEnabled(this,false);AutoRelayStore.clear(this);
             consent.setChecked(false);toast("تم إيقاف الالتقاط");
         });
-        label("Android قد يمنع RECEIVE_SMS لأنه إذن مقيد، حتى مع موافقتك. هذه نسخة Lab وغير معتمدة لمتجر Google Play. لا تُعطّل حماية الهاتف.",12);
+        label(notificationsOnly?
+          "يظل لدى Android وPlay Protect الحق في تقييد منح الوصول للإشعارات أو التثبيت. لا تُعطّل حماية الهاتف. الفواتير والصوت وإدخال المعاملات يدويًا يظلون متاحين.":
+          "Android قد يمنع RECEIVE_SMS لأنه إذن مقيد، حتى مع موافقتك. هذه نسخة Lab وغير معتمدة لمتجر Google Play. لا تُعطّل حماية الهاتف.",12);
     }
     private void label(String text,int size){
         TextView t=new TextView(this);t.setText(text);t.setTextSize(size);
