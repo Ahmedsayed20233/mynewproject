@@ -30,7 +30,7 @@ public final class AutoRelayStore {
     private AutoRelayStore(){}
     private static final String PREFS="flosy_safe_automate_v1";
     private static final String CRYPTO="FlosySafeRelayAesGcmV1";
-    private static final String ENABLE="enabled",TOKEN_HASH="pair_hash",QUEUE="queue";
+    private static final String ENABLE="enabled",TOKEN_HASH="pair_hash",QUEUE="queue",DIRECT_ENABLED="direct_capture_enabled";
     // Diagnostic metadata only: never persist sender, message, account number or token.
     private static final String LAST_DELIVERY="last_delivery_code";
     private static final String LAST_DELIVERY_AT="last_delivery_at";
@@ -68,6 +68,17 @@ public final class AutoRelayStore {
     private static final Pattern EMAIL=Pattern.compile("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}",Pattern.CASE_INSENSITIVE);
     private static SharedPreferences p(Context c){
         return c.getApplicationContext().getSharedPreferences(PREFS,Context.MODE_PRIVATE);
+    }
+    public static boolean directEnabled(Context c){return p(c).getBoolean(DIRECT_ENABLED,false);}
+    public static void setDirectEnabled(Context c,boolean enabled){
+        p(c).edit().putBoolean(DIRECT_ENABLED,enabled).commit();
+    }
+    public static boolean allowedNativeApp(Context c,String pkg){
+        String app=String.valueOf(pkg==null?"":pkg).toLowerCase(Locale.ROOT);
+        return directEnabled(c)&&allowed(app,apps(c));
+    }
+    public static boolean allowedNativeSender(Context c,String sender){
+        return directEnabled(c)&&allowed(norm(sender),senders(c));
     }
     public static boolean paired(Context c){
         return p(c).getBoolean(ENABLE,false)&&p(c).contains(TOKEN_HASH);
@@ -177,9 +188,22 @@ public final class AutoRelayStore {
         if(!p(c).edit().putString(QUEUE,Base64.encodeToString(payload,Base64.NO_WRAP)).commit())
             throw new IllegalStateException("Encrypted queue not saved");
     }
-    /** All incoming data is untrusted, even with the pairing secret. */
+    /** Paired Automate events preserve token verification. */
     public static synchronized boolean accept(Context c,String token,String source,String sender,String text,long when){
         if(!verify(c,token))return outcome(c,"invalid_pair_token",false);
+        return acceptValidated(c,source,sender,text,when);
+    }
+    /** System broadcast/service entry, requires explicit opt-in and exact owner allowlist. */
+    public static synchronized boolean acceptDirect(Context c,String source,String sender,String text,long when){
+        if(!directEnabled(c))return outcome(c,"direct_disabled",false);
+        if("sms".equals(source)){
+            if(!allowedNativeSender(c,sender))return outcome(c,"sender_not_allowed",false);
+        }else if("notification".equals(source)){
+            if(!allowedNativeApp(c,sender))return outcome(c,"sender_not_allowed",false);
+        }else return outcome(c,"invalid_source",false);
+        return acceptValidated(c,source,sender,text,when);
+    }
+    private static boolean acceptValidated(Context c,String source,String sender,String text,long when){
         if(!sourceAllowed(c,source,sender))return outcome(c,"sender_not_allowed",false);
         if(text==null||text.trim().isEmpty()||text.length()>2000)
             return outcome(c,"invalid_message",false);
