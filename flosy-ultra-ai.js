@@ -5,7 +5,7 @@
  */
 (function(w,d){"use strict";
  const id=x=>d.getElementById(x),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
- let summary=null,C=null,core=null,started=false,voiceEnabled=false,loopEnabled=false,startedUtterance=false,listening=false;
+ let summary=null,C=null,core=null,started=false,voiceEnabled=false,loopEnabled=false,startedUtterance=false,listening=false,languageMode="local";
  const D=()=>w.FLOSY_ULTRA_DATA;
  const chat=()=>id("aiChatContainer");
  function persona(){
@@ -21,6 +21,7 @@
      '<button type="button" id="flosyAiMic">🎤 اتكلم معايا</button>'+
      '<button type="button" id="flosyAiSpeak" aria-pressed="false">🔈 الرد بالصوت</button>'+
      '<button type="button" id="flosyAiLoop" aria-pressed="false">🔁 محادثة مستمرة</button>'+
+     '<button type="button" id="flosyAiLanguage">✨ LLM اختياري</button>'+
      '<button type="button" id="flosyAiStop">⏹ إيقاف</button>'+
     '</div><span id="flosyAiVoiceStatus" class="ultra-ai-status" role="status"></span></div>';
   if(sc)sc.insertBefore(bar,sc.firstChild);
@@ -43,6 +44,16 @@
    id("flosyAiSpeak").classList.toggle("active",voiceEnabled);
    if(loopEnabled){setStatus("المحادثة المستمرة مفعّلة باختيارك. اضغط الميكروفون للبدء.");}
    else setStatus("المحادثة المستمرة متوقفة");
+  });
+  id("flosyAiLanguage").addEventListener("click",()=>{
+    if(languageMode==="gemini"){
+      languageMode="local";id("flosyAiLanguage").classList.remove("active");
+      setStatus("رجعنا للتحليل المحلي بدون إرسال أي أسئلة");return;
+    }
+    if(!C?.getSession?.())return setStatus("لازم تسجّل الدخول أولًا علشان تستخدم Gemini Free الاختياري.");
+    if(!w.confirm("وضع LLM الاختياري ممكن يبعت سؤالًا عامًا منقّحًا إلى Gemini عبر خادم فلوسي. مش هيبعت أرصدتك التفصيلية. هل توافق؟"))return;
+    languageMode="gemini";id("flosyAiLanguage").classList.add("active");
+    setStatus("تم اختيار Gemini Free إن كان مفعّلًا على خادمك. المحلي متاح دائمًا.");
   });
   id("flosyAiStop").addEventListener("click",stopAll);
  }
@@ -119,17 +130,31 @@
   }catch{}
   return D()?.answer(question,s)||"خليني أراجع حساباتك بالأرقام المسجلة.";
  }
- function ask(question){
+ async function ask(question){
   const q=String(question||"").trim().slice(0,500);if(!q)return;
   if(!started)activate();
-  listening=false;
-  append("user",q);
-  setStatus("فلوسي بيحلل معاملاتك المسجلة...");
+  listening=false;append("user",q);
+  setStatus(languageMode==="gemini"?"جاري السؤال الآمن إلى LLM الاختياري...":"فلوسي بيحلل معاملاتك المسجلة...");
   let reply;
-  try{reply=respond(q)}catch{reply="حصل خطأ في التحليل المحلي. جرب سؤال عن مصروفاتك أو حساباتك."}
-  append("assistant",reply);setStatus("");
-  speak(reply);
-  return reply;
+  if(languageMode==="gemini"&&core?.FLOSY_AI?.ask){
+   try{
+    const ai=core.FLOSY_AI,mode=core.document.getElementById("flosyAiMode"),
+      consent=core.document.getElementById("flosyAiConsent");
+    if(!C?.getSession?.())throw Error("سجّل الدخول قبل استخدام النموذج اللغوي.");
+    if(!mode||!consent)throw Error("خدمة Gemini غير مجهزة في نسخة فلوسي.");
+    const before=ai.getReplyCount?.()||0;
+    mode.value="gemini";mode.dispatchEvent(new core.Event("change",{bubbles:true}));
+    consent.checked=true;consent.dispatchEvent(new core.Event("change",{bubbles:true}));
+    await ai.ask(q);
+    const after=ai.getReplyCount?.()||0;
+    const last=ai.getLastReply?.();
+    if(after<=before||!last?.content)throw Error("خدمة Gemini غير مفعّلة؛ هستخدم التحليل المحلي.");
+    reply=String(last.content).slice(0,1350);
+   }catch(err){setStatus(err.message);reply=respond(q)}
+  }else{
+   try{reply=respond(q)}catch{reply="فيه مشكلة مؤقتة في التحليل المحلي. جرّب تاني."}
+  }
+  append("assistant",reply);setStatus("");speak(reply);return reply;
  }
  function activate(){
   persona();
