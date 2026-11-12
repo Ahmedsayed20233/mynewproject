@@ -43,7 +43,7 @@ jobs:
       - name: Verify MVP excludes messaging features
         run: |
           set -eu
-          grep -Fq "versionName '3.6.2'" android/app/build.gradle
+          grep -Fq "versionName '3.7.0'" android/app/build.gradle
           grep -Fq "applicationIdSuffix '.mvp'" android/app/build.gradle
           grep -Fq 'tools:node="remove"' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'tools:node="replace"' android/app/src/mvp/AndroidManifest.xml
@@ -53,6 +53,12 @@ jobs:
           if grep -E '<uses-permission[^>]+(READ_SMS|RECEIVE_SMS|SEND_SMS)' android/app/src/mvp/AndroidManifest.xml; then
             echo "MVP must have no SMS permission"; exit 1
           fi
+          grep -Fq 'POST_NOTIFICATIONS' android/app/src/mvp/AndroidManifest.xml
+          grep -Fq 'RECEIVE_BOOT_COMPLETED' android/app/src/mvp/AndroidManifest.xml
+          grep -Fq 'FlosyReminderReceiver' android/app/src/mvp/AndroidManifest.xml
+          grep -Fq 'notifications-enable' android/app/src/main/java/com/flosy/finance/MainActivity.java
+          grep -Fq 'notifications-sync' android/app/src/main/java/com/flosy/finance/MainActivity.java
+          grep -Fq 'setAndAllowWhileIdle' android/app/src/main/java/com/flosy/finance/FlosyReminderScheduler.java
           grep -Fq 'RECORD_AUDIO' android/app/src/main/AndroidManifest.xml
           grep -Fq 'ACTION_CREATE_DOCUMENT' android/app/src/main/java/com/flosy/finance/MainActivity.java
 
@@ -68,25 +74,28 @@ jobs:
           SIGN="$ANDROID_HOME/build-tools/35.0.0/apksigner"
           "$AAPT" dump badging "$APK" | tee /tmp/flosy-mvp-badging.txt
           grep -q "name='com.flosy.finance.mvp'" /tmp/flosy-mvp-badging.txt
-          grep -q "versionName='3.6.2'" /tmp/flosy-mvp-badging.txt
+          grep -q "versionName='3.7.0'" /tmp/flosy-mvp-badging.txt
           "$AAPT" dump permissions "$APK" | tee /tmp/flosy-mvp-permissions.txt
           if grep -E 'android.permission.(READ_SMS|RECEIVE_SMS|SEND_SMS|READ_CALL_LOG|BIND_NOTIFICATION_LISTENER_SERVICE|BIND_ACCESSIBILITY_SERVICE)' /tmp/flosy-mvp-permissions.txt; then
             echo "BLOCKED: MVP APK contains restricted messages/notification permission"; exit 1
           fi
+          grep -q 'android.permission.POST_NOTIFICATIONS' /tmp/flosy-mvp-permissions.txt
+          grep -q 'android.permission.RECEIVE_BOOT_COMPLETED' /tmp/flosy-mvp-permissions.txt
           "$AAPT" dump xmltree "$APK" AndroidManifest.xml > /tmp/flosy-mvp-manifest.txt
+          grep -q 'FlosyReminderReceiver' /tmp/flosy-mvp-manifest.txt
           if grep -E 'AutoRelayReceiver|DirectSmsReceiver|DirectNotificationListener|REVIEW_EXTERNAL_FINANCIAL_EVENT|SMS_RECEIVED|android.intent.action.SEND' /tmp/flosy-mvp-manifest.txt; then
             echo "BLOCKED: MVP APK exports a message import component"; exit 1
           fi
           "$SIGN" verify --verbose "$APK"
           unzip -t "$APK" >/dev/null
           mkdir -p dist
-          cp "$APK" dist/Flosy-MVP-No-Messages-v3.6.2.apk
+          cp "$APK" dist/Flosy-Aurora-MVP-v3.7.0.apk
           ls -lh dist/*.apk
 
       - name: Upload MVP testing APK
         uses: actions/upload-artifact@v4
         with:
-          name: Flosy-MVP-v3.6.2-No-Messages-APK
+          name: Flosy-Aurora-MVP-v3.7.0-Notifications
           path: dist/*.apk
           retention-days: 30
           if-no-files-found: error
@@ -96,13 +105,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="flosy-mvp-v3.6.2"
+          TAG="flosy-aurora-mvp-v3.7.0"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.apk --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$TAG" dist/*.apk \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --title "Flosy MVP v3.6.2 — No SMS or bank notification import" \
-              --notes "Founder-testing Android MVP with manual transactions, receipt OCR, Egyptian Arabic voice entry, account management, analytics, AI assistant and PDF/Excel reports. Package com.flosy.finance.mvp is separate from earlier Flosy installs. The release does not request READ_SMS, RECEIVE_SMS or SEND_SMS; it has no notification listener, bank-message receiver, external relay receiver or text share-import intent. Bank-message import is hidden from MVP UI. Verified by GitHub Actions using aapt, apksigner and ZIP validation. Debug-signed testing build; no guarantee of Play Protect clearance on every Android phone. Requires internet for live hosted UI. Back up existing Flosy financial data before changing apps; the independent package starts with its own local storage. Never disable Play Protect."
+              --title "Flosy Aurora MVP v3.7.0 — New UI and local reminders, no SMS imports" \
+              --notes "Flosy Aurora v3.7.0 founder-testing Android APK: fully revised purple/midnight/cyan/coral RTL design on the connected hosted Flosy site (home, transactions, accounts, budgets, goals, voice, receipts, assistant and reports), updated app icon, and new owner-opt-in LOCAL notifications for recorded unpaid bill/installment dates. Android 13+ requests POST_NOTIFICATIONS on the owner's tap; alarms use inexact AlarmManager, can be delayed by OS battery rules, and reschedule at reboot. No bank SMS/notification reading, READ_SMS, RECEIVE_SMS, SEND_SMS, listener, AutoRelayReceiver, or SMS import intent. Version 3.7.0 package com.flosy.finance.mvp. Android CI verifies merged manifest, permissions, signing and ZIP. APK debug-signed for internal testing; NOT Play-reviewed or physically device-tested. Internet is needed to load/refresh the hosted UI; notifications do not send financial details to remote servers. Existing Flosy MVP installs may have different debug signing: back up and verify sync before changing installations. Never bypass Play Protect."
           fi
