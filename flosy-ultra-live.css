@@ -117,3 +117,20 @@ body.ultra-live *{font-variant-numeric:tabular-nums}
  body.ultra-live .ultra-theme-switch{display:none}
 }
 @media(prefers-reduced-motion:reduce){.sonic-ring,.laser-beam,.ultra-ai-speaking{animation:none!important}}
+
+/* A4 print adapter for the production report; no fake designer cards in export. */
+#ultraPrint{display:none}
+@media print{
+ @page{size:A4;margin:15mm}
+ html,body.ultra-live{background:#fff!important;color:#0F172A!important;
+  overflow:visible!important;height:auto!important;min-height:0!important}
+ body.ultra-live>header,body.ultra-live>main,.ultra-theme-switch,.ultra-loading,
+ #colorSystemModal,#toastBox,#flosyUltraCore{display:none!important}
+ #ultraPrint{display:block!important;position:static!important;inset:auto!important;
+  color:#0F172A!important;background:#fff!important;direction:rtl!important;
+  font-family:Cairo,Tajawal,Arial,sans-serif!important;font-size:12pt!important;
+  padding:0!important;margin:0!important}
+ #ultraPrint h1{font-size:23pt;color:#065F46;margin:0 0 12mm}
+ #ultraPrint h2{font-size:15pt;color:#047857;margin-top:9mm}
+ #ultraPrint p{padding:3mm 0;border-bottom:1px solid #E2E8F0}
+}
