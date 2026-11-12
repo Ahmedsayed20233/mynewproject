@@ -797,9 +797,9 @@ test("Automate relay passes authenticated native request and never auto-saves de
 test("Automate web component and cache have matching version without SMS permissions",()=>{
  const index=fs.readFileSync("index.html","utf8");
  const sw=fs.readFileSync("service-worker.js","utf8");
- assert.match(index,/flosy-automate-relay\.js\?v=3102/);
+ assert.match(index,/flosy-automate-relay\.js\?v=3501/);
  assert.match(index,/flosy-automate-relay\.css\?v=2901/);
- assert.match(sw,/flosy-automate-relay\.js\?v=3102/);
+ assert.match(sw,/flosy-automate-relay\.js\?v=3501/);
  assert.match(sw,/flosy-automate-relay\.css\?v=2901/);
  assert.match(index,/id="flosyAutomateRelayRoot"/);
 });
