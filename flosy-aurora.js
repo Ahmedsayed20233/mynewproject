@@ -33,7 +33,7 @@
   try{
    const a=w.FLOSY_REMINDERS?.upcoming?.();
    if(!Array.isArray(a))return[];
-   return a.filter(x=>x&&!x.paid&&!x.linked && /^\d{4}-\d{2}-\d{2}$/.test(String(x.date)))
+   return a.filter(x=>x&&!x.paid&&!x.linked && Number.isFinite(Number(x.days)) && x.days>=0 && x.days<=7 && /^\d{4}-\d{2}-\d{2}$/.test(String(x.date)))
     .slice(0,12).map(x=>({id:String(x.key||x.date).slice(0,90),
        date:x.date,kind:"bill"}));
   }catch{return[]}
