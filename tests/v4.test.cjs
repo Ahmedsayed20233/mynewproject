@@ -51,13 +51,12 @@ test("Offline trained VoiceNLU recognizes Egyptian Arabic number words and safe 
  assert.equal(v.accountId,"wallet");assert.equal(v.type,"expense");
  assert.equal(v.autoQuality,true);
  assert.ok(v.voiceDetails.confidence>.75);
- c.window.FLOSY_CAPTURE.setAuto("voice",true);
- assert.equal(c.window.FLOSY_CAPTURE.autoRecord(v,"voice"),true);
- assert.equal(c.data.transactions[0].amount,150);
- assert.equal(c.data.transactions[0].voiceDetails.intent,"expense");
- assert.equal(c.data.transactions[0].rawTranscript,undefined);
- assert.equal(c.data.transactions[0].voiceText,undefined);
- assert.equal(c.window.FLOSY_CAPTURE.isDuplicate(v),true);
+ assert.equal(c.window.FLOSY_CAPTURE.setAuto("voice",true),false);
+ assert.equal(c.window.FLOSY_CAPTURE.autoRecord(v,"voice"),false);
+ assert.equal(c.data.transactions.length,0,"voice classifier cannot write without confirmation");
+ assert.equal(v.rawTranscript,undefined);
+ assert.equal(v.voiceText,undefined);
+ assert.equal(c.window.FLOSY_CAPTURE.isDuplicate(v),false);
 });
 test("VoiceNLU safely rejects hypothetical, negated, and own-account transfer utterances",()=>{
  const c=context();load("flosy-voice-nlu.js",c);load("flosy-v4-capture.js",c);
@@ -129,17 +128,15 @@ test("ReceiptML extracts real ZINC-like Arabic receipt with item, invoice and ca
  assert.equal(proposal.receiptDetails.items[0].quantity,1);
  assert.equal(proposal.receiptDetails.items[0].unitPrice,1199);
  assert.equal(proposal.autoQuality,true);
- c.window.FLOSY_CAPTURE.setAuto("receipt",true);
- assert.equal(c.window.FLOSY_CAPTURE.autoRecord(proposal,"receipt"),true);
- const saved=c.data.transactions[0];
- assert.equal(saved.amount,1199);
- assert.equal(saved.receiptDetails.invoiceNumber,"44668");
- assert.equal(saved.receiptDetails.items.length,1);
- // Customer names/raw image/entire OCR transcript are NOT copied.
- assert.equal(saved.receiptDetails.customer,undefined);
- assert.equal(saved.rawOcr,undefined);
+ assert.equal(c.window.FLOSY_CAPTURE.setAuto("receipt",true),false);
+ assert.equal(c.window.FLOSY_CAPTURE.autoRecord(proposal,"receipt"),false);
+ assert.equal(c.data.transactions.length,0,"receipt OCR cannot post without confirmation");
+ assert.equal(proposal.receiptDetails.invoiceNumber,"44668");
+ assert.equal(proposal.receiptDetails.items.length,1);
+ assert.equal(proposal.receiptDetails.customer,undefined);
+ assert.equal(proposal.rawOcr,undefined);
  const duplicate=c.window.FLOSY_CAPTURE.parseReceipt(input+"\nشكرا");
- assert.equal(c.window.FLOSY_CAPTURE.isDuplicate(duplicate),true);
+ assert.equal(c.window.FLOSY_CAPTURE.isDuplicate(duplicate),false);
 });
 test("Saved receipt itemized details are accessible from the transaction table",()=>{
  const html=fs.readFileSync("index.html","utf8");
