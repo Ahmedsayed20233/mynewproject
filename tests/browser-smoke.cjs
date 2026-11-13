@@ -24,7 +24,7 @@ async function startLocal(){
   page=await context.newPage();
   // Never send test data to remote API services.
   await page.route(/https:\/\/(fonts\.googleapis\.com|fonts\.gstatic\.com)/,route=>route.abort());
-  await page.goto(ORIGIN+"/index.html",{waitUntil:"domcontentloaded"});
+  await page.goto(ORIGIN+"/index.html?flosy_core=1",{waitUntil:"domcontentloaded"});
   await page.waitForFunction(()=>window.FLOSY_AI&&window.FLOSY_REPAIR&&window.FLOSY_BRIDGE,{timeout:10000});
 
   // v10 new profiles use neutral settings; no owner's 17k salary/20k initial Visa.
