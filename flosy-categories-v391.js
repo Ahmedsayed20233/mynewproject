@@ -51,15 +51,39 @@
  def("other-income","دخل آخر","الدخل","fa-circle-plus","#0F766E",[])
  ];
  const cash="cash";const transfer=[def("transfer","تحويل بين حساباتي","التحويلات","fa-right-left","#6366F1",[])];
+ expense.push(
+ def("instapay-fees","رسوم إنستاباي والتحويلات","البيت والفواتير","fa-money-bill-transfer","#6366F1",["انستاباي","instapay","رسوم تحويل"]),
+ def("insurance","تأمين طبي وسيارات","الصحة والتعليم","fa-shield-heart","#10B981",["تأمين","تامين","بوليصة"]),
+ def("government","مصالح حكومية","الالتزامات","fa-building-columns","#475569",["مرور","تجديد رخصة","مصلحة حكومية","ضرايب","ضرائب"]),
+ def("maintenance","صيانة وإصلاحات","البيت والفواتير","fa-screwdriver-wrench","#0891B2",["صيانة","سباك","كهربائي","اصلاحات"]),
+ def("childcare","حضانة ومصاريف أطفال","السفر والعلاقات","fa-baby","#D946EF",["حضانة","حفاضات","بامبرز","أطفال"]),
+ def("gaming","ألعاب وأجهزة","التسوق والرفاهية","fa-gamepad","#F97316",["بلايستيشن","ألعاب","جيمز"]),
+ def("petcare","الحيوانات الأليفة","أخرى","fa-paw","#A16207",["قطط","كلاب","طعام حيوانات"])
+ );
+ income.push(
+ def("side-business","مشروع جانبي","الدخل","fa-store","#0D9488",["بيزنس","مشروع جانبي","مبيعات"]),
+ def("rent-income","دخل إيجار","الدخل","fa-house-circle-check","#16A34A",["إيجار داخل","دخل ايجار"]),
+ def("commission-income","عمولات ومبيعات","الدخل","fa-percent","#059669",["عمولة شغل","كوميشن"]),
+ def("pension-income","معاش وتقاعد","الدخل","fa-person-cane","#2563EB",["معاش","راتب تقاعدي"])
+ );
  const all=[...expense,...income,...transfer];
- const groups=kind=>[...new Set((kind==="income"?income:kind==="transfer"?transfer:expense).map(x=>x.group))];
+ const groups=kind=>[...new Set(forType(kind).map(x=>x.group))];
  function normalize(s){return String(s||"").toLowerCase().replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي").replace(/[ًٌٍَُِّْ]/g,"").trim()}
- function forType(type){return type==="income"?income:type==="transfer"?transfer:expense}
+ function forType(type){
+  const base=type==="income"?income:type==="transfer"?transfer:expense;
+  const state=root?.FLOSY_UNIFIED?.state?.();
+  const custom=state?.settings?.customCategoriesV393;
+  const records=Array.isArray(custom)?custom:[];
+  return [...base,...records.filter(c=>c?.type===type&&typeof c.label==="string"&&
+   typeof c.icon==="string"&&/^fa-[a-z-]+$/.test(c.icon)&&
+   /^#[0-9a-fA-F]{6}$/.test(String(c.color)))];
+ }
  function byLabel(value,type){
   const norm=normalize(value);
   if(!norm)return null;
-  return (type?forType(type):all).find(c=>normalize(c.label)===norm||c.id===value)||
-    (type?forType(type):all).find(c=>c.keywords.some(k=>normalize(k)===norm))||null;
+  const candidates=type?forType(type):[...forType("expense"),...forType("income"),...forType("transfer")];
+  return candidates.find(c=>normalize(c.label)===norm||c.id===value)||
+    candidates.find(c=>Array.isArray(c.keywords)&&c.keywords.some(k=>normalize(k)===norm))||null;
  }
  function classify(text,type="expense"){
   const value=normalize(text);
@@ -69,7 +93,7 @@
   // "اشتريت أدوية" must pick pharmacy, not the generic "اشتريت" keyword.
   let best=null,score=-Infinity;
   for(const c of candidates){
-   for(const key of c.keywords){
+   for(const key of c.keywords||[]){
     const token=normalize(key);if(!token||!value.includes(token))continue;
     const generic=["shopping","other","other-income"].includes(c.id);
     const valueScore=token.length-(generic?30:0);
