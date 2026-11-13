@@ -169,7 +169,11 @@
    const parsed=pars(spoken);
    if(!parsed||!parsed.amount||!parsed.type)throw Error("ما فهمتش مبلغ أو نوع إحدى المعاملات");
    if(!["expense","income"].includes(parsed.type))throw Error("تحويل الحسابات يحتاج تحديد المصدر والوجهة");
-   return {...parsed,iconText:spoken,description:contextualName(spoken,parsed),
+   const normalizedSpoken=String(spoken).toLowerCase().replace(/[أإآ]/g,"ا").replace(/ة/g,"ه");
+   const explicitAccount=accounts().find(a=>String(a.name||"").length>=3&&normalizedSpoken.includes(
+    String(a.name).toLowerCase().replace(/[أإآ]/g,"ا").replace(/ة/g,"ه")));
+   return {...parsed,accountId:explicitAccount?.id||defaultAccount()||parsed.accountId,
+    iconText:spoken,description:contextualName(spoken,parsed),
     category:(()=>{
      const precise=w.FLOSY_CATEGORIES?.classify?.(spoken,parsed.type);
      const fallback=w.FLOSY_CATEGORIES?.resolve?.(parsed.category,spoken,parsed.type);
@@ -196,7 +200,8 @@
    throw Error("قراءة الإيصال غير مؤكدة؛ صوّر الإيصال مرة ثانية");
   const details=parsed.receiptDetails||{};
   const items=Array.isArray(details.items)?details.items:[];
-  const rows=[{...parsed,description:sanitizeName(parsed.description||"إيصال"),
+  const rows=[{...parsed,accountId:defaultAccount()||parsed.accountId,
+    description:sanitizeName(parsed.description||"إيصال"),
     category:w.FLOSY_CATEGORIES?.resolve?.(parsed.category,
       items.map(x=>x.name||"").join(" ")+" "+parsed.description,"expense",
       {preferDescription:true})?.label||parsed.category,
