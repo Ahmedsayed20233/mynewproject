@@ -93,6 +93,7 @@ public class MainActivity extends Activity {
     private int expectedWorkbookSize = 0;
     private byte[] pendingWorkbook = null;
     private String pendingWorkbookName = null;
+    private FlosyReportBridge reportBridge = null;
     private boolean relayWakeReceiverRegistered=false;
     private final BroadcastReceiver relayWakeReceiver=new BroadcastReceiver(){
         @Override public void onReceive(Context context,Intent intent){
@@ -116,6 +117,7 @@ public class MainActivity extends Activity {
 
         FrameLayout root = new FrameLayout(this);
         webView = new WebView(this);
+        reportBridge = new FlosyReportBridge(this,webView);
         webView.setBackgroundColor(isMvp()?Color.rgb(11,19,36):Color.WHITE);
         root.addView(webView, new FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
@@ -225,6 +227,10 @@ public class MainActivity extends Activity {
                                 if(!receipt.isEmpty() && receipt.length()<=12000)
                                     exportReceiptText(receipt);
                             }
+                            else if(("xlsx-start".equals(action)||"xlsx-chunk".equals(action)
+                                ||"xlsx-finish".equals(action)||"pdf-start".equals(action)
+                                ||"pdf-chunk".equals(action)||"pdf-finish".equals(action))&&isMvp())
+                                reportBridge.onMessage(action,msg);
                             else if("xlsx-start".equals(action)||"xlsx-chunk".equals(action)
                                 ||"xlsx-finish".equals(action))receiveWorkbookPart(action,msg);
                         });
@@ -956,6 +962,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==FlosyReportBridge.REQ_SAVE_REPORT){
+            if(reportBridge!=null)reportBridge.onActivityResult(resultCode,data);
+            return;
+        }
         if(requestCode==REQ_SAVE_WORKBOOK){
             byte[] payload=pendingWorkbook;pendingWorkbook=null;
             if(resultCode==RESULT_OK&&data!=null&&data.getData()!=null&&payload!=null){
