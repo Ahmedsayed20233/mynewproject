@@ -490,7 +490,7 @@
  }
  function mountCore(){
   const frame=d.createElement("iframe");frame.id="flosyUltraCore";
-  frame.src="./index.html";frame.title="محرك بيانات فلوسي";
+  frame.src="./index.html?flosy_core=1";frame.title="محرك بيانات فلوسي";
   frame.setAttribute("aria-hidden","true");frame.tabIndex=-1;
   frame.style.cssText="position:fixed;inset:auto 0 0;width:1px;height:1px;border:0;opacity:0;pointer-events:none;z-index:-1";
   d.body.appendChild(frame);

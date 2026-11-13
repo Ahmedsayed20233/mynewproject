@@ -5,8 +5,11 @@ on:
     paths:
       - 'index.html'
       - 'flosy-ultra.html'
+      - 'flosy.html'
+      - 'flosy-unified*'
+      - 'tests/unified.test.cjs'
       - 'flosy-ultra-*'
-      - 'tests/ultra.test.cjs'
+      - 'tests/ultra.test.cjs tests/unified.test.cjs'
       - 'flosy-sync-v3.js'
       - 'flosy-phase1.js'
       - 'flosy-next.js'
@@ -79,6 +82,9 @@ jobs:
           node --check flosy-ultra-ai.js
           node --check flosy-ultra-live.js
           node --check flosy-ultra-more.js
+          node --check flosy-unified-ai.js
+          node --check flosy-unified-pages.js
+          node --check flosy-unified.js
           node --check flosy-repair.js
           node --check flosy-assistant-bridge.js
           node --check service-worker.js
