@@ -378,13 +378,13 @@
   }
   if(id===6){
    box.querySelector("#flosyReceiptSave").onclick=()=>{
-    try{a.fromReceiptText(box.querySelector("#flosyReceiptPaste").value);a.go(4)}
+    try{a.fromReceiptText(box.querySelector("#flosyReceiptPaste").value)}
     catch(err){a.notify(err.message)}
    };
   }
   if(id===7){
    box.querySelector("#flosyVoiceTypedForm").onsubmit=e=>{
-    e.preventDefault();try{a.fromVoiceText(new FormData(e.target).get("spoken"));a.go(4)}
+    e.preventDefault();try{a.fromVoiceText(new FormData(e.target).get("spoken"))}
     catch(err){a.notify(err.message)}
    };
   }
