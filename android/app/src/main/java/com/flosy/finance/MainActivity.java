@@ -165,7 +165,7 @@ public class MainActivity extends Activity {
                         JSONObject msg=new JSONObject(raw);
                         final String action=msg.optString("action","");
                         view.post(()->{
-                            if(isMvp() && ("direct-capture-settings".equals(action)
+                            if(!BuildConfig.FINANCIAL_MESSAGE_IMPORT_ENABLED && ("direct-capture-settings".equals(action)
                                 || action.startsWith("relay-")))return;
                             if(isMvp()&&action.startsWith("notifications-")){
                                 if("notifications-enable".equals(action))enableLocalReminders();
@@ -347,10 +347,10 @@ public class MainActivity extends Activity {
                     view.evaluateJavascript("window.FLOSY_NATIVE_ANDROID=true;"
                         + "window.FLOSY_NATIVE_SMS_AVAILABLE="
                         + "false;"
-                        + "window.FLOSY_NATIVE_RELAY_AVAILABLE="+(isMvp()?"false":"true")+";"
-                        + "window.FLOSY_MVP_NO_MESSAGE_IMPORT="+(isMvp()?"true":"false")+";"
+                        + "window.FLOSY_NATIVE_RELAY_AVAILABLE="+(BuildConfig.FINANCIAL_MESSAGE_IMPORT_ENABLED?"true":"false")+";"
+                        + "window.FLOSY_MVP_NO_MESSAGE_IMPORT="+(!BuildConfig.FINANCIAL_MESSAGE_IMPORT_ENABLED?"true":"false")+";"
                         + "window.FLOSY_NATIVE_DIRECT_CAPTURE_AVAILABLE="
-                        + (("direct".equals(BuildConfig.FLAVOR)||"notify".equals(BuildConfig.FLAVOR))?"true":"false") + ";"
+                        + (BuildConfig.FINANCIAL_MESSAGE_IMPORT_ENABLED&&("direct".equals(BuildConfig.FLAVOR)||"notify".equals(BuildConfig.FLAVOR))?"true":"false") + ";"
                         + "window.FLOSY_NATIVE_VOICE_AVAILABLE=true;"
                         + "window.FLOSY_NATIVE_OCR_AVAILABLE=true;"
                         + "window.FLOSY_NATIVE_XLSX_AVAILABLE=true;"
@@ -491,14 +491,14 @@ public class MainActivity extends Activity {
     // Hide the hosted site's optional bank-message import route, without touching
     // the shared live website used by other Flosy builds.
     private void configureMvpWebUi(){
-        if(!isMvp()||webView==null||!pageReady)return;
+        if(BuildConfig.FINANCIAL_MESSAGE_IMPORT_ENABLED||webView==null||!pageReady)return;
         webView.evaluateJavascript("(function(){\n  window.FLOSY_MVP_NO_MESSAGE_IMPORT=true;\n  window.FLOSY_NATIVE_SMS_AVAILABLE=false;\n  window.FLOSY_NATIVE_RELAY_AVAILABLE=false;\n  window.FLOSY_NATIVE_DIRECT_CAPTURE_AVAILABLE=false;\n  var id='flosy-mvp-no-import';\n  var css='[data-page=\"import\"],[data-go=\"import\"],[data-u-go=\"import\"],#page-import{display:none!important}';\n  if(!document.getElementById(id)){\n    var style=document.createElement('style');\n    style.id=id;style.textContent=css;document.head.appendChild(style);\n  }\n  var importer=document.querySelector('#page-import');\n  if(importer&&importer.classList.contains('active')){\n    var home=document.querySelector('[data-page=\"dashboard\"]');\n    if(home)home.click();\n  }\n})()",null);
     }
 
     // Opt-in Android Sharesheet import: only text that the user explicitly shares.
     // Never request READ_SMS or read the user's messages database.
     private void readSharedText(Intent intent) {
-        if (isMvp() || intent == null || !Intent.ACTION_SEND.equals(intent.getAction())) return;
+        if (!BuildConfig.FINANCIAL_MESSAGE_IMPORT_ENABLED || intent == null || !Intent.ACTION_SEND.equals(intent.getAction())) return;
         if (intent.getType() == null || !intent.getType().startsWith("text/plain")) return;
         CharSequence shared = intent.getCharSequenceExtra(Intent.EXTRA_TEXT);
         if (shared != null) {
@@ -1077,7 +1077,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume(){
         super.onResume();
-        if(!isMvp()&&!relayWakeReceiverRegistered){
+        if(BuildConfig.FINANCIAL_MESSAGE_IMPORT_ENABLED&&!isMvp()&&!relayWakeReceiverRegistered){
             try{
                 IntentFilter filter=new IntentFilter("com.flosy.finance.AUTO_RELAY_QUEUE_UPDATED");
                 if(Build.VERSION.SDK_INT>=33)registerReceiver(relayWakeReceiver,filter,Context.RECEIVER_NOT_EXPORTED);
@@ -1087,7 +1087,7 @@ public class MainActivity extends Activity {
         }
         if(webView!=null&&pageReady){
             if(isMvp())webView.post(this::sendAuroraStatus);
-            else webView.post(this::sendRelayStatus);
+            else if(BuildConfig.FINANCIAL_MESSAGE_IMPORT_ENABLED)webView.post(this::sendRelayStatus);
         }
     }
 
