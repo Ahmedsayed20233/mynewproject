@@ -203,7 +203,7 @@
   return h("أهدافي والحصالة", "أي إيداع حقيقي يظهر عبر رصيد حساب الهدف",2)+
    panel("الأهداف",'<div class="flosy-list">'+(gs.map(g=>{
     const account=api()?.summary().accounts?.find(a=>a.id===g.accountId);
-    const amount=account?.balance||0,goal=n(g.target);
+    const amount=account?.balance||0,goal=Number(g.target)||0;
     return '<div class="flosy-panel"><strong>'+esc(g.name||"هدف")+'</strong>'+
      '<p class="flosy-muted">'+money(amount)+' من '+money(goal)+'</p>'+
      '<div class="flosy-progress"><span style="--progress:'+percent(amount,goal)+'%"></span></div></div>';
