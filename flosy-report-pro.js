@@ -23,7 +23,10 @@
  }
  function transfer(kind,bytes,filename){
   if(transferring)throw Error("في ملف بيتجهز حاليًا؛ احفظه أولًا.");
-  if(!w.FLOSY_NATIVE_ANDROID||!w.FLOSY_NATIVE_BRIDGE_AVAILABLE||!w.FlosyNative?.postMessage)return false;
+  const supported=kind==="xlsx"?
+   (w.FLOSY_NATIVE_REPORTS_AVAILABLE===true||w.FLOSY_NATIVE_XLSX_AVAILABLE===true):
+   w.FLOSY_NATIVE_REPORTS_AVAILABLE===true;
+  if(!w.FLOSY_NATIVE_ANDROID||!supported||!w.FLOSY_NATIVE_BRIDGE_AVAILABLE||!w.FlosyNative?.postMessage)return false;
   if(bytes.length<2||bytes.length>5*1024*1024)throw Error("الملف كبير جدًا، جرّب فترة أقصر.");
   transferring=true;
   try{
@@ -94,10 +97,11 @@
    if(bytes.length>3*1024*1024)throw Error("PDF كبير جدًا، اختار فترة أقصر أو نزّل Excel.");
    if(!transfer("pdf",bytes,filename)){
     status("اختر Save as PDF من شاشة الطباعة.");
-    w.print();
+    if(w.FLOSY_NATIVE_ANDROID)w.location.href="flosyapp://print";
+    else w.print();
    }
   }catch(err){status("تعذر التصدير: "+String(err.message||err),true)}
  }
  function nativeResult(kind,ok,message){status((ok?"✓ ":"⚠️ ")+String(message||kind||""),!ok);}
- w.FLOSY_REPORT_PRO={download,period,build,reportHtml,preparePrint,nativeResult,version:"3.9.2"};
+ w.FLOSY_REPORT_PRO={download,period,build,reportHtml,preparePrint,nativeResult,version:"3.9.3"};
 })(window,document);

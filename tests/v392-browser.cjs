@@ -27,6 +27,8 @@ const BASE="http://127.0.0.1:8152";
    window.__msgs=[];
    window.FLOSY_NATIVE_ANDROID=true;
    window.FLOSY_NATIVE_BRIDGE_AVAILABLE=true;
+   window.FLOSY_NATIVE_REPORTS_AVAILABLE=true;
+   window.FLOSY_NATIVE_XLSX_AVAILABLE=true;
    window.FlosyNative={postMessage:x=>window.__msgs.push(JSON.parse(x))};
    api.go(15);
   });

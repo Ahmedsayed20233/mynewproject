@@ -850,3 +850,38 @@ test("Automate web component and cache have matching version without SMS permiss
  assert.match(sw,/flosy-automate-relay\.css\?v=2901/);
  assert.match(index,/id="flosyAutomateRelayRoot"/);
 });
+
+test("Native PDF export sends a complete private report via framed Android document bridge",()=>{
+ const c=context({transactions:[
+  {id:"i1",date:"2026-11-03",type:"income",amount:2000,accountId:"bank",category:"مرتب"},
+  {id:"e1",date:"2026-11-04",type:"expense",amount:75.5,accountId:"wallet",category:"مواصلات"},
+  {id:"t1",date:"2026-11-05",type:"transfer",amount:300,accountId:"bank",category:"تحويل"}
+ ]});
+ c.ctx.TextEncoder=require("node:util").TextEncoder;
+ c.ctx.btoa=binary=>Buffer.from(binary,"binary").toString("base64");
+ c.window.FLOSY_NATIVE_ANDROID=true;
+ c.window.FLOSY_NATIVE_REPORTS_AVAILABLE=true;
+ const messages=[];
+ c.window.FlosyNative={postMessage:raw=>messages.push(JSON.parse(raw))};
+ load("flosy-report-kit.js",c);
+ const kit=c.window.FLOSY_REPORT_KIT,range={start:"2026-11-01",end:"2026-11-30"};
+ assert.equal(kit.saveNativePdf(c.data,range),true);
+ assert.equal(messages[0].action,"pdf-start");
+ assert.equal(messages[0].filename,"Flosy-2026-11-01-2026-11-30.pdf");
+ assert.equal(messages.at(-1).action,"pdf-finish");
+ const parts=messages.slice(1,-1);
+ assert.ok(parts.length>0);
+ assert.ok(parts.every(x=>x.action==="pdf-chunk"&&x.data.length<=9500));
+ const bytes=Buffer.concat(parts.map(x=>Buffer.from(x.data,"base64")));
+ assert.equal(bytes.length,messages[0].size);
+ const report=JSON.parse(bytes.toString("utf8"));
+ assert.equal(report.income,200000);
+ assert.equal(report.expense,7550);
+ assert.equal(report.transfers,30000);
+ assert.equal(report.net,192450);
+ assert.equal(report.rows.length,3);
+ messages.length=0;
+ c.window.FLOSY_NATIVE_REPORTS_AVAILABLE=false;
+ assert.equal(kit.saveNativePdf(c.data,range),false);
+ assert.equal(messages.length,0,"Older APKs must use existing native print, not silent bridge messages");
+});
