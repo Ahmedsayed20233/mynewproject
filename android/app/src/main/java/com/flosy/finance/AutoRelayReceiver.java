@@ -12,7 +12,7 @@ import android.content.Intent;
 public final class AutoRelayReceiver extends BroadcastReceiver {
     public static final String ACTION="com.flosy.finance.REVIEW_EXTERNAL_FINANCIAL_EVENT";
     @Override public void onReceive(Context context,Intent intent) {
-        if(intent==null||!ACTION.equals(intent.getAction()))return;
+        if(!BuildConfig.FINANCIAL_MESSAGE_IMPORT_ENABLED||intent==null||!ACTION.equals(intent.getAction()))return;
         try {
             String text=intent.getStringExtra("text");
             String token=intent.getStringExtra("token");

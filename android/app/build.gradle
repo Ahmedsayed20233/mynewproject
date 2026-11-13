@@ -23,6 +23,8 @@ android {
         targetSdk 35
         versionCode 47
         versionName '3.9.3'
+        // Staged SMS and financial-notification import is intentionally OFF in all APK flavors.
+        buildConfigField 'boolean', 'FINANCIAL_MESSAGE_IMPORT_ENABLED', 'false'
     }
 
 

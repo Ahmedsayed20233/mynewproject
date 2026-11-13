@@ -11,7 +11,7 @@ import android.telephony.SmsMessage;
 /** Only new Android-delivered messages from owner-allowlisted senders. */
 public final class DirectSmsReceiver extends BroadcastReceiver {
     @Override public void onReceive(Context c,Intent event){
-        if(event==null||!Telephony.Sms.Intents.SMS_RECEIVED_ACTION.equals(event.getAction()))return;
+        if(!BuildConfig.FINANCIAL_MESSAGE_IMPORT_ENABLED||event==null||!Telephony.Sms.Intents.SMS_RECEIVED_ACTION.equals(event.getAction()))return;
         if(!AutoRelayStore.directEnabled(c))return;
         if(c.checkSelfPermission(Manifest.permission.RECEIVE_SMS)!=PackageManager.PERMISSION_GRANTED)return;
         SmsMessage[] parts=Telephony.Sms.Intents.getMessagesFromIntent(event);
