@@ -30,13 +30,19 @@ public final class FlosyReminderScheduler {
     static final String ACTION_DAILY="com.flosy.finance.LOCAL_DAILY_INSIGHT";
     private static final int DAILY_ID=43920;
     private static final String PREF="flosy_local_reminders_v1";
-    private static final String ENABLED="enabled",ROWS="rows",PENDING_IDS="pending_ids",DAILY="daily_enabled";
+    private static final String ENABLED="enabled",ROWS="rows",PENDING_IDS="pending_ids",DAILY="daily_enabled",FIRST_NAME="first_name";
     private FlosyReminderScheduler(){}
     private static SharedPreferences prefs(Context c){
         return c.getApplicationContext().getSharedPreferences(PREF,Context.MODE_PRIVATE);
     }
     public static boolean enabled(Context c){return prefs(c).getBoolean(ENABLED,false);}
     public static boolean dailyEnabled(Context c){return prefs(c).getBoolean(DAILY,false);}
+    public static void setFirstName(Context c,String candidate){
+        String safe=String.valueOf(candidate==null?"":candidate)
+            .replaceAll("[^\\p{L} ]","").trim();
+        if(safe.length()>24)safe=safe.substring(0,24);
+        prefs(c).edit().putString(FIRST_NAME,safe).apply();
+    }
     public static boolean permission(Context c){
         return Build.VERSION.SDK_INT<33 ||
             c.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)==PackageManager.PERMISSION_GRANTED;
@@ -83,8 +89,10 @@ public final class FlosyReminderScheduler {
     }
     public static void notifyDaily(Context c){
         if(!enabled(c)||!dailyEnabled(c)||!permission(c))return;
+        String name=prefs(c).getString(FIRST_NAME,"");
         notify(c,"فلوسي AI — اقتراحك المالي اليوم",
-            "صباح الخير! افتح فلوسي علشان تشوف اقتراح اليوم المبني على معاملاتك.");
+            "صباح الخير"+(name.isEmpty()?"":" يا "+name)+
+            "! افتح فلوسي علشان تشوف خطة وتوصية اليوم المبنية على معاملاتك.");
         scheduleDaily(c); // schedule the next local morning; OS may delay in Doze.
     }
     private static void cancel(Context c,boolean erase){
