@@ -108,7 +108,14 @@
   if(!["income","expense","transfer"].includes(x.type)||!(n(x.amount)>0&&n(x.amount)<1e9)||
     !/^\d{4}-\d{2}-\d{2}$/.test(String(x.date||"")))
    throw Error("بيانات الحركة ناقصة، مش هسجل مبلغ غير مؤكد");
-  const accountId=accounts().some(a=>a.id===x.accountId)?x.accountId:defaultAccount();
+  // Do not silently charge another account if a stale/unknown account ID
+  // was supplied by a capture integration. Missing IDs may use an explicit default.
+  if(x.accountId&&!accounts().some(a=>a.id===x.accountId))
+   throw Error("الحساب المحدد غير موجود؛ اختر الحساب الصحيح قبل التسجيل");
+  const cents=Number(x.amount)*100;
+  if(!Number.isFinite(cents)||cents<1||Math.abs(cents-Math.round(cents))>1e-6)
+   throw Error("المبلغ يجب أن يكون بالجنيه والقروش حتى منزلتين فقط");
+  const accountId=x.accountId||defaultAccount();
   if(!accountId)throw Error("اختار حساب افتراضي من الخدمات أو أضف حساب أولًا");
   if(x.type==="transfer"&&(!x.targetAccountId||x.targetAccountId===accountId||
    !accounts().some(a=>a.id===x.targetAccountId)))throw Error("التحويل لازم حسابين مختلفين");
