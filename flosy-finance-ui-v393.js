@@ -42,6 +42,7 @@
     '<div class="fin393-grid">'+field("المرتب الشهري المتكرر (ج.م)","monthlySalary",settings.monthlySalary)+
      field("دخل إضافي متكرر (ج.م)","recurringExtraIncome",settings.recurringExtraIncome||0)+
      field("مصاريف معيشة أساسية متغيرة (ج.م)","essentialVariableSpend",settings.essentialVariableSpend||0)+
+     field("ميزانية الصرف الاختياري الشهري","monthlyDiscretionarySpend",settings.monthlyDiscretionarySpend||0)+
      field("احتياطي نقدي متاح للطوارئ","emergencyCash",settings.emergencyCash||0)+
      field("أشهر صندوق الطوارئ (3–12)","emergencyMonths",settings.emergencyMonths||3)+
      field("هامش أمان شهري قبل الاستثمار","minimumMonthlyBuffer",settings.minimumMonthlyBuffer||0)+
@@ -76,7 +77,7 @@
    '<div class="fin393-bento">'+metric("الدخل الشهري المتكرر",p.predictableIncome,"fa-money-bill-wave")+
     metric("الالتزامات الشهرية",p.fixedSum,"fa-calendar-check")+
     metric("المعيشة الأساسية المتغيرة",p.essentials,"fa-basket-shopping")+
-    metric("الفائض قبل هامش الأمان",p.margin,"fa-piggy-bank")+'</div>'+
+    metric("الفائض قبل الادخار",p.margin,"fa-piggy-bank")+'</div>'+
    panel("الخطة المقترحة بالحساب",'<div class="fin393-advice">'+
      '<div><span>هدف الطوارئ ('+p.goalMonths+' أشهر)</span><strong>'+money(plan.emergencyTarget)+'</strong></div>'+
      '<div><span>الفجوة عن الهدف</span><strong>'+money(plan.emergencyGap)+'</strong></div>'+
@@ -303,7 +304,7 @@
  function bindFinance(id,host){
   if(id===17){
    wireForm(host,"fin393ProfileForm",f=>{
-    const numbers=["monthlySalary","recurringExtraIncome","essentialVariableSpend","emergencyCash",
+    const numbers=["monthlySalary","recurringExtraIncome","essentialVariableSpend","monthlyDiscretionarySpend","emergencyCash",
       "emergencyMonths","minimumMonthlyBuffer","investmentHorizonMonths"];
     const entries={};for(const k of numbers)entries[k]=positive(f.get(k),k);
     if(entries.emergencyMonths<3||entries.emergencyMonths>12)throw Error("صندوق الطوارئ من 3 إلى 12 شهر");
