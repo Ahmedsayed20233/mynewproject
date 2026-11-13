@@ -16,6 +16,10 @@ on:
       - 'flosy-ultra.html'
       - 'flosy.html'
       - 'flosy-unified*'
+      - 'flosy-ux-v391.*'
+      - 'flosy-categories-v391.js'
+      - 'flosy-legacy-theme-v391.css'
+      - 'tests/v391-browser.cjs'
       - 'tests/unified-browser.cjs'
       - 'flosy-ultra-*'
       - 'tests/ultra-browser.cjs'
@@ -46,6 +50,8 @@ jobs:
         run: node tests/ultra-browser.cjs
       - name: Verify unified 20-screen four-theme app and live ledger
         run: node tests/unified-browser.cjs
+      - name: Verify v3.9.1 editable transactions, voice, OCR and four-theme settings
+        run: node tests/v391-browser.cjs
       - name: Save successful desktop/mobile screenshot preview
         if: success()
         uses: actions/upload-artifact@v4
