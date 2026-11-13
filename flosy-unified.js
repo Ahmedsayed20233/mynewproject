@@ -181,7 +181,9 @@
  function fromVoiceText(text){
   const gate=w.FLOSY_VOICE_SAFETY_V2,review=w.FLOSY_CAPTURE_REVIEW_V2;
   if(!gate?.analyzeBatch||!review?.open)throw Error("واجهة مراجعة الصوت لم تُحمّل؛ لم يتم حفظ شيء");
-  const items=gate.analyzeBatch(text,accounts(),date());
+  const items=gate.analyzeBatch(text,accounts(),date()).map(p=>({...p,
+   category:w.FLOSY_CATEGORIES?.classify?.(p.text,p.intent)?.label||
+     (p.intent==="income"?"دخل آخر":p.intent==="transfer"?"تحويل داخلي":"مشتريات")}));
   review.open({items,kind:"voice",accounts:accounts(),save:rows=>postBatch(rows,"flosy39_voice_confirmed"),
     onSaved:saved=>{notify("تم تسجيل "+saved.length+" عملية بعد موافقتك");go(4)}});
   return items;
