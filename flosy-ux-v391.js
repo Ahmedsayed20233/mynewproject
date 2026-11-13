@@ -74,11 +74,13 @@
    '<button class="flosy-btn flosy-btn-secondary" id="fxEditClose" type="button">إلغاء</button></div></form></dialog>';
  }
  function categoriesMarkup(type,selected){
-  const list=K.forType(type);
-  return '<div class="fx-category-grid">'+list.map(c=>
-   '<button type="button" data-fx-cat="'+html(c.label)+'" aria-pressed="'+(c.label===selected)+'" '+
-   'style="--cat:'+c.color+'"><span class="fx-cat-icon">'+icon(c.icon)+'</span>'+
-   '<span>'+html(c.label)+'</span></button>').join("")+'</div>';
+  const list=K.forType(type),groups=K.groups(type);
+  return '<div class="fx-category-grid">'+groups.map(g=>
+   '<div class="fx-category-group-label">'+html(g)+'</div>'+
+   list.filter(c=>c.group===g).map(c=>
+    '<button type="button" data-fx-cat="'+html(c.label)+'" aria-pressed="'+(c.label===selected)+'" '+
+    'style="--cat:'+c.color+'"><span class="fx-cat-icon">'+icon(c.icon)+'</span>'+
+    '<span>'+html(c.label)+'</span></button>').join("")).join("")+'</div>';
  }
  function manualPage(){
   const existing=accounts(),account=U()?.defaultAccount()||existing[0]?.id||"";
@@ -265,6 +267,14 @@
    if(!K.byLabel(selected,kind)){selected=K.forType(kind)[0]?.label||"";get("category").value=selected}
    catBox.innerHTML=categoriesMarkup(kind,selected);
    catBox.querySelectorAll("[data-fx-cat]").forEach(b=>b.hidden=!K.normalize(b.dataset.fxCat).includes(q));
+   catBox.querySelectorAll(".fx-category-group-label").forEach(group=>{
+    let next=group.nextElementSibling,any=false;
+    while(next&&!next.matches(".fx-category-group-label")){
+     if(!next.hidden)any=true;
+     next=next.nextElementSibling;
+    }
+    group.hidden=!any;
+   });
    box.querySelector("#fxCategoryCount").textContent="· "+countText(K.forType(kind).length)+" فئة";
    const c=K.byLabel(selected,kind);
    box.querySelector("#fxSelectedCategory").innerHTML=c?'<span style="--cat:'+c.color+'">'+icon(c.icon)+' '+html(c.label)+'</span>':"";
