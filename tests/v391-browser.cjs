@@ -58,33 +58,35 @@ const BASE="http://127.0.0.1:8141";
   await page.locator("[data-fx-delete]").first().click();
   assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length),0);
   assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.summary().total),600000);
-  // Voice auto post uses the real Egyptian NLU and the same ledger without confirmation.
+  // Voice: no ledger effect until an explicit human confirmation.
   await page.evaluate(()=>window.FLOSY_UNIFIED.go(7));
-  await page.locator("#fxVoiceAccount").selectOption("qa-cash-391");
+  await page.evaluate(()=>window.FLOSY_CAPTURE.receiveNativeVoice("دفعت 75 جنيه قهوة من الكاش"));
+  assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length),0);
+  assert.equal(await page.locator("#flosyReviewOverlayV2").count(),1);
+  await page.locator('#flosyV2Form [name="account-0"]').selectOption("qa-cash-391");
+  await page.locator("#flosyV2Form").evaluate(el=>el.requestSubmit());
+  assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length),1);
+  const savedVoice=await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions[0]);
+  assert.equal(savedVoice.accountId,"qa-cash-391");
+  assert.equal(savedVoice.category,"قهوة وكافيهات");
+  assert.equal(savedVoice.icon,"fa-mug-hot");
   await page.evaluate(()=>window.FLOSY_CAPTURE.receiveNativeVoice("دفعت 75 جنيه قهوة من الكاش"));
   assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length),1);
-  assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions[0].category),"قهوة وكافيهات");
-  assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions[0].icon),"fa-mug-hot");
-  assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions[0].accountId),"qa-cash-391",
-    "voice must respect the user's chosen account");
-  const before=await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length);
-  await page.evaluate(()=>window.FLOSY_CAPTURE.receiveNativeVoice("دفعت 75 جنيه قهوة من الكاش"));
-  assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length),before,
-    "repeated speech callbacks must not double-charge");
-  // OCR text should auto-book if parser can establish total; Arabic image path must
-  // be exercised using a stub local extractor, not a real network call.
+  await page.locator("[data-v2-cancel]").first().click();
+  // Bilingual OCR extracted text is preview-only before the owner chooses an account.
   await page.evaluate(()=>window.FLOSY_UNIFIED.go(6));
-  await page.locator("#fxReceiptAccount").selectOption("qa-cash-391");
   const receipt="CAFE CAMPUS\nDate: 13/11/2026\nTOTAL: EGP 125.00";
-  const posted=await page.evaluate(async receipt=>{
-   window.FLOSY_UNIFIED.core().FLOSY_REPAIR.extractForUnified=async(img,latin)=>receipt;
-   await window.FLOSY_REPAIR.receiveNativeReceiptImage("data:image/jpeg;base64,/9j/2w==","");
-   return window.FLOSY_UNIFIED.state().transactions.map(x=>({amount:x.amount,source:x.source}));
+  await page.evaluate(async receipt=>{
+    window.FLOSY_UNIFIED.core().FLOSY_REPAIR.extractForUnified=async()=>receipt;
+    await window.FLOSY_REPAIR.receiveNativeReceiptImage("data:image/jpeg;base64,/9j/2w==","");
   },receipt);
-  assert.ok(posted.some(x=>x.amount===125&&x.source==="flosy39_receipt_auto"),
-    "bilingual photo route must auto-book to same ledger");
+  assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length),1);
+  assert.equal(await page.locator("#flosyReviewOverlayV2").count(),1);
+  await page.locator('#flosyV2Form [name="account-0"]').selectOption("qa-cash-391");
+  await page.locator("#flosyV2Form").evaluate(el=>el.requestSubmit());
   const savedReceipt=await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.find(x=>x.amount===125));
-  assert.equal(savedReceipt.accountId,"qa-cash-391","OCR must use chosen account");
+  assert.equal(savedReceipt.accountId,"qa-cash-391");
+  assert.equal(savedReceipt.source,"flosy39_receipt_confirmed");
   await page.evaluate(()=>window.FLOSY_UNIFIED.go(5));
   assert.ok((await page.locator(".fx-category-group-label").count())>=8,"grouped category table");
   await page.evaluate(()=>window.FLOSY_UNIFIED.go(8));
@@ -101,7 +103,7 @@ const BASE="http://127.0.0.1:8141";
    await page.locator("#flosyLegacyBack").click();
   }
   assert.ok(!errors.some(x=>/TypeError|ReferenceError|SyntaxError/.test(x)),errors.join(" | "));
-  console.log("PASS: v3.9.1 category auto-icons, edit/delete, live balances, voice auto-post, OCR and 4-theme settings");
+  console.log("PASS: v3.9.1 category auto-icons, edit/delete, live balances, confirmed voice/OCR review and 4-theme settings");
  }catch(err){console.error(err);process.exitCode=1}
  finally{if(browser)await browser.close();server.kill()}
 })();
