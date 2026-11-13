@@ -13,6 +13,10 @@ on:
       - 'tests/v391.test.cjs'
       - 'flosy-voice-nlu.js'
       - 'flosy-voice-safety-v2.js'
+      - 'flosy-nlu-compact-vocab.js'
+      - 'flosy-nlu-compact-weights.js'
+      - 'flosy-egyptian-nlu-compact-v2.js'
+      - 'tests/trained-nlu-compact.test.cjs'
       - 'flosy-capture-review-v2.js'
       - 'flosy-capture-review-v2.css'
       - 'tests/voice-safety-v2.test.cjs'
@@ -86,6 +90,9 @@ jobs:
           node --check flosy-report-kit.js
           node --check flosy-v4-capture.js
           node --check flosy-voice-safety-v2.js
+          node --check flosy-nlu-compact-vocab.js
+          node --check flosy-nlu-compact-weights.js
+          node --check flosy-egyptian-nlu-compact-v2.js
           node --check flosy-capture-review-v2.js
           node --check flosy-v4-bank.js
           node --check flosy-v4-wealth.js
@@ -114,4 +121,4 @@ jobs:
           node --check flosy-assistant-bridge.js
           node --check service-worker.js
       - name: Run financial safety regression suite
-        run: node --test tests/voice-safety-v2.test.cjs tests/phase1.test.cjs tests/v4.test.cjs tests/offline-cache.test.cjs tests/direct-capture-ui.test.cjs tests/ai-analytics.test.cjs tests/report-kit.test.cjs tests/aurora.test.cjs tests/ultra.test.cjs tests/unified.test.cjs tests/v391.test.cjs tests/v392.test.cjs tests/v393.test.cjs tests/report-kit.test.cjs
+        run: node --test tests/trained-nlu-compact.test.cjs tests/voice-safety-v2.test.cjs tests/phase1.test.cjs tests/v4.test.cjs tests/offline-cache.test.cjs tests/direct-capture-ui.test.cjs tests/ai-analytics.test.cjs tests/report-kit.test.cjs tests/aurora.test.cjs tests/ultra.test.cjs tests/unified.test.cjs tests/v391.test.cjs tests/v392.test.cjs tests/v393.test.cjs tests/report-kit.test.cjs
