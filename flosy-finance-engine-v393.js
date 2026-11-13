@@ -38,6 +38,7 @@
   const salaryConfigured=manualSalary>0;
   const fixed=distinctCommitments(s),fixedSum=fixed.reduce((v,x)=>v+x.amount,0);
   const essentials=num(cfg.essentialVariableSpend);
+  const discretionary=num(cfg.monthlyDiscretionarySpend);
   // Fixed commitments are FORECAST; actual transaction totals are HISTORIC,
   // never summed with fixed commitments to calculate the same month's spending.
   const livingCost=fixedSum+essentials;
@@ -46,7 +47,7 @@
   const margin=salaryConfigured?predictableIncome-livingCost:null;
   const cash=Array.isArray(s?.accounts)?s.accounts.reduce((v,x)=>v+num(x.opening),0):0;
   return {period,actualIncome:income,actualExpense:expense,manualSalary,extras,
-    salaryConfigured,predictableIncome,essentials,commitments:fixed,fixedSum,livingCost,
+    salaryConfigured,predictableIncome,essentials,discretionary,commitments:fixed,fixedSum,livingCost,
     free,margin,monthlyDebtService:fixed.filter(x=>/(?:debt|loan|installment|bnpl|friend)/i.test(x.kind)).reduce((v,x)=>v+x.amount,0),
     emergencyCash:num(cfg.emergencyCash),goalMonths:Math.min(12,Math.max(3,num(cfg.emergencyMonths)||3)),
     risk:["low","medium","high"].includes(cfg.riskTolerance)?cfg.riskTolerance:"unset",
@@ -58,7 +59,7 @@
    ready:false,reason:!p.salaryConfigured?"salary-missing":"commitments-missing",profile:p,
    note:"أدخل مرتبك الشهري ومصاريف المعيشة الأساسية والالتزامات قبل اقتراح أي مبلغ استثمار."};
   const target=p.livingCost*p.goalMonths, gap=Math.max(0,target-p.emergencyCash);
-  const surplus=Math.max(0,p.margin-p.desiredReserve);
+  const surplus=Math.max(0,p.margin-p.desiredReserve-p.discretionary);
   const debtCritical=Boolean(cfg.highInterestDebt);
   // Heuristic prioritization, not a guaranteed-return or one-size-fits-all percentage.
   const emergency=Math.min(surplus,gap);
