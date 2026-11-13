@@ -17,7 +17,7 @@
   let m;
   while((m=action.exec(t))){
    const chunk=t.slice(action.lastIndex,action.lastIndex+65);
-   const value=chunk.match(/^\s*(?:egp|جم|جنيه)\s*([0-9][0-9,.]*)|^\s*([0-9][0-9,.]*)\s*(?:egp\b|جم\b|جنيه(?:ات)?\b)/i);
+   const value=chunk.match(/^\s*(?:egp|جم|جنيه)\s*([0-9][0-9,.]*)|^\s*([0-9][0-9,.]*)\s*(?:egp\b|جم(?=\s|$|[.,،؛])|جنيه(?:ات)?(?=\s|$|[.,،؛]))/i);
    if(!value)continue;
    const raw=value[1]||value[2];
    let cleaned=raw.replace(/,/g,"");
