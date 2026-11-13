@@ -20,7 +20,15 @@
  const tx=()=>U?.cleanTx?.(state())||[];
  const accounts=()=>Array.isArray(state().accounts)?state().accounts:[];
  const balances=()=>{try{return ledger?.FLOSY_PRO?.rowsForAccounts?.()||{}}catch{return{}}};
- const safe=()=>{try{return ledger?.FLOSY_PHASE1?.calculate?.()||null}catch{return null}};
+ const safe=()=>{
+  try{
+   const plan=w.FLOSY_FINANCE_ENGINE?.plan?.(state());
+   if(plan?.ready)return {safe:Math.max(0,plan.profile.margin-plan.buffer),
+      daily:Math.max(0,plan.profile.margin-plan.buffer)/30,
+      source:"financeProfileV393"};
+   return ledger?.FLOSY_PHASE1?.calculate?.()||null;
+  }catch{return null}
+ };
  const summary=(key="month")=>U?.summary?.(state(),U.periodRange(key),balances(),safe())||{};
  const live=fn=>{if(!C)throw Error("دفتر فلوسي لسه بيتحمّل");return C.mutate(fn)};
  const notify=text=>{const target=by("flosyToastMessage");if(target){target.textContent=text;by("flosyToastBox").hidden=false;
