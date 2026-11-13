@@ -43,11 +43,13 @@ jobs:
       - name: Verify MVP excludes messaging features
         run: |
           set -eu
-          grep -Fq "versionName '3.9.3'" android/app/build.gradle
-          grep -Fq "applicationIdSuffix '.unified.v393'" android/app/build.gradle
+          grep -Fq "versionName '3.9.4'" android/app/build.gradle
+          grep -Fq "applicationIdSuffix '.unified.v394'" android/app/build.gradle
           grep -Fq 'tools:node="remove"' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'tools:node="replace"' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'FLOSY_MVP_NO_MESSAGE_IMPORT' android/app/src/main/java/com/flosy/finance/MainActivity.java
+          # v3.9.4 continues to host app JavaScript from GitHub Pages, not from APK assets.
+          grep -Fq 'ROOT + "flosy.html"' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'configureMvpWebUi()' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'if(isMvp()' android/app/src/main/java/com/flosy/finance/MainActivity.java
           if grep -E '<uses-permission[^>]+(READ_SMS|RECEIVE_SMS|SEND_SMS)' android/app/src/mvp/AndroidManifest.xml; then
@@ -81,8 +83,8 @@ jobs:
           AAPT="$ANDROID_HOME/build-tools/35.0.0/aapt"
           SIGN="$ANDROID_HOME/build-tools/35.0.0/apksigner"
           "$AAPT" dump badging "$APK" | tee /tmp/flosy-mvp-badging.txt
-          grep -q "name='com.flosy.finance.unified.v393'" /tmp/flosy-mvp-badging.txt
-          grep -q "versionName='3.9.3'" /tmp/flosy-mvp-badging.txt
+          grep -q "name='com.flosy.finance.unified.v394'" /tmp/flosy-mvp-badging.txt
+          grep -q "versionName='3.9.4'" /tmp/flosy-mvp-badging.txt
           "$AAPT" dump permissions "$APK" | tee /tmp/flosy-mvp-permissions.txt
           if grep -E 'android.permission.(READ_SMS|RECEIVE_SMS|SEND_SMS|READ_CALL_LOG|BIND_NOTIFICATION_LISTENER_SERVICE|BIND_ACCESSIBILITY_SERVICE)' /tmp/flosy-mvp-permissions.txt; then
             echo "BLOCKED: MVP APK contains restricted messages/notification permission"; exit 1
@@ -97,13 +99,13 @@ jobs:
           "$SIGN" verify --verbose "$APK"
           unzip -t "$APK" >/dev/null
           mkdir -p dist
-          cp "$APK" dist/Flosy-Connected-Finance-v3.9.3.apk
+          cp "$APK" dist/Flosy-Connected-Finance-v3.9.4.apk
           ls -lh dist/*.apk
 
       - name: Upload MVP testing APK
         uses: actions/upload-artifact@v4
         with:
-          name: Flosy-Unified-v3.9.3-20-Screens
+          name: Flosy-Unified-v3.9.4-20-Screens
           path: dist/*.apk
           retention-days: 30
           if-no-files-found: error
@@ -113,13 +115,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="flosy-connected-finance-v3.9.3"
+          TAG="flosy-connected-finance-v3.9.4"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.apk --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$TAG" dist/*.apk \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --title "Flosy v3.9.3 — unified 20-screen four-theme finance and AI voice MVP" \
-              --notes "Flosy v3.9.3 founder testing APK. New professional Arabic RTL multi-page A4 PDF is generated on-device and saved through Android Save As, and five-sheet styled OpenXML Excel is saved through the same verified native picker with success/error feedback. Extended Egyptian financial text NLU for دفعت, اشتريت, قمت بعملية شراء, حاسبت, صرفت, دخلي, كسبت; it is lexical rule enrichment over an existing synthetic-text model, NOT a new trained speech/acoustic model. Redesigned grouped searchable services, named personalized daily financial suggestions, opt-in humorous Roast Me, user-enabled local installment and daily 9AM Android notifications, no SMS inbox. Full themed Flosy UI remains hosted with first-load internet and service dependencies. Package com.flosy.finance.unified.v393 uses separate local app storage; old v3.9.1 data do not automatically migrate. Keep old app, backup, verify synced restore. Automated APK checks validate archive, permissions, signing but cannot certify real device or Google Play Protect acceptance. Does not disable Play Protect."
+              --title "Flosy v3.9.4 — Egyptian NLU, safe voice/receipt review, finance MVP" \
+              --notes "Flosy v3.9.4 founder testing APK. New professional Arabic RTL multi-page A4 PDF is generated on-device and saved through Android Save As, and five-sheet styled OpenXML Excel is saved through the same verified native picker with success/error feedback. Extended Egyptian financial text NLU for دفعت, اشتريت, قمت بعملية شراء, حاسبت, صرفت, دخلي, كسبت; the hosted site integrates a trained, quantized 6-intent synthetic text classifier as a second opinion under mandatory owner confirmation, NOT a trained speech/acoustic model. Redesigned grouped searchable services, named personalized daily financial suggestions, opt-in humorous Roast Me, user-enabled local installment and daily 9AM Android notifications, no SMS inbox. Full themed Flosy UI remains hosted with first-load internet and service dependencies. Package com.flosy.finance.unified.v394 uses separate local app storage; old v3.9.1 data do not automatically migrate. Keep old app, backup, verify synced restore. Automated APK checks validate archive, permissions, signing but cannot certify real device or Google Play Protect acceptance. Does not disable Play Protect."
           fi
