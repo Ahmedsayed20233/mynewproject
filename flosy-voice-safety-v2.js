@@ -115,7 +115,10 @@
   function classify(raw){
     const t=normalize(raw);
     if(!t||t.length>500)return {intent:"none",reason:"empty_or_long"};
-    if(uncompleted.test(t)||future.test(t)||question.test(t))return {intent:"none",reason:"not_completed_or_question"};
+    // A cancelled PURCHASE that has been refunded is not a failed refund.
+    const cancelledPurchase=/(?:ملغي|اتلغت)/.test(t)&&refund.test(t);
+    const safetyBlocked=(uncompleted.test(t)&&!cancelledPurchase)||future.test(t)||question.test(t);
+    if(safetyBlocked)return {intent:"none",reason:"not_completed_or_question"};
     if(debt.test(t))return {intent:"debt",reason:"liability_not_income"};
     if(refund.test(t))return {intent:"refund",reason:"refund_requires_link"};
     const self=explicitSelf.test(t);
