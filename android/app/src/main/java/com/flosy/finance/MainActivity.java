@@ -63,7 +63,7 @@ import java.util.Locale;
 
 public class MainActivity extends Activity {
     private static final String ROOT = "https://ahmedsayed20233.github.io/mynewproject/";
-    private static final String HOME = isMvp() ? ROOT + "flosy-ultra.html" : ROOT;
+    private static final String HOME = isMvp() ? ROOT + "flosy.html" : ROOT;
     private static final String HOME_HOST = "ahmedsayed20233.github.io";
     private static final int PICK_FILE = 71;
     private static final int REQ_VOICE = 73;
@@ -429,17 +429,19 @@ public class MainActivity extends Activity {
 
     // App chrome uses the exact user's designer theme tokens; the web controls colors.
     private void updateUltraSystemBars(String theme){
-        int c="light".equals(theme)?Color.rgb(248,250,252):
-            "sapphire".equals(theme)?Color.rgb(12,20,44):Color.rgb(11,19,36);
-        int n="light".equals(theme)?Color.rgb(255,255,255):
-            "sapphire".equals(theme)?Color.rgb(7,11,26):Color.rgb(7,12,23);
-        getWindow().setStatusBarColor(c);
-        getWindow().setNavigationBarColor(n);
-        int flags="light".equals(theme)?View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR:0;
-        if("light".equals(theme)&&Build.VERSION.SDK_INT>=26)
+        final boolean light="clean-light".equals(theme)||"calm-light".equals(theme);
+        int status="calm-light".equals(theme)?Color.rgb(244,247,249):
+            "emerald-dark".equals(theme)?Color.rgb(11,19,36):
+            "serene-dark".equals(theme)?Color.rgb(11,17,30):Color.rgb(248,250,252);
+        int nav=light?Color.rgb(255,255,255):
+            "emerald-dark".equals(theme)?Color.rgb(7,12,23):Color.rgb(6,10,18);
+        getWindow().setStatusBarColor(status);
+        getWindow().setNavigationBarColor(nav);
+        int flags=light?View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR:0;
+        if(light&&Build.VERSION.SDK_INT>=26)
             flags|=View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
         getWindow().getDecorView().setSystemUiVisibility(flags);
-        if(webView!=null)webView.setBackgroundColor(c);
+        if(webView!=null)webView.setBackgroundColor(status);
     }
 
     // Only user-initiated reminders. Android never reads financial-app notifications.

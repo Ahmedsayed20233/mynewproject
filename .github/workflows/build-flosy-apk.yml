@@ -43,8 +43,8 @@ jobs:
       - name: Verify MVP excludes messaging features
         run: |
           set -eu
-          grep -Fq "versionName '3.8.1'" android/app/build.gradle
-          grep -Fq "applicationIdSuffix '.ultra.plus'" android/app/build.gradle
+          grep -Fq "versionName '3.9.0'" android/app/build.gradle
+          grep -Fq "applicationIdSuffix '.unified'" android/app/build.gradle
           grep -Fq 'tools:node="remove"' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'tools:node="replace"' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'FLOSY_MVP_NO_MESSAGE_IMPORT' android/app/src/main/java/com/flosy/finance/MainActivity.java
@@ -58,7 +58,7 @@ jobs:
           grep -Fq 'FlosyReminderReceiver' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'notifications-enable' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'notifications-sync' android/app/src/main/java/com/flosy/finance/MainActivity.java
-          grep -Fq 'ROOT + "flosy-ultra.html"' android/app/src/main/java/com/flosy/finance/MainActivity.java
+          grep -Fq 'ROOT + "flosy.html"' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'ultra-ai-speak' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'ar-EG' android/app/src/main/java/com/flosy/finance/FlosyUltraSpeech.java
           grep -Fq 'TextToSpeech' android/app/src/main/java/com/flosy/finance/FlosyUltraSpeech.java
@@ -77,8 +77,8 @@ jobs:
           AAPT="$ANDROID_HOME/build-tools/35.0.0/aapt"
           SIGN="$ANDROID_HOME/build-tools/35.0.0/apksigner"
           "$AAPT" dump badging "$APK" | tee /tmp/flosy-mvp-badging.txt
-          grep -q "name='com.flosy.finance.ultra.plus'" /tmp/flosy-mvp-badging.txt
-          grep -q "versionName='3.8.1'" /tmp/flosy-mvp-badging.txt
+          grep -q "name='com.flosy.finance.unified'" /tmp/flosy-mvp-badging.txt
+          grep -q "versionName='3.9.0'" /tmp/flosy-mvp-badging.txt
           "$AAPT" dump permissions "$APK" | tee /tmp/flosy-mvp-permissions.txt
           if grep -E 'android.permission.(READ_SMS|RECEIVE_SMS|SEND_SMS|READ_CALL_LOG|BIND_NOTIFICATION_LISTENER_SERVICE|BIND_ACCESSIBILITY_SERVICE)' /tmp/flosy-mvp-permissions.txt; then
             echo "BLOCKED: MVP APK contains restricted messages/notification permission"; exit 1
@@ -93,13 +93,13 @@ jobs:
           "$SIGN" verify --verbose "$APK"
           unzip -t "$APK" >/dev/null
           mkdir -p dist
-          cp "$APK" dist/Flosy-Ultra-Plus-v3.8.1.apk
+          cp "$APK" dist/Flosy-Unified-v3.9.0.apk
           ls -lh dist/*.apk
 
       - name: Upload MVP testing APK
         uses: actions/upload-artifact@v4
         with:
-          name: Flosy-Ultra-Plus-v3.8.1-More-Features
+          name: Flosy-Unified-v3.9.0-20-Screens
           path: dist/*.apk
           retention-days: 30
           if-no-files-found: error
@@ -109,13 +109,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="flosy-ultra-plus-v3.8.1"
+          TAG="flosy-unified-v3.9.0"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.apk --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$TAG" dist/*.apk \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --title "Flosy Ultra+ v3.8.1 — all legacy features restored via More, corrected native status bar and themes" \
-              --notes "Flosy Ultra+ v3.8.1 founder MVP: fixes user-reported issues in designer-authored 12-screen interface. Removes the fake camera/dynamic island, 9:41, Wi-Fi and battery bars. Moves all three theme choices inside an accessible More panel without overlapping screen content. Adds a search-enabled More hub linking 29 finance tools and all original functional pages in the same-origin canonical Flosy engine: complete Flosy AI, advanced reports, budgets, investments, bills, backup/recovery, goals, crises, family planning and more. The original Ultra 12 screens and Egyptian voice AI remain. No SMS import or bank-notification listener permissions. Independent test package com.flosy.finance.ultra.plus to avoid Android debug-signature conflicts with earlier releases: local transactions do NOT automatically migrate across packages; use verified backup/sync. UI is loaded from hosted GitHub Pages, requiring network for first load. Android build checks package/permissions/ZIP/signature; real device installation and audio quality not validated. APK is debug-signed, NOT Google Play certified; do not bypass Play Protect."
+              --title "Flosy v3.9.0 — unified 20-screen four-theme finance and AI voice MVP" \
+              --notes "Flosy v3.9.0 is a unified founder-test MVP for the owner-supplied 20-screen Flosy Pro HTML design and four themes: Clean Light, Emerald Dark, Calm Nordic Teal, Serene Dark. One canonical ledger for all accounts and transactions, automatic posting of unambiguous voice and OCR receipt entries with duplicate suppression and Undo, category/item icons and same theme on advanced legacy features through internal engine. Single Flosy AI accepts Egyptian Arabic voice and returns ledger-derived SVG charts, with no active ChatGPT/Gemini API use from the unified app. The copilot is rule-based analytics, NOT a newly trained foundation LLM. Receipts still depend on Latin OCR in on-device ML Kit and can fail on Arabic-only receipts; no unverified amount is booked. Native optional local bill notifications remain; no SMS inbox/notification-listener permissions. Android package com.flosy.finance.unified is independent from older debug-signed packages: local data will NOT automatically migrate; sync/export your old copy before using this release, and DO NOT uninstall prior app before checking backup. Requires internet for initial hosted UI and CDN assets. CI checks Android package, signing, ZIP and restricted permissions, but physical-device UX is not guaranteed and this release has not been Google Play certified. Do not disable Play Protect."
           fi

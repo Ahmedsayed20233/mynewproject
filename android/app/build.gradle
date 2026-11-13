@@ -21,8 +21,8 @@ android {
         applicationId 'com.flosy.finance'
         minSdk 24
         targetSdk 35
-        versionCode 43
-        versionName '3.8.1'
+        versionCode 44
+        versionName '3.9.0'
     }
 
 
@@ -51,8 +51,8 @@ android {
         }
         mvp {
             dimension 'permissionLevel'
-            applicationIdSuffix '.ultra.plus'
-            // Founder MVP: preserved designer UI and restored all legacy finance features via More. No SMS or bank notification reading.
+            applicationIdSuffix '.unified'
+            // One unified Flosy app with the owner-provided 20 screens, 4 themes, safe auto-capture, AI charts, local bill alerts; no SMS permission.
         }
     }
 
