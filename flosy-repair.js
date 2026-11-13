@@ -317,8 +317,12 @@ async function extractForUnified(imageDataUrl,latinText=""){
  const native=String(latinText||"").trim().slice(0,12000);
  const validData=typeof imageDataUrl==="string" &&
   /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(imageDataUrl)&&imageDataUrl.length<=750000;
- const validFile=typeof Blob!=="undefined"&&imageDataUrl instanceof Blob&&
-  /^image\/(?:jpeg|png|webp)$/.test(imageDataUrl.type)&&imageDataUrl.size<=8*1024*1024;
+ // Blob/File from the unified parent window crosses a same-origin iframe realm:
+ // instanceof iframe.Blob would be false. Accept the standard Blob API instead.
+ const validFile=Boolean(imageDataUrl&&typeof imageDataUrl==="object"&&
+  typeof imageDataUrl.arrayBuffer==="function"&&
+  /^image\/(?:jpeg|png|webp)$/.test(String(imageDataUrl.type||""))&&
+  Number.isFinite(imageDataUrl.size)&&imageDataUrl.size>0&&imageDataUrl.size<=8*1024*1024);
  if(!validData&&!validFile)return native;
  try{
   const lib=await loadOCR();
