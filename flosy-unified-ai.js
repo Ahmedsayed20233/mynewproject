@@ -1,5 +1,5 @@
 /* Flosy unified AI: one voice/chat/chart assistant across every screen.
- * Zero ChatGPT/Gemini API calls. Ledger-based explainable local finance reasoning.
+ * No external model provider calls. Ledger-based explainable local finance reasoning.
  * Not a newly trained LLM: an LLM-ready on-device copilot, with verified arithmetic.
  */
 (function(w,d){"use strict";
