@@ -420,6 +420,7 @@
  }
  function renderAll(){if(!C)return;try{w.FLOSY_UNIFIED_PAGES?.render?.(current)}catch(err){notify("خطأ عرض: "+err.message)}}
  function sendReport(kind){
+  if(w.FLOSY_REPORT_PRO?.download)return w.FLOSY_REPORT_PRO.download(kind);
   const from=by("flosyReportFrom")?.value||U.periodRange("month").start,
         to=by("flosyReportTo")?.value||date(),range={start:from,end:to};
   if(from>to)return notify("نطاق التقرير غير صالح");
