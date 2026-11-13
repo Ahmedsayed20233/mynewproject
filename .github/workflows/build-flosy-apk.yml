@@ -43,8 +43,8 @@ jobs:
       - name: Verify MVP excludes messaging features
         run: |
           set -eu
-          grep -Fq "versionName '3.8.0'" android/app/build.gradle
-          grep -Fq "applicationIdSuffix '.ultra'" android/app/build.gradle
+          grep -Fq "versionName '3.8.1'" android/app/build.gradle
+          grep -Fq "applicationIdSuffix '.ultra.plus'" android/app/build.gradle
           grep -Fq 'tools:node="remove"' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'tools:node="replace"' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'FLOSY_MVP_NO_MESSAGE_IMPORT' android/app/src/main/java/com/flosy/finance/MainActivity.java
@@ -77,8 +77,8 @@ jobs:
           AAPT="$ANDROID_HOME/build-tools/35.0.0/aapt"
           SIGN="$ANDROID_HOME/build-tools/35.0.0/apksigner"
           "$AAPT" dump badging "$APK" | tee /tmp/flosy-mvp-badging.txt
-          grep -q "name='com.flosy.finance.ultra'" /tmp/flosy-mvp-badging.txt
-          grep -q "versionName='3.8.0'" /tmp/flosy-mvp-badging.txt
+          grep -q "name='com.flosy.finance.ultra.plus'" /tmp/flosy-mvp-badging.txt
+          grep -q "versionName='3.8.1'" /tmp/flosy-mvp-badging.txt
           "$AAPT" dump permissions "$APK" | tee /tmp/flosy-mvp-permissions.txt
           if grep -E 'android.permission.(READ_SMS|RECEIVE_SMS|SEND_SMS|READ_CALL_LOG|BIND_NOTIFICATION_LISTENER_SERVICE|BIND_ACCESSIBILITY_SERVICE)' /tmp/flosy-mvp-permissions.txt; then
             echo "BLOCKED: MVP APK contains restricted messages/notification permission"; exit 1
@@ -93,13 +93,13 @@ jobs:
           "$SIGN" verify --verbose "$APK"
           unzip -t "$APK" >/dev/null
           mkdir -p dist
-          cp "$APK" dist/Flosy-Ultra-MVP-v3.8.0.apk
+          cp "$APK" dist/Flosy-Ultra-Plus-v3.8.1.apk
           ls -lh dist/*.apk
 
       - name: Upload MVP testing APK
         uses: actions/upload-artifact@v4
         with:
-          name: Flosy-Ultra-MVP-v3.8.0-AI-Voice
+          name: Flosy-Ultra-Plus-v3.8.1-More-Features
           path: dist/*.apk
           retention-days: 30
           if-no-files-found: error
@@ -109,13 +109,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="flosy-ultra-mvp-v3.8.0"
+          TAG="flosy-ultra-plus-v3.8.1"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.apk --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$TAG" dist/*.apk \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --title "Flosy Ultra v3.8.0 — designer-authored 12 screens, themes and Flosy AI voice" \
-              --notes "Flosy Ultra v3.8.0 founder MVP uses user's exact provided 12-screen HTML design and engineering markdown, with runtime binding to the canonical Flosy ledger. Three themes: Emerald Obsidian, Clean Daylight and Royal Sapphire. Responsive 356x760 reference dimensions, 16px screen padding, actual transactions/accounts/budgets/reports and no fake demo postings. Flosy AI character supports Egyptian Arabic STT and voice answers through Android TextToSpeech (ar-EG when installed), with consent-based optional continuous turns and deterministic finance analytics. NO freshly trained local LLM, no guaranteed human-level Egyptian fluency, and no physical-device speech validation. Existing local bill reminders remain optional; no SMS read, bank notifications, or restricted permissions. Package com.flosy.finance.ultra is independent of older test builds because GitHub debug signing may differ. Requires internet for initial hosted UI and external style assets. QA checks Android manifest, signing and ZIP. Back up finance data before migrating; do not disable Play Protect."
+              --title "Flosy Ultra+ v3.8.1 — all legacy features restored via More, corrected native status bar and themes" \
+              --notes "Flosy Ultra+ v3.8.1 founder MVP: fixes user-reported issues in designer-authored 12-screen interface. Removes the fake camera/dynamic island, 9:41, Wi-Fi and battery bars. Moves all three theme choices inside an accessible More panel without overlapping screen content. Adds a search-enabled More hub linking 29 finance tools and all original functional pages in the same-origin canonical Flosy engine: complete Flosy AI, advanced reports, budgets, investments, bills, backup/recovery, goals, crises, family planning and more. The original Ultra 12 screens and Egyptian voice AI remain. No SMS import or bank-notification listener permissions. Independent test package com.flosy.finance.ultra.plus to avoid Android debug-signature conflicts with earlier releases: local transactions do NOT automatically migrate across packages; use verified backup/sync. UI is loaded from hosted GitHub Pages, requiring network for first load. Android build checks package/permissions/ZIP/signature; real device installation and audio quality not validated. APK is debug-signed, NOT Google Play certified; do not bypass Play Protect."
           fi
