@@ -8,7 +8,7 @@ const C=w.FLOSY_BRIDGE;if(!C)return;
 const el=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 let consent=false,status=null,message="",count=0;
-function available(){return w.FLOSY_NATIVE_AUTO_IMPORT_AVAILABLE===true}
+function available(){return w.FLOSY_FLAGS?.FINANCIAL_MESSAGE_IMPORT_ENABLED===true && w.FLOSY_NATIVE_AUTO_IMPORT_AVAILABLE===true}
 function send(action,extra={}){
  if(!available()||!w.FlosyNative||typeof w.FlosyNative.postMessage!=="function"){
    message="هذا الإجراء يحتاج إصدار Android الذي اجتاز مراجعة Google Play.";render();return false;
@@ -51,12 +51,14 @@ function render(){
  '</section>';
 }
 function nativeStatus(s){
+  if(!available())return;
  if(!s||typeof s!=="object")return;
  status={enabled:!!s.enabled,smsGranted:!!s.smsGranted,notificationGranted:!!s.notificationGranted,
  senders:String(s.senders||"").slice(0,600),apps:String(s.apps||"").slice(0,600),pending:Math.max(0,Number(s.pending)||0)};
  render();
 }
 function nativeQueue(items){
+  if(!available())return; // Ignore callbacks while feature is off.
  const safe=Array.isArray(items)?items.slice(0,60)
    .filter(x=>x&&typeof x.text==="string"&&x.text.length<=650&&
      (x.source==="sms"||x.source==="instapay"||x.source==="bank_notification")&&Number.isFinite(Number(x.date))):[];
