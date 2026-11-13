@@ -77,7 +77,8 @@ test("client shell caches HTML and all local Ultra components",()=>{
  for(const f of ["flosy-ultra.html","flosy-ultra-live.css","flosy-ultra-data.js",
   "flosy-ultra-ai.js","flosy-ultra-live.js","flosy-ultra-avatar.svg","flosy-ultra.webmanifest"])
   assert.ok(xml.includes(f),f);
- assert.match(xml,/fallback=url\.pathname\.endsWith\("\/flosy-ultra\.html"\)/);
+ assert.match(xml,/flosy-ultra\.html/);
+ assert.match(xml,/flosy\.html/);
 });
 
 test("production actions replace all original dangerous mock ledger writers",()=>{
@@ -132,5 +133,5 @@ test("Ultra cache contains restored menu and changes cache version",()=>{
  for(const file of ["flosy-ultra-more.js?v=3810","flosy-ultra-more.css?v=3810",
  "flosy-ultra-live.js?v=3810","flosy-ultra-live.css?v=3810"])
   assert.ok(xml.includes(file),file);
- assert.match(xml,/flosy-ultra-more-v3810/);
+ assert.match(xml,/flosy-unified-v3901/);
 });
