@@ -6,11 +6,16 @@ const {spawn}=require("node:child_process");
 const fs=require("node:fs");
 const {chromium}=require("playwright");
 const {setTimeout:pause}=require("node:timers/promises");
+const http=require("node:http");
+const probe=()=>new Promise(resolve=>{
+ const req=http.get(ORIGIN+"/index.html",res=>{res.resume();resolve(res.statusCode===200)});
+ req.on("error",()=>resolve(false));req.setTimeout(2000,()=>req.destroy());
+});
 const ORIGIN="http://127.0.0.1:8123";
 async function startLocal(){
  const child=spawn("python3",["-m","http.server","8123","--bind","127.0.0.1"],{stdio:"ignore"});
  for(let i=0;i<50;i++){
-  try{const r=await fetch(ORIGIN+"/index.html");if(r.ok)return child}catch{}
+    if(await probe())return child;
   await pause(120);
  }
  child.kill();throw Error("Unable to launch local site");
