@@ -92,3 +92,19 @@ test("negative net worth remains signed and aliases keep canonical modules",()=>
  for(const code of ["wealth:3","smart:14","plan:17","goals:12"])
   assert.ok(shell.includes(code),code);
 });
+
+test("Safe to Spend never treats salary forecast as bank cash",()=>{
+ const s=make();s.settings.financeProfileV393.monthlyDiscretionarySpend=1500;
+ assert.equal(F.safeToSpend(s,0,new Date(2026,10,13),15).safe,0);
+ assert.equal(F.safeToSpend(s,5000,new Date(2026,10,13),15).safe,0);
+ const estimate=F.safeToSpend(s,30000,new Date(2026,10,13),15);
+ assert.equal(estimate.safe,1500);
+ assert.equal(estimate.daily,100);
+ assert.equal(estimate.reserved,11000);
+ s.transactions.push({id:"optional",type:"expense",amount:500,accountId:"cash",
+  categoryId:"coffee",category:"قهوة وكافيهات",date:"2026-11-13"});
+ assert.equal(F.safeToSpend(s,30000,new Date(2026,10,13),15).safe,1000);
+ assert.equal(F.safeToSpend(s,11500,new Date(2026,10,13),15).safe,500);
+ s.settings.financeProfileV393.monthlyDiscretionarySpend=0;
+ assert.equal(F.safeToSpend(s,30000,new Date(2026,10,13),15).ready,false);
+});
