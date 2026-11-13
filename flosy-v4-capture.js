@@ -337,7 +337,7 @@ function isDuplicate(d){
    (d.sourceHash&&x.sourceHash===d.sourceHash)||
    (x.accountId===d.accountId&&x.type===d.type&&x.date===d.date&&+x.amount===+d.amount&&x.description===d.description));
 }
-function accountOpts(){return cash().map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join("")}
+function accountOpts(){return '<option value="">اختر الحساب — مطلوب</option>'+cash().map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join("")}
 function categoryOpts(type){let cats=type==="income"?["مرتب","دخل آخر","هدية"]:["طعام ومشروبات","ترفيه","مشتريات","مواصلات","الهدايا","إيجار","فاتورة الإنترنت","فاتورة شحن رصيد","فاتورة الكهرباء","فواتير","صحة","تعليم","معيشة أخرى"];return cats.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")}
 function draftForm(){
  if(!pending)return '<div class="v4-empty">مفيش معاملة بانتظار المراجعة.</div>';
