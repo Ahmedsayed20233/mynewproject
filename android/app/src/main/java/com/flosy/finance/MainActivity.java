@@ -170,6 +170,8 @@ public class MainActivity extends Activity {
                             if(isMvp()&&action.startsWith("notifications-")){
                                 if("notifications-enable".equals(action))enableLocalReminders();
                                 else if("notifications-status".equals(action))sendAuroraStatus();
+                                else if("notifications-daily-name".equals(action))
+                                    FlosyReminderScheduler.setFirstName(this,msg.optString("name",""));
                                 else if("notifications-daily-enable".equals(action)){
                                     requestedDailyNotifications=true;
                                     enableLocalReminders();
