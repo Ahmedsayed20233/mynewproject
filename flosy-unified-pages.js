@@ -57,6 +57,17 @@
  }
  function home(){
   const s=safeSum(),rows=tx().filter(t=>t.date.slice(0,7)===api().date().slice(0,7)).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,4);
+  const profile=w.FLOSY_FINANCE_ENGINE?.profile?.(full());
+  const hasAccount=(api()?.accounts()||[]).length>0;
+  const hasProfile=Boolean(profile?.salaryConfigured&&profile?.livingCost>0);
+  const hasTransaction=tx().length>0;
+  const setup=!hasAccount||!hasProfile||!hasTransaction?
+   panel("ابدأ مع فلوسي في 3 خطوات",
+    '<p class="flosy-muted">بياناتك بتكملها تدريجيًا؛ مش مطلوب كل التفاصيل في أول مرة.</p>'+
+    '<div class="flosy-list">'+
+    '<button class="flosy-feature" type="button" data-flosy-action="account"><strong>'+(hasAccount?"✓":"①")+' أضف حساب ورصيد افتتاحي</strong></button>'+
+    '<button class="flosy-feature" type="button" data-flosy-screen="17"><strong>'+(hasProfile?"✓":"②")+' سجّل دخلك والتزاماتك</strong></button>'+
+    '<button class="flosy-feature" type="button" data-flosy-screen="5"><strong>'+(hasTransaction?"✓":"③")+' سجّل أول معاملة</strong></button></div>'):"";
   const hero='<section class="hero-card" style="border-radius:22px;padding:18px;margin-bottom:11px">'+
    '<div style="display:flex;justify-content:space-between;align-items:center"><small>إجمالي أرصدتك</small>'+
    '<button class="flosy-btn flosy-btn-secondary" style="min-height:26px;padding:4px 8px" data-flosy-screen="3">حساباتي</button></div>'+
@@ -67,7 +78,7 @@
     '<p style="font-size:11px;margin-top:6px">'+(s.safe===null?"البيانات المالية غير مكتملة؛ لا تعتمد على صفر كحد آمن.":"المتاح تقدير إرشادي من أرصدتك والتزاماتك المسجلة.")+'</p>'+
     '<button type="button" class="flosy-btn flosy-btn-secondary" style="margin-top:7px" data-flosy-screen="17">كيف اتحسب؟ / أكمل ملفي</button></div></section>';
   return '<div class="flosy-screen-top"><div><h2>فلوسك أوضح كل يوم ✦</h2><p>بياناتك الفعلية، بدون أرصدة نموذجية</p></div>'+
-   '<button type="button" class="flosy-back" data-flosy-screen="16">☰ الخدمات</button></div>'+hero+
+   '<button type="button" class="flosy-back" data-flosy-screen="16">☰ الخدمات</button></div>'+hero+setup+
    '<div class="flosy-grid-2" style="margin-bottom:11px">'+metric("الدخل هذا الشهر",s.income)+metric("مصروفات الشهر",s.expense)+'</div>'+
    '<div class="flosy-grid-3" style="margin-bottom:12px">'+
     '<button class="flosy-btn" data-flosy-screen="5">+ معاملة</button>'+
