@@ -44,6 +44,15 @@ jobs:
         run: |
           set -eu
           grep -Fq "versionName '3.9.3'" android/app/build.gradle
+          grep -Fq "FINANCIAL_MESSAGE_IMPORT_ENABLED', 'false'" android/app/build.gradle
+          grep -Fq '!BuildConfig.FINANCIAL_MESSAGE_IMPORT_ENABLED' android/app/src/main/java/com/flosy/finance/AutoRelayReceiver.java
+          grep -Fq '!BuildConfig.FINANCIAL_MESSAGE_IMPORT_ENABLED' android/app/src/direct/java/com/flosy/finance/DirectSmsReceiver.java
+          grep -Fq '!BuildConfig.FINANCIAL_MESSAGE_IMPORT_ENABLED' android/app/src/direct/java/com/flosy/finance/DirectNotificationListener.java
+          if grep -E '<uses-permission[^>]+(READ_SMS|RECEIVE_SMS|SEND_SMS)' android/app/src/direct/AndroidManifest.xml; then
+            echo "Direct prototype is intentionally permission-free for this release"; exit 1
+          fi
+          grep -Fq 'android:enabled="false"' android/app/src/direct/AndroidManifest.xml
+          grep -Fq 'android:enabled="false"' android/app/src/notify/AndroidManifest.xml
           grep -Fq "applicationIdSuffix '.unified.v393'" android/app/build.gradle
           grep -Fq 'tools:node="remove"' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'tools:node="replace"' android/app/src/mvp/AndroidManifest.xml
