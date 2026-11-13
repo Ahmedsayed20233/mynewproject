@@ -327,6 +327,11 @@
    '.btn.primary{background:'+t.primary+'!important;color:white!important;border-radius:12px!important}'+
    '.page:not(.active){display:none!important}.page.active{display:block!important}';
   doc.documentElement.dataset.theme=theme;
+  if(!doc.getElementById("flosyLegacyTheme391")){
+   const link=doc.createElement("link");link.id="flosyLegacyTheme391";
+   link.rel="stylesheet";link.href="./flosy-legacy-theme-v391.css?v=3910";
+   doc.head.appendChild(link);
+  }
   // Original unthemed Gemini/OpenAI controls are never used in the unified app.
   const ai=doc.getElementById("page-ai");
   if(ai&&ai.dataset.flosyRedirect!=="true"){
