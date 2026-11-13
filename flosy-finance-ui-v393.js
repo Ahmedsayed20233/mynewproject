@@ -137,7 +137,9 @@
   return title("مركز الرؤى الذكي","تحليل قابل للتفسير من دفتر واحد بدون معاملات وهمية",16)+
    '<div class="fin393-bento">'+metric("الدخل الفعلي هذا الشهر",p.actualIncome,"fa-money-bill-wave")+
     metric("الإنفاق الفعلي",p.actualExpense,"fa-arrow-trend-down")+
-    metric("تغير الإنفاق عن الشهر الماضي",x.changePct===null?0:x.changePct,"fa-chart-column")+
+    ('<div class="fin393-metric"><span>'+ic("fa-chart-column")+
+     ' تغير الإنفاق عن الشهر الماضي</span><strong>'+
+     (x.changePct===null?"غير متاح":fmt(x.changePct)+"٪")+'</strong></div>')+
     metric("صافي الثروة المسجلة",x.wealth.netWorth,"fa-scale-balanced")+'</div>'+
    panel("تنبيهات وقواعد استباقية",warnings||empty("مفيش تنبيهات مؤكدّة من بياناتك الحالية — راجع اكتمال التسجيل."))+
    panel("ما الذي يستهلك ميزانيتك؟",chart||empty("سجّل معاملات للحصول على رسم بياني حقيقي."))+
@@ -151,15 +153,24 @@
  }
  function wealthPage(){
   const x=getWealth();
-  return title("الثروة الصافية","حسابات + أصول يدوية − ديون، من دفتر فلوسي الحقيقي",16)+
+  return title("الثروة الصافية","حسابات + مراكز ثاندر + أصول أخرى − ديون، من دفتر فلوسي الحقيقي",16)+
    '<div class="fin393-bento">'+metric("إجمالي الحسابات",x.totalCash||0,"fa-building-columns")+
-    metric("الأصول المضافة",x.manualAssets||0,"fa-gem")+
+    metric("مراكز ثاندر (تقييم يدوي)",x.portfolioMarket||0,"fa-chart-line")+
+    metric("أصول خارج المحفظة",x.manualAssets||0,"fa-gem")+
     metric("الديون غير المسددة",x.totalDebt||0,"fa-hand-holding-dollar")+
-    metric("صافي ثروتك التقديري",x.netWorth||0,"fa-chart-line")+'</div>'+
+    metric("صافي ثروتك التقديري",x.netWorth||0,"fa-scale-balanced")+'</div>'+
    panel("الحسابات البنكية والنقدية",'<div class="fin393-list">'+
     x.cash.map(a=>'<div class="fin393-line"><span>'+esc(a.name)+'</span><b>'+money(a.value)+'</b></div>').join("")+
     empty("كل الحسابات تُعرض برصيدها الناتج عن معاملات الدفتر.")+'</div>'+
     '<button class="flosy-btn flosy-btn-secondary" data-flosy-action="account">+ إضافة حساب</button>')+
+   panel("مراكز ثاندر — من سجل الصفقات",
+    '<div class="fin393-list">'+(x.holdings?.length?x.holdings.map(h=>
+     '<div class="fin393-line"><span>'+esc(h.code)+
+      '<small>الكمية '+fmt(h.qty)+' · السعر '+money(h.currentPrice)+
+      (h.pricedManually?" · تسعير يدوي":" · آخر صفقة")+'</small></span><strong>'+
+     money(h.value)+'</strong></div>').join(""):empty("مفيش مراكز استثمار مسجلة على ثاندر."))+
+     '</div><button type="button" class="flosy-btn flosy-btn-secondary" '+
+     'data-flosy-feature="portfolio" data-label="صفقات ثاندر وتحديث أسعار المراكز">فتح سجل الصفقات وتحديث الأسعار</button>')+
    panel("أصول خارج الحسابات — ذهب، دولار، صندوق، عقار",
     '<div class="fin393-list">'+x.assets.map(a=>
      '<div class="fin393-line"><span>'+esc(a.name||"أصل")+
@@ -269,7 +280,11 @@
        selectAccounts()+'</select></label>'+
      '<button class="flosy-btn" type="submit">تسجيل مصروف حقيقي للفرد</button></form>')+
    panel("المديونيات والالتزامات الأسرية",btn(10,"ديون الشلة والأقساط","fa-people-group")+
-    btn(17,"الراتب وخطة البيت","fa-house"));
+    btn(17,"الراتب وخطة البيت","fa-house"))+
+   panel("المشاركة السحابية للعيلة",
+    '<p class="fin393-note">مجموعات ودعوات وصلاحيات لمن تختار. الموازنة الشخصية المحلية لا تتحول تلقائيًا إلى ميزانية مشتركة.</p>'+
+    '<button type="button" class="flosy-btn flosy-btn-secondary" '+
+     'data-flosy-feature="v4-family" data-label="مساحة المشاركة العائلية">فتح مجموعات العيلة والدعوات</button>');
  }
  function customCategoryDialog(){
   const typeOptions=[["expense","مصروف"],["income","دخل"],["obligation","التزام أو قسط"]];
