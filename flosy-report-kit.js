@@ -72,20 +72,57 @@ function printAppendix(state,range){
 }
 const xml=s=>esc(s);
 const utf8=s=>new TextEncoder().encode(s);
-function xmlSheet(grid){
- let out='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView rightToLeft="1" workbookViewId="0"/></sheetViews><sheetData>';
+function xmlSheet(grid,kind){
+ const widths=kind==="المعاملات"?[16,15,29,46,28,22]:kind==="الفئات"?[12,39,23]:
+  kind==="الحسابات"?[40,22,22,22]:kind==="النصائح"?[105]:[43,25];
+ let out='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
+ '<sheetPr><tabColor rgb="'+(kind==="المعاملات"?"FF0E7490":kind==="النصائح"?"FF7C3AED":"FF0D9488")+'"/></sheetPr>'+
+ '<sheetViews><sheetView rightToLeft="1" workbookViewId="0">'+
+ (kind==="الملخص"?'':'<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/>')+
+ '</sheetView></sheetViews><sheetFormatPr defaultRowHeight="24"/><cols>'+
+ widths.map((width,i)=>'<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+width+'" customWidth="1"/>').join("")+
+ '</cols><sheetData>';
  for(let i=0;i<grid.length;i++){
-  out+='<row r="'+(i+1)+'">';
+  out+='<row r="'+(i+1)+'" ht="'+(i===0?35:25)+'" customHeight="1">';
   for(let j=0;j<grid[i].length;j++){
    let n=j+1,col="";while(n>0){n--;col=String.fromCharCode(65+n%26)+col;n=Math.floor(n/26)}
-   const value=grid[i][j],ref=col+(i+1);
-   if(typeof value==="number"&&Number.isFinite(value))out+='<c r="'+ref+'"><v>'+value+'</v></c>';
-   else out+='<c r="'+ref+'" t="inlineStr"><is><t xml:space="preserve">'+xml(value??"")+'</t></is></c>';
+   const value=grid[i][j],ref=col+(i+1),num=typeof value==="number"&&Number.isFinite(value);
+   const style=i===0?1:num?3:(kind==="الملخص"&&j===0?4:2);
+   if(num)out+='<c r="'+ref+'" s="'+style+'"><v>'+value+'</v></c>';
+   else out+='<c r="'+ref+'" t="inlineStr" s="'+style+'"><is><t xml:space="preserve">'+xml(value??"")+'</t></is></c>';
   }
   out+='</row>';
  }
- return out+'</sheetData></worksheet>';
+ const letters=["A","B","C","D","E","F","G","H"];
+ return out+'</sheetData>'+(kind==="الملخص"||grid.length<2?'':
+ '<autoFilter ref="A1:'+letters[Math.max(0,Math.min(7,Math.max(...grid.map(x=>x.length))-1))]+grid.length+'"/>')+
+ '<pageMargins left="0.35" right="0.35" top="0.65" bottom="0.65" header="0.2" footer="0.2"/>'+
+ '</worksheet>';
 }
+function stylesXml(){
+ return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+ '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
+ '<numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.00 &quot;EGP&quot;;[Red](#,##0.00) &quot;EGP&quot;"/></numFmts>'+
+ '<fonts count="3"><font><sz val="11"/><name val="Calibri"/><color rgb="FF1E344C"/></font>'+
+ '<font><b/><sz val="12"/><name val="Calibri"/><color rgb="FFFFFFFF"/></font>'+
+ '<font><b/><sz val="11"/><name val="Calibri"/><color rgb="FF04786C"/></font></fonts>'+
+ '<fills count="4"><fill><patternFill patternType="none"/></fill>'+
+ '<fill><patternFill patternType="gray125"/></fill>'+
+ '<fill><patternFill patternType="solid"><fgColor rgb="FF0D716F"/><bgColor indexed="64"/></patternFill></fill>'+
+ '<fill><patternFill patternType="solid"><fgColor rgb="FFF2F8F8"/><bgColor indexed="64"/></patternFill></fill></fills>'+
+ '<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>'+
+ '<border><left/><right/><top/><bottom style="thin"><color rgb="FFDCE8EA"/></bottom><diagonal/></border></borders>'+
+ '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'+
+ '<cellXfs count="5">'+
+ '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'+
+ '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>'+
+ '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="right" wrapText="1"/></xf>'+
+ '<xf numFmtId="164" fontId="2" fillId="0" borderId="1" xfId="0" applyNumberFormat="1"/>'+
+ '<xf numFmtId="0" fontId="2" fillId="3" borderId="1" xfId="0" applyFill="1" applyFont="1"/>'+
+ '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'+
+ '</styleSheet>';
+}
+
 function workbookFiles(r){
  const sheets=[
   ["الملخص",[["فلوسي — التقرير المالي"],["من",r.range.start],["إلى",r.range.end],["الدخل",r.income/100],["المصروفات",r.expense/100],["التحويلات",r.transfers/100],["الصافي (بدون التحويلات)",r.net/100],["العمليات المكتملة",r.rows.length],["المستبعدة",r.rejected]]],
@@ -96,12 +133,14 @@ function workbookFiles(r){
  ];
  const root='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
  const files=[
-  ["[Content_Types].xml",root+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+sheets.map((_,i)=>'<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join("")+'</Types>'],
+  ["[Content_Types].xml",root+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+sheets.map((_,i)=>'<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join("")+'</Types>'],
   ["_rels/.rels",root+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
   ["xl/workbook.xml",root+'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'+sheets.map((x,i)=>'<sheet name="'+xml(x[0])+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>').join("")+'</sheets></workbook>'],
-  ["xl/_rels/workbook.xml.rels",root+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+sheets.map((_,i)=>'<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>').join("")+'</Relationships>']
+  ["xl/_rels/workbook.xml.rels",root+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+sheets.map((_,i)=>'<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>').join("")+
+ '<Relationship Id="rId'+(sheets.length+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>']
  ];
- sheets.forEach((x,i)=>files.push(["xl/worksheets/sheet"+(i+1)+".xml",xmlSheet(x[1])]));
+ files.push(["xl/styles.xml",stylesXml()]);
+ sheets.forEach((x,i)=>files.push(["xl/worksheets/sheet"+(i+1)+".xml",xmlSheet(x[1],x[0])]));
  return files;
 }
 function crc(bytes){
