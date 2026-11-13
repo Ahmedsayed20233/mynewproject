@@ -108,7 +108,8 @@
     (x.sourceHash&&x.sourceHash===old.sourceHash)||
     (x.type===old.type&&+old.amount===x.amount&&old.accountId===x.accountId&&
      old.date===x.date&&String(old.description||"")===x.description&&
-     String(old.source||"").startsWith("flosy39")));
+     String(old.source||"").startsWith("flosy39")&&
+     Math.abs(Date.now()-Date.parse(old.createdAt||""))<120000));
    if(conflict||seen.has(x.sourceHash))throw Error("العملية دي متسجلة بالفعل؛ منعت تكرار خصم الفلوس");
    seen.add(x.sourceHash);
   }
@@ -215,12 +216,12 @@
    f.classList.toggle("flosy-active",on);f.setAttribute("aria-hidden",String(!on));
    const scroll=f.querySelector(".flosy-section");if(on&&scroll)scroll.scrollTop=0;
   });
-  if(C)renderPage(x);
+  if(C)w.FLOSY_UNIFIED_PAGES?.render?.(x);
   d.querySelectorAll(".bottom-dock button[onclick]").forEach(b=>{
    const route=+(b.getAttribute("onclick")?.match(/goToScreen\((\d+)\)/)?.[1]||0);
    b.classList.toggle("flosy-current",route===x);
   });
-  if(x===8)w.FLOSY_UNIFIED_AI?.mount?.(by("flosyUnifiedAI"));
+  // The unified page owns the assistant mount.
   return x;
  }
  function back(){
@@ -286,7 +287,7 @@
   d.body.appendChild(toast);
   const undo=d.createElement("div");undo.id="flosyUndoBox";undo.className="flosy-undo";undo.hidden=true;
   undo.innerHTML='<span id="flosyUndoText">اتسجلت العملية</span><button type="button" id="flosyUndoButton">تراجع</button>';
-  d.body.appendChild(undo);by("flosyUndoButton").onclick=undo;
+  d.body.appendChild(undo);by("flosyUndoButton").onclick=()=>undo();
   const panel=d.createElement("section");panel.id="flosyLegacyPanel";panel.className="flosy-floating-core";
   panel.setAttribute("aria-hidden","true");
   panel.innerHTML='<div class="flosy-core-titlebar"><button id="flosyLegacyBack" type="button"><i class="fa-solid fa-arrow-right"></i> رجوع</button>'+
@@ -329,7 +330,7 @@
   if(hash===lastHash)return;
   lastHash=hash;renderAll();syncReminders();
  }
- function renderAll(){if(!C)return;try{renderPage(current)}catch(err){notify("خطأ عرض: "+err.message)}}
+ function renderAll(){if(!C)return;try{w.FLOSY_UNIFIED_PAGES?.render?.(current)}catch(err){notify("خطأ عرض: "+err.message)}}
  function sendReport(kind){
   const from=by("flosyReportFrom")?.value||U.periodRange("month").start,
         to=by("flosyReportTo")?.value||date(),range={start:from,end:to};
@@ -365,6 +366,7 @@
   loading.textContent="فلوسي بيجهّز حساباتك...";d.body.appendChild(loading);
   const currentTheme=(()=>{try{return localStorage.getItem("flosy_theme_unified_v39")||"clean-light"}catch{return"clean-light"}})();
   applyTheme(currentTheme);
+  w.FLOSY_ULTRA_AI={nativeSpeechDone:()=>w.FLOSY_UNIFIED_AI?.ttsDone?.()};
   const originalScript=d.querySelectorAll("button[onclick]");
   for(const b of originalScript)if(/simulateWhatsAppBotMsg|payObligationQuick|settleDebtBtn|boostGoal1|executeCompoundVoice|addExtractedTx/.test(b.getAttribute("onclick")||""))b.dataset.mockAction="true";
   // Existing designer navigation is replaced with one-screen navigation; no separate Ultra/pro mode.
