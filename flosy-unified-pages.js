@@ -243,8 +243,9 @@
    panel("التقرير حسب المدة",'<label class="flosy-field">من<input type="date" class="flosy-input" id="flosyReportFrom" value="'+period.start+'"></label>'+
     '<label class="flosy-field">إلى<input type="date" class="flosy-input" id="flosyReportTo" value="'+api().date()+'"></label>'+
     '<div class="flosy-buttonbar">'+
-     '<button class="flosy-btn" data-flosy-action="report" data-kind="pdf">PDF / طباعة</button>'+
-     '<button class="flosy-btn flosy-btn-secondary" data-flosy-action="report" data-kind="excel">Excel (.xlsx)</button></div>')+
+     '<button class="flosy-btn" data-flosy-action="report" data-kind="pdf">تنزيل PDF احترافي</button>'+
+     '<button class="flosy-btn flosy-btn-secondary" data-flosy-action="report" data-kind="excel">تنزيل Excel منسق</button></div>'+
+     '<p id="flosyReportStatus" role="status" aria-live="polite">هيظهر اختيار مكان الحفظ داخل Android، أو التنزيل في المتصفح.</p>')+
    panel("تحليلات وتفاصيل إضافية",feature("reports","التقرير التفصيلي ورسومات الستة أشهر"));
  }
  const services=[
