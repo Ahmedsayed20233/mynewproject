@@ -32,6 +32,8 @@
   for(let i=0;i<tokens.length;i++){bump(tokens[i]);if(i+1<tokens.length)bump(tokens[i]+" "+tokens[i+1])}
   let normSq=0;const fv=[];
   for(const [j,count] of seen){const val=(1+Math.log(count))*(IDF[j]/32);normSq+=val*val;fv.push([j,val])}
+  if(!seen.size)return {intent:"none",confidence:0,uncalibrated:true,canAutoPost:false,
+    modelVersion:"flosy-synthetic-word800-v1",outOfVocabulary:true};
   const score=bias.slice();if(normSq>0){const norm=Math.sqrt(normSq);
    for(const [j,val] of fv){const feature=val/norm;
     for(let k=0;k<6;k++){const q=Q[k*names.length+j];score[k]+=feature*(q>127?q-256:q)*scales[k]}}}
