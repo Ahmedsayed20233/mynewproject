@@ -18,6 +18,32 @@
   if(!q)return {text:"اسألني عن مصروفاتك أو حساباتك أو أقساطك، وأنا معاك.",chart:null};
   const personal=w.FLOSY_COPILOT?.answer?.(q,data,new Date());
   if(personal)return personal;
+  const finance=w.FLOSY_FINANCE_ENGINE;
+  const linkedPlan=finance?.plan?.(data,new Date());
+  if(/استثمر كام|استثمر قد ايه|اوفر كام|ادخر كام|احوش كام|خطة مالي|قسّم المرتب|قسم المرتب/.test(q)){
+   if(!linkedPlan?.ready)return {text:"علشان أديك رقم حقيقي، افتح الخدمات ← ملفي المالي وحدد المرتب الشهري والالتزامات ومصاريف المعيشة، وبعدها هحسب لك الفائض.",intent:"linked-plan"};
+   return {text:"حسب مرتبك المتكرر "+money(linkedPlan.profile.predictableIncome)+
+    " والتزاماتك "+money(linkedPlan.profile.livingCost)+
+    "، الفائض المحسوب "+money(linkedPlan.monthlySurplus)+
+    ". المقترح للطوارئ هذا الشهر "+money(linkedPlan.suggestedEmergency)+
+    " والحد المشروط للاستثمار "+money(linkedPlan.suggestedInvestment)+
+    ". "+linkedPlan.liquidity+". مش نسبة ثابتة، ورأي استثماري مش مضمون.",
+    intent:"linked-plan"};
+  }
+  if(/زكا[ةه]|نصاب|حول هجري/.test(q)){
+   const z=finance?.zakat?.(data);if(!z)return null;
+   return {text:"وعاء الزكاة التقديري "+money(z.base)+
+    "، النصاب "+(z.nisab===null?"غير محدد لحين إدخال سعر جرام الذهب عيار 21":money(z.nisab))+
+    ". تقدير الزكاة بعد تحقق النصاب والحول "+money(z.estimatedZakat)+
+    ". راجع شروط الحول والأصول والديون مع دار الإفتاء المصرية.",intent:"zakat"};
+  }
+  if(/ثروت[يك]|صافي ثروة|اصولي|أصولي/.test(q)){
+   const wInfo=finance?.wealth?.(data);
+   if(wInfo)return {text:"الفلوس في حساباتك "+money(wInfo.totalCash)+
+     "، الأصول الإضافية "+money(wInfo.manualAssets)+
+     "، الديون "+money(wInfo.totalDebt)+
+     ". صافي الثروة المحسوب "+money(wInfo.netWorth)+".",intent:"wealth"};
+  }
   const analytics=core()?.FLOSY_LOCAL_ANALYTICS;
   let answer=null;
   try{answer=analytics?.query?.(q,data,new Date());}catch{}
