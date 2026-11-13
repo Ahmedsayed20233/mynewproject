@@ -12,7 +12,7 @@ const officialApp="com.egyptianbanks.instapay";
 const ACTION="com.flosy.finance.REVIEW_EXTERNAL_FINANCIAL_EVENT";
 const RECEIVER="com.flosy.finance.AutoRelayReceiver";
 let info=null,temporaryToken="",message="",confirmed=false;
-function enabled(){return w.FLOSY_NATIVE_RELAY_AVAILABLE===true}
+function enabled(){return w.FLOSY_FLAGS?.FINANCIAL_MESSAGE_IMPORT_ENABLED===true && w.FLOSY_NATIVE_RELAY_AVAILABLE===true}
 function send(action,extra={}){
  if(!enabled()||!w.FlosyNative||typeof w.FlosyNative.postMessage!=="function"){
   message="ميزة الاقتران متاحة من Flosy Android 2.9 فقط، وليس الموقع العادي.";

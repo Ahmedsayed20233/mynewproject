@@ -179,51 +179,32 @@
   return patterns.find(([re])=>re.test(v))?.[1]||row.description||"عملية صوتية";
  }
  function fromVoiceText(text){
-  const pars=ledger?.FLOSY_CAPTURE?.parseVoice;if(!pars)throw Error("محرك فهم الصوت لسه ما اتحمّلش");
-  const parts=splitVoice(text);
-  const rows=parts.map(spoken=>{
-   const parsed=pars(spoken);
-   if(!parsed||!parsed.amount||!parsed.type)throw Error("ما فهمتش مبلغ أو نوع إحدى المعاملات");
-   if(!["expense","income"].includes(parsed.type))throw Error("تحويل الحسابات يحتاج تحديد المصدر والوجهة");
-   const normalizedSpoken=String(spoken).toLowerCase().replace(/[أإآ]/g,"ا").replace(/ة/g,"ه");
-   const explicitAccount=accounts().find(a=>String(a.name||"").length>=3&&normalizedSpoken.includes(
-    String(a.name).toLowerCase().replace(/[أإآ]/g,"ا").replace(/ة/g,"ه")));
-   return {...parsed,accountId:explicitAccount?.id||defaultAccount()||parsed.accountId,
-    iconText:spoken,description:contextualName(spoken,parsed),
-    category:(()=>{
-     const precise=w.FLOSY_CATEGORIES?.classify?.(spoken,parsed.type);
-     const fallback=w.FLOSY_CATEGORIES?.resolve?.(parsed.category,spoken,parsed.type);
-     return precise&& !["other","other-income"].includes(precise.id)?
-       precise.label:fallback?.label||parsed.category;
-    })(),
-    sourceHash:parsed.sourceHash||"voice39-"+String(spoken).slice(0,25)};
-  });
-  const booked=postBatch(rows,"flosy39_voice_auto");notify("اتسجل كلامك مباشرة، وظهر زر التراجع");
-  return booked;
+  const gate=w.FLOSY_VOICE_SAFETY_V2,review=w.FLOSY_CAPTURE_REVIEW_V2;
+  if(!gate?.analyzeBatch||!review?.open)throw Error("واجهة مراجعة الصوت لم تُحمّل؛ لم يتم حفظ شيء");
+  const items=gate.analyzeBatch(text,accounts(),date()).map(p=>({...p,
+   category:w.FLOSY_CATEGORIES?.classify?.(p.text,p.intent)?.label||
+     (p.intent==="income"?"دخل آخر":p.intent==="transfer"?"تحويل داخلي":"مشتريات")}));
+  review.open({items,kind:"voice",accounts:accounts(),save:rows=>postBatch(rows,"flosy39_voice_confirmed"),
+    onSaved:saved=>{notify("تم تسجيل "+saved.length+" عملية بعد موافقتك");go(4)}});
+  return items;
  }
  function fromReceiptText(text){
   const src=String(text||"").trim();
-  if(src.length<12)throw Error("الكتابة اللي ظهرت من الفاتورة قليلة؛ حاول بصورة أوضح");
+  if(src.length<12)throw Error("النص المستخرج من الإيصال قليل وغير كافٍ");
   const parser=ledger?.FLOSY_CAPTURE?.parseReceipt;
-  if(!parser)throw Error("محرك الفواتير لسه بيتحمّل");
-  const parsed=parser(src);
-  if(!parsed||!parsed.amount)throw Error("مفيش إجمالي واضح في الإيصال");
-  if(parsed.receiptDetails?.arithmeticConsistent===false&&
-     parsed.receiptDetails?.items?.length>=2&&
-     parsed.receiptDetails?.arithmeticContradiction===true)
-   throw Error("مجموع الأصناف مختلف عن الإجمالي؛ لم أسجّل مبلغًا متناقضًا");
-  if(parsed.receiptDetails?.confidence<0.72)
-   throw Error("قراءة الإيصال غير مؤكدة؛ صوّر الإيصال مرة ثانية");
-  const details=parsed.receiptDetails||{};
-  const items=Array.isArray(details.items)?details.items:[];
-  const rows=[{...parsed,accountId:defaultAccount()||parsed.accountId,
-    description:sanitizeName(parsed.description||"إيصال"),
-    category:w.FLOSY_CATEGORIES?.resolve?.(parsed.category,
-      items.map(x=>x.name||"").join(" ")+" "+parsed.description,"expense",
-      {preferDescription:true})?.label||parsed.category,
-    iconText:items.map(x=>x.name).join(" ")||parsed.description}];
-  const saved=postBatch(rows,"flosy39_receipt_auto");
-  notify("اتسجلت الفاتورة مباشرة واتفعل زر التراجع");return saved;
+  if(!parser)throw Error("محرك قراءة الفواتير غير متاح");
+  const p=parser(src);
+  if(!p||!(p.amount>0))throw Error("لا يوجد إجمالي صحيح واضح؛ لم تُحفظ الفاتورة");
+  if(p.receiptDetails?.arithmeticContradiction===true)throw Error("مجموع الأصناف يخالف الإجمالي؛ يلزم التصحيح اليدوي");
+  const review=w.FLOSY_CAPTURE_REVIEW_V2;
+  if(!review?.open)throw Error("واجهة مراجعة الفواتير لم تُحمّل");
+  const item={...p,intent:"expense",text:String(p.description||"فاتورة").slice(0,100),
+    accountId:"",targetAccountId:"",autoPost:false,
+    description:String(p.description||"فاتورة").slice(0,90)};
+  review.open({items:[item],kind:"receipt",accounts:accounts(),
+    save:rows=>postBatch(rows,"flosy39_receipt_confirmed"),
+    onSaved:saved=>{notify("تم تسجيل الفاتورة بعد موافقتك");go(4)}});
+  return [item];
  }
  let captureBusy=false,receiptBusy=false;
  function captureStatus(id,value,failed=false){
@@ -234,8 +215,8 @@
   if(!src){captureStatus("flosyReceiptStatus","الإيصال غير واضح؛ صور الوصل تاني بإضاءة أقوى",true);return}
   try{
    const rows=fromReceiptText(src);
-   captureStatus("flosyReceiptStatus","✓ اتحفظ "+moneyLocal(rows[0].amount)+" في حسابك.",false);
-   if(current===6)go(4);
+   captureStatus("flosyReceiptStatus","✓ الإيصال جاهز للمراجعة ولم يُحفظ أي مبلغ.",false);
+   // User will explicitly approve inside the capture review dialog.
   }catch(err){
    captureStatus("flosyReceiptStatus",err.message,true);
    const area=by("flosyReceiptPaste");if(area)area.value=src;
@@ -268,11 +249,11 @@
   const spoken=String(text||"").trim();
   if(!spoken){captureStatus("flosyCaptureStatus","مش سامع كلام واضح؛ حاول مرة تانية.",true);return}
   if(voiceForAI){voiceForAI=false;w.FLOSY_UNIFIED_AI?.onVoice?.(spoken);return}
-  captureStatus("flosyCaptureStatus","سمعت: «"+spoken.slice(0,130)+"»؛ جاري تسجيل العمليات...");
+  captureStatus("flosyCaptureStatus","سمعت: «"+spoken.slice(0,130)+"»؛ جاري تجهيز اقتراحات للمراجعة...");
   try{
    const rows=fromVoiceText(spoken);
-   captureStatus("flosyCaptureStatus","✓ تم تسجيل "+rows.length+" عملية في حسابك بنجاح");
-   if(current===7)go(4);
+   captureStatus("flosyCaptureStatus","✓ تم تجهيز "+rows.length+" اقتراح للمراجعة. لم يتم الحفظ.");
+   // Do not navigate until the user confirms every account and amount.
   }catch(err){captureStatus("flosyCaptureStatus",err.message,true);notify(err.message);}
  }
  function startVoice(forAI=false){

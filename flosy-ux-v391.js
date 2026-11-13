@@ -112,26 +112,26 @@
  }
  function accountPicker(id="fxCaptureAccount"){
   const chosen=U()?.defaultAccount()||"";
-  return '<label class="fx-form-field">حساب التسجيل المباشر<select id="'+id+'" class="flosy-input">'+
+  return '<label class="fx-form-field">الحساب المفضل للإضافة اليدوية<select id="'+id+'" class="flosy-input">'+
     '<option value="">اختر الحساب</option>'+accountOptions(chosen)+'</select></label>';
  }
  function capturePage(){
-  return banner("تصوير الإيصال","كاميرا أو معرض صور، والحفظ تلقائيًا بعد قراءة مبلغ واضح")+
+  return banner("تصوير الإيصال","كاميرا أو معرض صور، ثم مراجعة المبلغ والحساب قبل الحفظ")+
    '<section class="fx-hero-capture"><div class="fx-capture-art">'+icon("fa-receipt")+'</div>'+
-    '<h3>صوّر الوصل... وسيب الباقي لفلوسي</h3><p>قراءة عربي وإنجليزي. بنتأكد من الإجمالي والحساب، وبعدين بنسجل العملية مباشرة.</p>'+
+    '<h3>صوّر الوصل... وسيب الباقي لفلوسي</h3><p>قراءة عربي وإنجليزي. بنقترح الإجمالي والحساب، ومش بنحفظ أي عملية قبل موافقتك.</p>'+
     '<div class="fx-capture-actions"><button type="button" class="flosy-btn" data-flosy-action="receipt" data-mode="camera">'+icon("fa-camera")+' افتح الكاميرا</button>'+
      '<button type="button" class="flosy-btn flosy-btn-secondary" data-flosy-action="receipt" data-mode="gallery">'+icon("fa-images")+' من المعرض</button></div>'+
     '<input id="flosyReceiptFile" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" aria-label="صورة إيصال" style="width:100%;margin-top:10px">'+
     '<p class="fx-capture-status" id="flosyReceiptStatus" role="status" aria-live="polite">جاهز. اختار صورة واضحة بإضاءة كويسة.</p></section>'+
    '<section class="flosy-panel">'+accountPicker("fxReceiptAccount")+
-    '<p class="flosy-muted">لو عندك أكتر من حساب اختار حساب الحفظ قبل التصوير.</p></section>'+
+    '<p class="flosy-muted">الاختيار ده تفضيل فقط؛ لازم تأكد حساب الدفع في شاشة المراجعة.</p></section>'+
    '<section class="flosy-panel"><h3>نص الفاتورة (للتصحيح عند الحاجة)</h3>'+
     '<textarea class="flosy-input" id="flosyReceiptPaste" rows="6" placeholder="المتجر&#10;Date: 13/11/2026&#10;TOTAL: EGP 125.00"></textarea>'+
-    '<button class="flosy-btn" type="button" id="flosyReceiptSave" style="margin-top:9px;width:100%">استخراج وحفظ العملية مباشرة</button>'+
+    '<button class="flosy-btn" type="button" id="flosyReceiptSave" style="margin-top:9px;width:100%">استخراج البيانات ومراجعتها قبل الحفظ</button>'+
     '<p class="flosy-muted">لو الإجمالي مش واضح هتظهر رسالة لإعادة التصوير أو تصحيح النص.</p></section>';
  }
  function voicePage(){
-  return banner("مصروفات بالصوت","اتكلم بالمصري وخلي فلوسي يكتب ويسجل")+
+  return banner("مصروفات بالصوت","اتكلم بالمصري وراجع اللي فهمه فلوسي قبل الحفظ")+
    '<section class="fx-hero-capture fx-voice-capture">'+
     '<div class="fx-capture-art fx-pulse">'+icon("fa-microphone-lines")+'</div>'+
     '<h3>قول العملية بطريقتك</h3>'+
@@ -141,9 +141,9 @@
     '<section class="flosy-panel">'+accountPicker("fxVoiceAccount")+'</section>'+
     '<section class="flosy-panel"><h3>جرب كتابة الجملة لو الميكروفون مش متاح</h3>'+
      '<form id="flosyVoiceTypedForm" class="fx-voice-form"><input class="flosy-input" name="spoken" required placeholder="دفعت 50 جنيه بنزين" autocomplete="off">'+
-     '<button class="flosy-btn" type="submit">تحليل وتسجيل تلقائي</button></form></section>'+
+     '<button class="flosy-btn" type="submit">تحليل الجملة ومراجعة العملية</button></form></section>'+
     '<section class="flosy-panel"><h3>إزاي بنتعامل مع كلامك؟</h3><p class="flosy-muted">'+
-     'بنحدد المبلغ والنوع والتاريخ والحساب من الجملة؛ ومع كل عملية جديدة بنحدث الأرصدة والتقارير. لو مش واضح مبلغ أو حساب، بنسألك تحدده بدل تسجيل رقم غلط.</p></section>';
+     'بنقترح المبلغ والنوع والتاريخ من الجملة، وبنعرض كل حاجة للمراجعة. أرصدتك لا تتغير قبل اختيار الحساب والتأكيد، وأي مبلغ غير واضح يتم رفضه.</p></section>';
  }
  function aiPage(){
   return '<div class="fx-ai-premium">'+
@@ -324,13 +324,13 @@
  }
  function bindAccountSelect(box,id){
   const el=box.querySelector("#"+id);
-  if(el)el.onchange=()=>{if(U().setDefaultAccount(el.value))U().notify("اتحدد حساب التسجيل التلقائي")};
+  if(el)el.onchange=()=>{if(U().setDefaultAccount(el.value))U().notify("اتحدد الحساب المفضل للإضافة اليدوية")};
  }
  function bindReceipt(box){
   bindAccountSelect(box,"fxReceiptAccount");
   box.querySelector("#flosyReceiptSave").onclick=()=>{
    try{U().fromReceiptText(box.querySelector("#flosyReceiptPaste").value);
-    U().go(4)}catch(err){U().captureStatus("flosyReceiptStatus",err.message,true);U().notify(err.message)}
+}catch(err){U().captureStatus("flosyReceiptStatus",err.message,true);U().notify(err.message)}
   };
   box.querySelector("#flosyReceiptFile").onchange=async e=>{
    const file=e.target.files?.[0];if(!file)return;
@@ -357,7 +357,7 @@
   box.querySelector("#flosyVoiceTypedForm").onsubmit=e=>{
    e.preventDefault();
    try{U().fromVoiceText(new FormData(e.target).get("spoken"));
-    U().go(4)}catch(err){U().captureStatus("flosyCaptureStatus",err.message,true);U().notify(err.message)}
+}catch(err){U().captureStatus("flosyCaptureStatus",err.message,true);U().notify(err.message)}
   };
  }
  function bindAi(box){

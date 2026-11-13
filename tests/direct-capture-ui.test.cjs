@@ -11,6 +11,7 @@ function setup(direct){
  const body={};
  const context={
    window:{FLOSY_BRIDGE:{goto(){}},FLOSY_NATIVE_RELAY_AVAILABLE:true,
+      FLOSY_FLAGS:{FINANCIAL_MESSAGE_IMPORT_ENABLED:true}, // isolated legacy UI test
      FLOSY_NATIVE_DIRECT_CAPTURE_AVAILABLE:direct,
      FlosyNative:{postMessage(s){messages.push(JSON.parse(s))}},
      FLOSY_CAPTURE:{autoEnabled:()=>false}},

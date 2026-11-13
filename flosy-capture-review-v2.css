@@ -1,0 +1,23 @@
+.flosy-v2-overlay{position:fixed;inset:0;z-index:2147482000;background:rgba(12,18,33,.7);display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box}
+.flosy-v2-dialog{direction:rtl;background:var(--bg-card,#fff);color:var(--text-primary,#172338);border-radius:24px;max-width:650px;width:100%;max-height:91dvh;overflow-y:auto;box-shadow:0 25px 90px #0005;font-family:inherit}
+.flosy-v2-dialog header{position:sticky;top:0;background:var(--bg-card,#fff);display:flex;justify-content:space-between;align-items:flex-start;padding:20px 22px;border-bottom:1px solid #a4acba44;z-index:2}
+.flosy-v2-dialog header small{font-size:11px;color:#007f81;letter-spacing:.06em;font-weight:800}
+.flosy-v2-dialog h2{font-size:21px;font-weight:900;margin:4px 0}
+.flosy-v2-dialog p{margin:4px 0;color:inherit;opacity:.84;font-size:13px;line-height:1.7}
+.flosy-v2-dialog header button{width:34px;height:34px;border-radius:12px;border:1px solid #a4acba77;background:transparent;color:inherit;cursor:pointer}
+.flosy-v2-dialog form{padding:12px 22px 22px}
+.flosy-v2-dialog fieldset{min-width:0;border:1px solid #a4acba55;border-radius:16px;padding:12px;margin:9px 0 18px}
+.flosy-v2-dialog legend{font-weight:850;font-size:14px;padding:0 8px;color:#0e979b}
+.flosy-v2-transcript{font-size:13px;padding:8px 12px;background:#8ba3bd17;border-radius:9px;overflow-wrap:anywhere}
+.flosy-v2-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.flosy-v2-grid label{font-size:12px;font-weight:750;display:grid;gap:5px;min-width:0}
+.flosy-v2-grid input,.flosy-v2-grid select{width:100%;border:1px solid #a6b2c9;border-radius:11px;padding:9px;min-height:41px;box-sizing:border-box;font:inherit;background:var(--bg-card,#fff);color:var(--text-primary,#172338)}
+.flosy-v2-grid .flosy-v2-wide{grid-column:span 2}
+.flosy-v2-dialog footer{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;margin-top:16px}
+.flosy-v2-dialog footer button{padding:11px 18px;border:1px solid #adb4c2;border-radius:12px;cursor:pointer;background:transparent;color:inherit;font:inherit;font-weight:800}
+.flosy-v2-dialog footer button[type=submit]{background:#008d92;color:white;border-color:#008d92}
+.flosy-v2-dialog footer button:disabled{opacity:.45;cursor:not-allowed}
+.flosy-v2-blocked{border-color:#dd7065!important}
+.flosy-v2-dialog .flosy-v2-alert,#flosyV2Error{color:#a52d26;font-weight:800;font-size:13px}
+.flosy-v2-note{margin:12px 0!important}
+@media(max-width:530px){.flosy-v2-overlay{padding:6px;align-items:end}.flosy-v2-dialog{border-radius:20px 20px 0 0;max-height:92dvh}.flosy-v2-grid{grid-template-columns:1fr}.flosy-v2-grid .flosy-v2-wide{grid-column:auto}}

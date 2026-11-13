@@ -20,9 +20,10 @@ const autoPrefs=()=>{
  return {voice:p.voice===true,sms:p.sms===true,receipt:p.receipt===true,
   accountId:String(p.accountId||"")};
 };
-const autoEnabled=mode=>autoPrefs()[mode]===true;
+const autoEnabled=mode=>false; // Pre-MVP: classifier never grants automatic posting.
 function setAuto(mode,on){
  if(!["sms","voice","receipt"].includes(mode))return false;
+  if(on===true){C.toast("الاستيراد والتسجيل التلقائي غير مفعّلين حاليًا؛ استخدم المراجعة.");return false;}
  C.mutate(state=>{
   state.settings=state.settings||{};
   state.settings.autoCapture={...(state.settings.autoCapture||{}),[mode]:on===true};
@@ -47,23 +48,9 @@ const resolvedAccount=preferred=>{
  return configured?.id||(accounts.length===1?accounts[0].id:"");
 };
 function autoRecord(d,mode){
- if(!autoEnabled(mode)||!d||d.autoQuality!==true)return false;
- const accountId=resolvedAccount(d.accountId);
- if(!accountId||!validAmount(d.amount)||!["income","expense"].includes(d.type)||
-  !/^\d{4}-\d{2}-\d{2}$/.test(String(d.date))||!d.description||isDuplicate(d))
+  // AI/OCR/voice/SMS can only generate a review proposal in the pre-MVP.
+  // Existing saved auto preferences never authorize writing to the ledger.
   return false;
- const item={...d,accountId};
- delete item.autoQuality;
- item.source=mode+"_auto";
- item.createdAt=new Date().toISOString();item.updatedAt=item.createdAt;
- try{
-  C.mutate(state=>state.transactions.push(item));
-  lastAutoSaved={id:item.id,mode,amount:item.amount,type:item.type};
-  notification="تم تسجيل "+pretty(item.amount)+" تلقائيًا في الحساب المحدد. يمكنك التراجع من هنا.";
-  renderReview();
-  C.toast("تم تسجيل المعاملة تلقائيًا");
-  return true;
- }catch(err){C.toast("تعذر الحفظ التلقائي، افتح المراجعة");return false}
 }
 function undoLastAuto(){
  const last=lastAutoSaved;
@@ -171,6 +158,22 @@ function spokenEgyptianAmount(text){
 }
 function parseVoice(text){
  const str=digits(String(text||"").trim());
+  const gate=global.FLOSY_VOICE_SAFETY_V2;
+  if(gate?.analyzeSingle){
+    const proposal=gate.analyzeSingle(str,cash(),dateLocal());
+    if(proposal.intent==="none")throw Error("الجملة سؤال أو نفي أو عملية غير مكتملة؛ مفيش أي تسجيل.");
+    if(proposal.intent==="transfer")throw Error("دي حركة بين حسابات؛ افتح واجهة فلوسي الموحدة لتحديد الحسابين.");
+    if(proposal.intent==="refund"||proposal.intent==="debt")
+      throw Error("دي تسوية دين أو استرداد؛ لا تُسجل كدخل أو مصروف، لازم المسار المالي المخصص.");
+    if(!validAmount(proposal.amount))throw Error("المبلغ مش واضح؛ اذكره مع العملة.");
+    return {id:uuid(),type:proposal.intent,date:proposal.date,amount:proposal.amount,
+      category:global.FLOSY_VOICE_NLU?.category?.(str,proposal.intent)||"مشتريات",
+      description:"عملية صوتية — قيد المراجعة",accountId:proposal.accountId,
+      subcategory:"",source:"voice_reviewed",
+      sourceHash:"voice-preview-"+hash(str+"|"+Math.floor(Date.now()/300000)),
+      voiceDetails:{intent:proposal.intent,modelVersion:gate.version},autoQuality:false};
+  }
+
  const ml=global.FLOSY_VOICE_NLU;
  if(ml?.classify){
   if(/\b(?:OTP|PIN|CVV)\b|رمز.{0,12}(?:التحقق|السري)|كود\s*التحقق/i.test(str))
@@ -334,7 +337,7 @@ function isDuplicate(d){
    (d.sourceHash&&x.sourceHash===d.sourceHash)||
    (x.accountId===d.accountId&&x.type===d.type&&x.date===d.date&&+x.amount===+d.amount&&x.description===d.description));
 }
-function accountOpts(){return cash().map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join("")}
+function accountOpts(){return '<option value="">اختر الحساب — مطلوب</option>'+cash().map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join("")}
 function categoryOpts(type){let cats=type==="income"?["مرتب","دخل آخر","هدية"]:["طعام ومشروبات","ترفيه","مشتريات","مواصلات","الهدايا","إيجار","فاتورة الإنترنت","فاتورة شحن رصيد","فاتورة الكهرباء","فواتير","صحة","تعليم","معيشة أخرى"];return cats.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")}
 function draftForm(){
  if(!pending)return '<div class="v4-empty">مفيش معاملة بانتظار المراجعة.</div>';
