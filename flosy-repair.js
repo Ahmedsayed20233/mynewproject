@@ -315,8 +315,11 @@ document.addEventListener("click",async e=>{
 async function extractForUnified(imageDataUrl,latinText=""){
  let worker=null;
  const native=String(latinText||"").trim().slice(0,12000);
- if(typeof imageDataUrl!=="string"||!/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(imageDataUrl)
-  ||imageDataUrl.length>750000)return native;
+ const validData=typeof imageDataUrl==="string" &&
+  /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(imageDataUrl)&&imageDataUrl.length<=750000;
+ const validFile=typeof Blob!=="undefined"&&imageDataUrl instanceof Blob&&
+  /^image\/(?:jpeg|png|webp)$/.test(imageDataUrl.type)&&imageDataUrl.size<=8*1024*1024;
+ if(!validData&&!validFile)return native;
  try{
   const lib=await loadOCR();
   worker=await lib.createWorker(["ara","eng"]);
