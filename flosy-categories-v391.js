@@ -65,12 +65,18 @@
   const value=normalize(text);
   if(!value)return type==="income"?income[income.length-1]:expense[expense.length-1];
   const candidates=forType(type);
-  // Most specific noun phrase outranks generic words; "بنزين للعربية" is fuel not purchase.
+  // Rank matches globally by specific phrase length, not declaration order.
+  // "اشتريت أدوية" must pick pharmacy, not the generic "اشتريت" keyword.
+  let best=null,score=-Infinity;
   for(const c of candidates){
-   const sorted=[...c.keywords].sort((a,b)=>normalize(b).length-normalize(a).length);
-   if(sorted.some(k=>value.includes(normalize(k))))return c;
+   for(const key of c.keywords){
+    const token=normalize(key);if(!token||!value.includes(token))continue;
+    const generic=["shopping","other","other-income"].includes(c.id);
+    const valueScore=token.length-(generic?30:0);
+    if(valueScore>score){best=c;score=valueScore}
+   }
   }
-  return byLabel(text,type)||candidates[candidates.length-1];
+  return best||byLabel(text,type)||candidates[candidates.length-1];
  }
  function resolve(value,description,type="expense"){
   const explicit=byLabel(value,type);
