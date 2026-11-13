@@ -4,7 +4,7 @@
     <application>
         <activity android:name=".DirectCaptureSettingsActivity" android:exported="false"/>
         <!-- Explicit user-controlled Notification Access in Android settings. -->
-        <service android:name=".DirectNotificationListener"
+        <service android:name=".DirectNotificationListener" android:enabled="false"
             android:label="فلوسي — الإشعارات المالية فقط"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:exported="true">
