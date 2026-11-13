@@ -94,6 +94,7 @@ public class MainActivity extends Activity {
     private byte[] pendingWorkbook = null;
     private String pendingWorkbookName = null;
     private FlosyReportBridge reportBridge = null;
+    private boolean requestedDailyNotifications = false;
     private boolean relayWakeReceiverRegistered=false;
     private final BroadcastReceiver relayWakeReceiver=new BroadcastReceiver(){
         @Override public void onReceive(Context context,Intent intent){
@@ -169,6 +170,19 @@ public class MainActivity extends Activity {
                             if(isMvp()&&action.startsWith("notifications-")){
                                 if("notifications-enable".equals(action))enableLocalReminders();
                                 else if("notifications-status".equals(action))sendAuroraStatus();
+                                else if("notifications-daily-enable".equals(action)){
+                                    requestedDailyNotifications=true;
+                                    enableLocalReminders();
+                                    if(FlosyReminderScheduler.permission(this)){
+                                        FlosyReminderScheduler.setDaily(this,true);
+                                        requestedDailyNotifications=false;
+                                        sendAuroraStatus();
+                                    }
+                                }else if("notifications-daily-stop".equals(action)){
+                                    requestedDailyNotifications=false;
+                                    FlosyReminderScheduler.setDaily(this,false);
+                                    sendAuroraStatus();
+                                }
                                 else if("notifications-sync".equals(action)){
                                     FlosyReminderScheduler.sync(this,msg.optJSONArray("items"));
                                     sendAuroraStatus();
@@ -466,6 +480,8 @@ public class MainActivity extends Activity {
             !webView.getUrl().startsWith(HOME))return;
         JSONObject status=FlosyReminderScheduler.status(this);
         webView.evaluateJavascript("if(window.FLOSY_AURORA)window.FLOSY_AURORA.onNativeStatus("+
+            status.toString()+");"+
+            "if(window.FLOSY_NOTIFY_V392)window.FLOSY_NOTIFY_V392.nativeStatus("+
             status.toString()+");",null);
     }
 
@@ -578,6 +594,8 @@ public class MainActivity extends Activity {
         if(requestCode==REQ_NOTIFICATIONS&&isMvp()){
             boolean granted=results.length>0&&results[0]==PackageManager.PERMISSION_GRANTED;
             FlosyReminderScheduler.setEnabled(this,granted);
+            if(granted&&requestedDailyNotifications)FlosyReminderScheduler.setDaily(this,true);
+            requestedDailyNotifications=false;
             sendAuroraStatus();
             Toast.makeText(this,granted?"تم تفعيل تنبيهات فلوسي":"يمكن تفعيل التنبيهات لاحقًا من إعدادات الهاتف",Toast.LENGTH_LONG).show();
             return;
