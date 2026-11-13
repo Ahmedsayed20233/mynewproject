@@ -78,11 +78,15 @@
   }
   return best||byLabel(text,type)||candidates[candidates.length-1];
  }
- function resolve(value,description,type="expense"){
+ function resolve(value,description,type="expense",options={}){
   const explicit=byLabel(value,type);
   const inferred=classify(description,type);
-  return inferred.id!==(type==="income"?"other-income":"other")&&
-    (explicit?.id==="shopping"||explicit?.id==="other"||!explicit)?inferred:explicit||inferred;
+  const meaningful=inferred&&!["other","other-income"].includes(inferred.id);
+  // Model-generated categories are suggestions; the merchant/item noun wins.
+  // A category deliberately tapped by the user remains authoritative.
+  if(options.preferDescription===true&&meaningful)return inferred;
+  return meaningful&&(explicit?.id==="shopping"||explicit?.id==="other"||!explicit)?
+    inferred:explicit||inferred;
  }
  function verify(category,type){return Boolean(byLabel(category,type))}
  return Object.freeze({all,expense,income,transfer,groups,forType,byLabel,classify,resolve,verify,normalize});
