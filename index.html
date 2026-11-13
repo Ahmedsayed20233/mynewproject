@@ -613,6 +613,11 @@ function printDetailedReport(){
   const html=reportHtml(reportRange());
   $('printOnlyReport').innerHTML=html;
   if(window.FLOSY_NATIVE_ANDROID===true){
+   if(window.FLOSY_REPORT_KIT?.saveNativePdf?.(state,reportRange())){
+    toast('اختار مكان حفظ PDF من نافذة ملفات Android.');
+    return;
+   }
+   // Older APK versions can still save as PDF via Android Print.
    window.location.href='flosyapp://print';
   }else{
    window.print();
@@ -750,7 +755,7 @@ loadAuthSession();categoryOptions();render();})();
 <script src="flosy-auto-import.js?v=2801"></script>
 <script src="flosy-automate-relay.js?v=3501"></script>
 <script src="flosy-ai-analytics.js?v=1001"></script>
-<script src="flosy-report-kit.js?v=3601"></script>
+<script src="flosy-report-kit.js?v=3602"></script>
 <script>document.getElementById('reportPreviewBtn')?.click();</script>
 <script>
  // The unified app never loads API-backed legacy assistants. Historical QA can
