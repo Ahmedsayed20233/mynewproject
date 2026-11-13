@@ -180,7 +180,9 @@ function parseVoice(text){
    throw Error("ده يبدو تحويلًا بين حساباتك؛ سجله من صفحة التحويلات، مش كمصروف أو دخل.");
   if(decision.intent==="none")
    throw Error("الجملة مش معاملة مكتملة. قل «دفعت 75 جنيه قهوة» أو «قبضت 500 جنيه».");
-  const amount=amountFrom(str)??ml.spokenAmount(str)??spokenEgyptianAmount(str);
+  // Prefer the full currency phrase: numeric-regex extraction would silently
+  // truncate "دفعت 1000 ونص جنيه" to 1000 and misbook the transaction.
+  const amount=ml.spokenAmount(str)??amountFrom(str)??spokenEgyptianAmount(str);
   if(!validAmount(amount))throw Error("مش قادر أحدد المبلغ بشكل آمن. قل المبلغ بالجنيه.");
   const type=decision.intent==="income"?"income":"expense";
   const category=ml.category(str,type)|| (type==="income"?"دخل آخر":cat(str));
