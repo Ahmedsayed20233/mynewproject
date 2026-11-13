@@ -26,6 +26,9 @@ on:
       - 'flosy-report-pro.*'
       - 'flosy-services-v392.*'
       - 'flosy-copilot-v392.js'
+      - 'flosy-finance-*.js'
+      - 'flosy-finance-*.css'
+      - 'tests/v393-browser.cjs'
       - 'tests/unified-browser.cjs'
       - 'flosy-ultra-*'
       - 'tests/ultra-browser.cjs'
@@ -60,6 +63,8 @@ jobs:
         run: node tests/v391-browser.cjs
       - name: Test PDF/Excel Save As, AI Roast Me, named daily insights and notification UX
         run: node tests/v392-browser.cjs
+      - name: Test unified financial profile, budget, categories, wealth, zakat and friend/family workflows
+        run: node tests/v393-browser.cjs
       - name: Save successful desktop/mobile screenshot preview
         if: success()
         uses: actions/upload-artifact@v4
