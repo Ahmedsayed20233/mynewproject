@@ -168,7 +168,12 @@
    if(!parsed||!parsed.amount||!parsed.type)throw Error("ما فهمتش مبلغ أو نوع إحدى المعاملات");
    if(!["expense","income"].includes(parsed.type))throw Error("تحويل الحسابات يحتاج تحديد المصدر والوجهة");
    return {...parsed,iconText:spoken,description:contextualName(spoken,parsed),
-    category:w.FLOSY_CATEGORIES?.resolve?.(parsed.category,spoken,parsed.type)?.label||parsed.category,
+    category:(()=>{
+     const precise=w.FLOSY_CATEGORIES?.classify?.(spoken,parsed.type);
+     const fallback=w.FLOSY_CATEGORIES?.resolve?.(parsed.category,spoken,parsed.type);
+     return precise&& !["other","other-income"].includes(precise.id)?
+       precise.label:fallback?.label||parsed.category;
+    })(),
     sourceHash:parsed.sourceHash||"voice39-"+String(spoken).slice(0,25)};
   });
   const booked=postBatch(rows,"flosy39_voice_auto");notify("اتسجل كلامك مباشرة، وظهر زر التراجع");
