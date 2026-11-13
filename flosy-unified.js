@@ -298,7 +298,7 @@
  }
  function mountLedger(){
   const iframe=d.createElement("iframe");iframe.id="flosyCoreFrame";
-  iframe.src="./index.html";iframe.title="محرك البيانات والخدمات المالية";iframe.tabIndex=-1;
+  iframe.src="./index.html?flosy_core=1";iframe.title="محرك البيانات والخدمات المالية";iframe.tabIndex=-1;
   iframe.style.cssText="display:block;width:1px;height:1px;border:0;opacity:0;pointer-events:none;position:absolute;top:-100px";
   by("flosyLegacyPanel").appendChild(iframe);
   iframe.addEventListener("load",()=>{
