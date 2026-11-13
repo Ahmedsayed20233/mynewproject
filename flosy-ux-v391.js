@@ -33,7 +33,8 @@
     '<span><b style="color:'+palette+'">'+html(tag)+'</b> · '+html(account?.name||"حساب")+" · "+html(t.time||t.date||"")+'</span></div>'+
    '<div class="fx-transaction-amount" style="color:'+color(t.type)+'">'+
      (t.type==="expense"?"−":t.type==="income"?"+":"↔")+money(t.amount)+'</div></div>'+
-   '<div class="fx-transaction-tools"><button type="button" data-fx-edit="'+html(t.id)+'" aria-label="تعديل المعاملة">'+icon("fa-pen")+' تعديل</button>'+
+   '<div class="fx-transaction-tools"><button type="button" data-fx-details="'+html(t.id)+'" aria-label="عرض تفاصيل المعاملة">'+icon("fa-eye")+' التفاصيل</button>'+
+    '<button type="button" data-fx-edit="'+html(t.id)+'" aria-label="تعديل المعاملة">'+icon("fa-pen")+' تعديل</button>'+
     '<button type="button" data-fx-delete="'+html(t.id)+'" aria-label="حذف المعاملة">'+icon("fa-trash-can")+' حذف</button></div></div>';
  }
  const today=()=>U()?.date()||new Date().toISOString().slice(0,10);
@@ -47,7 +48,7 @@
      '<button type="button" data-fx-type="'+t+'" aria-pressed="'+(i===0)+'">'+(["الكل","مصروف","دخل","تحويل"][i])+'</button>').join("")+'</div>'+
    '<div class="fx-filter-card" id="fxAdvancedFilters" hidden>'+
     '<div class="fx-filter-grid"><label>الحساب<select class="flosy-input" id="fxAccountFilter">'+accountOptions("",true)+'</select></label>'+
-    '<label>الفئة<select class="flosy-input" id="fxCategoryFilter">'+groupOptions([...K.expense,...K.income,...K.transfer],"",true)+'</select></label>'+
+    '<label>الفئة<select class="flosy-input" id="fxCategoryFilter">'+groupOptions([...K.forType("expense"),...K.forType("income"),...K.forType("transfer")],"",true)+'</select></label>'+
     '<label>من تاريخ<input type="date" id="fxStartDate" class="flosy-input"></label>'+
     '<label>إلى تاريخ<input type="date" id="fxEndDate" class="flosy-input"></label>'+
     '<label>الترتيب<select class="flosy-input" id="fxSort"><option value="recent">الأحدث</option><option value="old">الأقدم</option>'+
