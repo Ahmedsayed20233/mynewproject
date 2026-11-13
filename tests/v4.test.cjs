@@ -821,6 +821,7 @@ test("Free Automate relay stays invisible on Web and Safe APK without native fla
 test("Automate relay passes authenticated native request and never auto-saves detected SMS",()=>{
  const c=context(),posted=[];
  c.window.FLOSY_NATIVE_RELAY_AVAILABLE=true;
+ c.window.FLOSY_FLAGS={FINANCIAL_MESSAGE_IMPORT_ENABLED:true}; // isolated legacy relay unit test
  c.window.FlosyNative={postMessage:raw=>posted.push(JSON.parse(raw))};
  load("flosy-next.js",c);
  load("flosy-automate-relay.js",c);
