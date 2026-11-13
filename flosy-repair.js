@@ -310,6 +310,27 @@ document.addEventListener("click",async e=>{
   catch{C.toast("حدد النص وانسخه يدويًا")}
  }
 });
-w.FLOSY_REPAIR={render,scanReceipt,startVoice,receiveNativeReceipt,receiveNativeReceiptImage,proposeReceipt,nativeVoiceError,nativeVoiceResult,nativeVoiceStatus,nativeAction};
+// Unified Flosy consumes OCR text and books against the ONE canonical ledger.
+// This helper intentionally never opens a legacy review form or books a draft.
+async function extractForUnified(imageDataUrl,latinText=""){
+ let worker=null;
+ const native=String(latinText||"").trim().slice(0,12000);
+ if(typeof imageDataUrl!=="string"||!/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(imageDataUrl)
+  ||imageDataUrl.length>750000)return native;
+ try{
+  const lib=await loadOCR();
+  worker=await lib.createWorker(["ara","eng"]);
+  const bilingual=await readMultipleOCR(worker,imageDataUrl);
+  const pieces=[bilingual,native].map(x=>String(x||"").trim()).filter(Boolean);
+  // Bilingual OCR often contains useful item names absent from native Latin-only ML Kit.
+  return pieces.filter((x,i)=>pieces.indexOf(x)===i).join("\n").slice(0,12000);
+ }catch(err){
+  if(native)return native;
+  throw err;
+ }finally{
+  if(worker)try{await worker.terminate()}catch{}
+ }
+}
+w.FLOSY_REPAIR={render,scanReceipt,startVoice,receiveNativeReceipt,receiveNativeReceiptImage,proposeReceipt,nativeVoiceError,nativeVoiceResult,nativeVoiceStatus,nativeAction,extractForUnified};
 render();
 })(window);
