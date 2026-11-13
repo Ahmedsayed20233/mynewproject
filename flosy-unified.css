@@ -146,3 +146,24 @@ body.flosy-live .app-card .text-slate-600{color:var(--text-secondary)}
  .flosy-undo,.flosy-floating-core{display:none!important}
  #flosyUnifiedPrint{display:block!important;color:#0F172A!important;background:#fff!important;direction:rtl}}
 #flosyUnifiedPrint{display:none}
+
+/* Customer-first five-tab primary navigation: consistently reachable on mobile. */
+body.flosy-live .bottom-dock.flosy-primary-dock{
+ direction:rtl;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));
+ align-items:center;gap:2px;padding:7px 5px calc(7px + env(safe-area-inset-bottom));
+ background:var(--bg-surface);border-top:1px solid var(--border);
+}
+body.flosy-live .flosy-primary-dock .flosy-nav-item{
+ appearance:none;display:flex;flex-direction:column;justify-content:center;align-items:center;
+ gap:4px;min-width:0;min-height:45px;border:0;border-radius:12px;padding:4px 1px;
+ background:transparent;color:var(--text-secondary);font:inherit;font-size:10px;font-weight:800;
+}
+body.flosy-live .flosy-primary-dock .flosy-nav-item i{font-size:17px}
+body.flosy-live .flosy-primary-dock .flosy-nav-item.flosy-current{
+ background:var(--primary-soft);color:var(--primary);
+}
+body.flosy-live .flosy-primary-dock .flosy-nav-item:focus-visible{
+ outline:2px solid var(--primary);outline-offset:2px;
+}
+body.flosy-live .fx-category-picker{border:1px solid var(--border);border-radius:12px;padding:9px}
+body.flosy-live .fx-category-picker summary{cursor:pointer;font-size:12px;font-weight:800;color:var(--text-primary)}
