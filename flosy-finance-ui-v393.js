@@ -511,21 +511,8 @@
      host.querySelector('[name="type"]')?.value||"expense"));
    }
   }
-  if(id===16){
-   const host=root(16),grid=host?.querySelector(".service-v392-grid");
-   if(grid&&!host.querySelector("#fin393PlanEntry")){
-    grid.insertAdjacentHTML("afterbegin",
-     '<button id="fin393PlanEntry" type="button" class="service-v392-item" data-sgroup="plan" data-flosy-screen="17">'+
-      '<span class="service-v392-icon">'+ic("fa-user-gear")+'</span>'+
-      '<span class="service-v392-copy"><strong>ملفي المالي والخطة الذكية</strong>'+
-      '<small>المرتب والأقساط والادخار واستثمار الفائض</small></span>'+ic("fa-chevron-left")+'</button>');
-    grid.insertAdjacentHTML("afterbegin",
-     '<button type="button" class="service-v392-item" data-sgroup="wealth" data-flosy-screen="3">'+
-     '<span class="service-v392-icon">'+ic("fa-gem")+'</span><span class="service-v392-copy">'+
-     '<strong>الثروة الصافية المتصلة</strong><small>حسابات وأصول وديون وزكاة</small></span>'+
-     ic("fa-chevron-left")+'</button>');
-   }
-  }
+  // Services v3.9.2 now routes directly to the canonical feature screens.
+  // No separate "wealth 2" or "plan 2" shortcuts are injected.
  };
  w.FLOSY_FINANCE_UI={profileCard,planPage,budgetsPage,insightPage,wealthPage,zakatPage,debtsPage,
   familyPage,openCategory,version:"3.9.3"};
