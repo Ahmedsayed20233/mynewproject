@@ -285,9 +285,9 @@
   const toast=d.createElement("div");toast.id="flosyToastBox";toast.className="flosy-undo";toast.hidden=true;
   toast.innerHTML='<span id="flosyToastMessage">تم التحديث</span>';
   d.body.appendChild(toast);
-  const undo=d.createElement("div");undo.id="flosyUndoBox";undo.className="flosy-undo";undo.hidden=true;
-  undo.innerHTML='<span id="flosyUndoText">اتسجلت العملية</span><button type="button" id="flosyUndoButton">تراجع</button>';
-  d.body.appendChild(undo);by("flosyUndoButton").onclick=()=>undo();
+  const undoBox=d.createElement("div");undoBox.id="flosyUndoBox";undoBox.className="flosy-undo";undoBox.hidden=true;
+  undoBox.innerHTML='<span id="flosyUndoText">اتسجلت العملية</span><button type="button" id="flosyUndoButton">تراجع</button>';
+  d.body.appendChild(undoBox);by("flosyUndoButton").onclick=()=>undo();
   const panel=d.createElement("section");panel.id="flosyLegacyPanel";panel.className="flosy-floating-core";
   panel.setAttribute("aria-hidden","true");
   panel.innerHTML='<div class="flosy-core-titlebar"><button id="flosyLegacyBack" type="button"><i class="fa-solid fa-arrow-right"></i> رجوع</button>'+
