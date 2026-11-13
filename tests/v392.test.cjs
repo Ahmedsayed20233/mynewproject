@@ -67,7 +67,7 @@ test("new PDF and Excel links are bound to native file-chunk workflow",()=>{
  const css=fs.readFileSync("flosy-report-pro.css","utf8");
  const services=fs.readFileSync("flosy-services-v392.js","utf8");
  for(const token of ["pdf-start","xlsx-start"])assert.ok(js.includes(token)||js.includes('kind+"-start"'));
- for(const token of ["FLOSY_REPORT_PRO","flosyReportStatus","flosy-report-pro.js?v=3920",
+ for(const token of ["FLOSY_REPORT_PRO","flosyReportStatus","flosy-report-pro.js?v=3921",
   "flosy-copilot-v392.js?v=3920","flosy-services-v392.js?v=3920"])
   assert.ok(js.includes(token)||shell.includes(token)||services.includes(token),token);
  assert.match(css,/@page\{size:A4/);
