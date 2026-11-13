@@ -22,11 +22,19 @@
  const balances=()=>{try{return ledger?.FLOSY_PRO?.rowsForAccounts?.()||{}}catch{return{}}};
  const safe=()=>{
   try{
-   const plan=w.FLOSY_FINANCE_ENGINE?.plan?.(state());
-   if(plan?.ready)return {safe:Math.max(0,plan.profile.discretionary),
-      daily:Math.max(0,plan.profile.discretionary)/30,
-      source:"financeProfileV393"};
-   return ledger?.FLOSY_PHASE1?.calculate?.()||null;
+   const engine=w.FLOSY_FINANCE_ENGINE;
+   const plan=engine?.plan?.(state());
+   const oldCalc=ledger?.FLOSY_PHASE1?.calculate?.()||null;
+   if(plan?.ready){
+    const liquid=ledger?.FLOSY_PHASE1?.freeCash?.();
+    if(!liquid||!Array.isArray(liquid.components)||!liquid.components.length)return null;
+    const days=oldCalc?.cycle?.days||30;
+    const estimate=engine.safeToSpend(state(),liquid.total,new Date(),days);
+    // A future paycheck is NOT cash available today. Never replace the actual
+    // balance with forecasted salary or the full monthly discretionary cap.
+    return estimate.ready?{...estimate,source:"financeProfileV393-liquid-cash"}:null;
+   }
+   return oldCalc;
   }catch{return null}
  };
  const summary=(key="month")=>U?.summary?.(state(),U.periodRange(key),balances(),safe())||{};
