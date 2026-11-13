@@ -145,3 +145,8 @@
  .fx-ai-insights{grid-template-columns:repeat(2,minmax(0,1fr))}
  .fx-capture-actions{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.fx-pulse{animation:none!important}}
+
+.fx-category-group-label{grid-column:1/-1;color:var(--text-secondary);font-size:10px;font-weight:900;
+ display:flex;gap:9px;align-items:center;min-height:23px;margin:5px 0 0;padding-right:4px}
+.fx-category-group-label:after{content:"";height:1px;background:var(--border);flex:1}
+.fx-category-group-label[hidden]{display:none!important}
