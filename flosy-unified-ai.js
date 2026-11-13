@@ -142,8 +142,11 @@
   if(busy)return;
   busy=true;
   const note=$("flosyAiVoiceStatus");if(note)note.textContent="🎙️ سامعك.. اتكلم بالمصري";
-  if(w.FLOSY_NATIVE_BRIDGE_AVAILABLE&&w.FlosyNative?.postMessage){
-   api()?.startVoice?.(true);return;
+  if(w.FLOSY_NATIVE_ANDROID===true || 
+     (w.FLOSY_NATIVE_BRIDGE_AVAILABLE&&w.FlosyNative?.postMessage)){
+   const started=api()?.startVoice?.(true);
+   if(!started){busy=false;if(note)note.textContent="تعذر فتح الصوت. راجع إذن الميكروفون."}
+   return;
   }
   const Speech=w.SpeechRecognition||w.webkitSpeechRecognition;
   if(!Speech){busy=false;if(note)note.textContent="التعرف الصوتي غير متاح على هذا الجهاز";return}
@@ -198,6 +201,16 @@
   $("flosyAiStop").onclick=stop;
   addMessage("assistant","يا أهلاً! أنا فلوسي AI. اسألني عن فلوسك بالفاتورة أو المعاملة أو بالرسم البياني. تقدر تسجّل مصروف بصوتك كمان.");
  }
- w.FLOSY_UNIFIED_AI={mount,ask,respond,chartHtml,onVoice,listen,stop,ttsDone:()=>{
-  if(continuous&&!busy)listen()},getHistory:()=>session.slice()};
+ function voiceStatus(message){
+  const status=$("flosyAiVoiceStatus");
+  if(status)status.textContent=String(message||"");
+ }
+ function voiceError(message){
+  busy=false;
+  const status=$("flosyAiVoiceStatus");
+  if(status)status.textContent=String(message||"تعذّر التسجيل الصوتي");
+ }
+ w.FLOSY_UNIFIED_AI={mount,ask,respond,chartHtml,onVoice,listen,stop,
+  voiceStatus,voiceError,ttsDone:()=>{if(continuous&&!busy)listen()},
+  getHistory:()=>session.slice()};
 })(window,document);
