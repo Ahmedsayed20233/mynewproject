@@ -170,6 +170,33 @@
    netWorth:totalCash+portfolioMarket+manual-debt,
    warning:"مراكز ثاندر مأخوذة من الصفقات والأسعار اليدوية. لا تُضف قيمة المراكز مرة أخرى كأصول يدوية كي لا يتكرر احتسابها."};
  }
+ function safeToSpend(s,freeCash,date=new Date(),remainingDays=30){
+  const p=profile(s,date);
+  if(!p.salaryConfigured||p.livingCost<=0||p.discretionary<=0||
+     !Number.isFinite(Number(freeCash)))return {
+     ready:false,safe:null,daily:null,reason:"need-verified-cash-and-budget",
+     note:"لازم تدخل مرتبك والتزاماتك وميزانية الصرف الاختياري وحساب نقدي فعلي قبل تقدير المبلغ الآمن."};
+  const period=month(date);
+  // These consumer discretionary categories are budget tags, not loan or
+  // salary estimates. Unknown categories remain visible but are not assumed.
+  const optionalTags=new Set([
+   "coffee","entertainment","shopping","clothes","electronics","subscriptions",
+   "gaming","travel","gifts","food"
+  ]);
+  const optionalText=/(?:قهو|كافي|مطعم|ترفيه|سينما|ملابس|هدوم|تسوق|مشتريات|هدايا|سفر|العاب|ألعاب|اشتراك)/;
+  const optionalSpent=rows(s).filter(t=>t.type==="expense"&&
+    String(t.date).slice(0,7)===period&&
+    (optionalTags.has(String(t.categoryId||""))||
+     optionalText.test(String(t.category||"")))).reduce((a,t)=>a+num(t.amount),0);
+  const afterCashReserve=Math.max(0,+freeCash-p.fixedSum-p.essentials-p.desiredReserve);
+  const unusedOptionalBudget=Math.max(0,p.discretionary-optionalSpent);
+  const available=Math.min(afterCashReserve,unusedOptionalBudget);
+  const days=Math.max(1,Math.min(31,Math.trunc(Number(remainingDays)||30)));
+  return {ready:true,safe:Math.round(available*100)/100,
+   daily:Math.round(available/days*100)/100,days,freeCash:+freeCash,
+   optionalSpent,unusedOptionalBudget,reserved:p.fixedSum+p.essentials+p.desiredReserve,
+   note:"تقدير محافظ: احتُسبت الميزانية الاختيارية المتبقية والرصد النقدي الحالي بعد حجز الالتزامات الأساسية. لا يشمل دخلًا مستقبليًا لم يصل للحساب."};
+ }
  function insight(s,date=new Date()){
   const p=profile(s,date),planInfo=plan(s,date),W=wealth(s);
   const current=rows(s).filter(t=>String(t.date).slice(0,7)===p.period);
@@ -196,7 +223,7 @@
    previousExpense:last,changePct:last?((p.actualExpense-last)/last*100):null,
    warnings,duplicates,hasData:current.length>0};
  }
- return {profile,plan,zakat,wealth,insight,distinctCommitments,money,
+ return {profile,plan,zakat,wealth,insight,safeToSpend,distinctCommitments,money,
   refs:{emergency:"https://syndication.finra.org/content/how-prepare-and-survive-financial-hardship",
    saving:"https://www.consumerfinance.gov/an-essential-guide-to-building-an-emergency-fund/",
    allocation:"https://www.investor.gov/introduction-investing/getting-started/asset-allocation",

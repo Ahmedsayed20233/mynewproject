@@ -78,3 +78,19 @@ Notification permission and scheduling is opt-in: due bills and a generic 9 a.m.
 Node accounting/NLU/zakat/projections tests, Playwright Chromium flows (forms, custom categories, detailed transactions, salary plan, Thndr, zakat, family, themes and simulated native PDF/XLSX chunk transfers), signed Android CI artifact and permission verification are the acceptance gates.
 
 **Known limitations**: no physical phone camera/audio/notification delivery measurement; no new speech acoustic model nor independently fine-tuned LLM; external fund or broker quotes are not streamed; no global cross-device conflict resolution proven; the APK WebView requires connectivity and compatible speech/Tesseract components for some operations. APK debug signatures are not guaranteed to support over-install; keep prior APK until backup and restore are verified. Not Google Play-certified.
+## v3.9.3 hotfix — Safe to Spend must be grounded in liquid cash
+A planned `monthlyDiscretionarySpend` is a **budget limit**, never cash itself. The previous calculation set `safe = discretionarySpend` even if the user had EGP 0 available. That can overstate spendable cash and was corrected.
+
+With **actual cash available** (C), fixed monthly commitments (F), basic living costs (E), buffer (B), optional budget (D), and optional-category spend already recorded this month (X):
+
+`cashCap = max(0, C - F - E - B)`
+
+`optionalBudgetCap = max(0, D - X)`
+
+`safeToSpendEstimate = min(cashCap, optionalBudgetCap)`
+
+`dailyEstimate = safeToSpendEstimate / remainingDaysUntilNextPayday`
+
+The cash source is the already-installed `FLOSY_PHASE1.freeCash()`, which excludes protected emergency, reserve and Thndr funds. `X` uses the actual optional spending categories in canonical transactions. This is a deliberately conservative spending **estimate**; it may reserve an obligation that was already paid unless the commitment status is tracked separately. Missing or unverified income, liquid account, and discretionary budget -> show "not available", not an invented number.
+
+The `safeToSpend()` engine is tested with zero actual cash, reserved commitments, optional consumption and a missing discretionary limit. Budget forecasts and booked transactions are still maintained separately to prevent double counting.
