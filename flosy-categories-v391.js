@@ -66,11 +66,24 @@
  def("commission-income","عمولات ومبيعات","الدخل","fa-percent","#059669",["عمولة شغل","كوميشن"]),
  def("pension-income","معاش وتقاعد","الدخل","fa-person-cane","#2563EB",["معاش","راتب تقاعدي"])
  );
- const all=[...expense,...income,...transfer];
+ const obligation=[
+ def("rent-fixed","إيجار ثابت","التزامات شهرية","fa-house","#8B5CF6",["إيجار"]),
+ def("installment-car","قسط سيارة","أقساط","fa-car-side","#3B82F6",["عربية","قسط سيارة"]),
+ def("installment-phone","قسط موبايل","أقساط","fa-mobile-screen","#0EA5E9",["قسط موبايل"]),
+ def("bnpl","فاليو / تمارا / تقسيط","أقساط","fa-credit-card","#F43F5E",["فاليو","تمارا","تقسيط"]),
+ def("association-fixed","جمعية شهرية","التزامات شهرية","fa-users","#A855F7",["جمعية"]),
+ def("internet-fixed","إنترنت واشتراكات","التزامات شهرية","fa-wifi","#6366F1",["إنترنت"]),
+ def("school-fixed","مصروفات مدرسة / حضانة","التزامات أسرية","fa-school","#D946EF",["مدرسة"]),
+ def("medical-fixed","تأمين وعلاج دوري","التزامات أسرية","fa-heart-pulse","#059669",["علاج"]),
+ def("loan-fixed","قرض بنكي","ديون","fa-building-columns","#EF4444",["قرض"]),
+ def("friend-fixed","سداد دين للشلة","ديون","fa-people-group","#F97316",["دين"]),
+ def("support-fixed","دعم الأسرة","التزامات أسرية","fa-people-roof","#14B8A6",["مصروف بيت"])
+ ];
+ const all=[...expense,...income,...transfer,...obligation];
  const groups=kind=>[...new Set(forType(kind).map(x=>x.group))];
  function normalize(s){return String(s||"").toLowerCase().replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي").replace(/[ًٌٍَُِّْ]/g,"").trim()}
  function forType(type){
-  const base=type==="income"?income:type==="transfer"?transfer:expense;
+  const base=type==="income"?income:type==="transfer"?transfer:type==="obligation"?obligation:expense;
   const state=root?.FLOSY_UNIFIED?.state?.();
   const custom=state?.settings?.customCategoriesV393;
   const records=Array.isArray(custom)?custom:[];
@@ -81,7 +94,7 @@
  function byLabel(value,type){
   const norm=normalize(value);
   if(!norm)return null;
-  const candidates=type?forType(type):[...forType("expense"),...forType("income"),...forType("transfer")];
+  const candidates=type?forType(type):[...forType("expense"),...forType("income"),...forType("transfer"),...forType("obligation")];
   return candidates.find(c=>normalize(c.label)===norm||c.id===value)||
     candidates.find(c=>Array.isArray(c.keywords)&&c.keywords.some(k=>normalize(k)===norm))||null;
  }
@@ -113,5 +126,5 @@
     inferred:explicit||inferred;
  }
  function verify(category,type){return Boolean(byLabel(category,type))}
- return Object.freeze({all,expense,income,transfer,groups,forType,byLabel,classify,resolve,verify,normalize});
+ return Object.freeze({all,expense,income,transfer,obligation,groups,forType,byLabel,classify,resolve,verify,normalize});
 });
