@@ -1,0 +1,92 @@
+/* Unified Flosy — comprehensive legacy finance module theme adapter.
+ * Injected LAST in the internal same-origin finance engine; no standalone old themes.
+ * Works for all four sets of palette variables set by styleCore().
+ */
+html[data-theme="clean-light"],html[data-theme="calm-light"]{color-scheme:light}
+html[data-theme="emerald-dark"],html[data-theme="serene-dark"]{color-scheme:dark}
+html[data-theme]{--fl-bg:var(--bg);--fl-card:var(--panel);--fl-field:var(--panel2);
+ --fl-text:var(--text);--fl-border:var(--outline);--fl-muted:var(--muted);--fl-brand:var(--teal)}
+html[data-theme],html[data-theme] body,html[data-theme] .shell,
+html[data-theme] .main,html[data-theme] .page{background:var(--fl-bg)!important;color:var(--fl-text)!important}
+html[data-theme] .page h1,html[data-theme] .page h2,html[data-theme] .page h3,
+html[data-theme] .page h4,html[data-theme] .page strong,
+html[data-theme] .card strong,html[data-theme] .v4-feature strong,
+html[data-theme] .v4-hero h2,html[data-theme] .f10-card h3{color:var(--fl-text)!important}
+html[data-theme] .card,html[data-theme] .metric,html[data-theme] .v4-panel,
+html[data-theme] .v4-surface,html[data-theme] .v4-feature,
+html[data-theme] .v4-hero,html[data-theme] .v4-card,html[data-theme] .v5-card,
+html[data-theme] .flosy-ai-bubble,html[data-theme] .flosy-ai-panel,
+html[data-theme] .flosy-ai-msg,html[data-theme] .flosy-ai-thread,
+html[data-theme] .f2-card,html[data-theme] .f2-panel,
+html[data-theme] .f10-card,html[data-theme] .f10-capture,
+html[data-theme] .f10-extracted,html[data-theme] .f10-hero,
+html[data-theme] .f10-auto-settings,html[data-theme] .v4-budget-card,
+html[data-theme] .v4-tile,html[data-theme] .studio-card,
+html[data-theme] .flosy-studio-card,html[data-theme] .f3-card,
+html[data-theme] .report-tools,html[data-theme] .callout,
+html[data-theme] .strip,html[data-theme] .sidefooter,
+html[data-theme] .modal,html[data-theme] .mobile-more-panel{
+ background:var(--fl-card)!important;background-image:none!important;
+ color:var(--fl-text)!important;border:1px solid var(--fl-border)!important;
+ box-shadow:none!important;border-radius:17px!important}
+html[data-theme] .top,html[data-theme] .sidebar,
+html[data-theme] .mobile-dock{background:var(--fl-bg)!important;color:var(--fl-text)!important;border-color:var(--fl-border)!important}
+html[data-theme] .muted,html[data-theme] .footnote,html[data-theme] .v4-fineprint,
+html[data-theme] .v4-secondary,html[data-theme] .f10-privacy,
+html[data-theme] .f10-hero p,html[data-theme] .f10-card p,
+html[data-theme] .card p,html[data-theme] .sidefooter p,
+html[data-theme] .f2-card p,html[data-theme] label,
+html[data-theme] .eyebrow,html[data-theme] .report-tools label{
+ color:var(--fl-muted)!important}
+html[data-theme] button,html[data-theme] input,html[data-theme] select,
+html[data-theme] textarea{font-family:'Readex Pro','Cairo',sans-serif!important}
+html[data-theme] input,html[data-theme] select,html[data-theme] textarea,
+html[data-theme] .chip,html[data-theme] .v4-input,
+html[data-theme] .f10-mini-form input,html[data-theme] .f10-mini-form textarea,
+html[data-theme] .f10-text-form textarea,html[data-theme] .f2-input,
+html[data-theme] .f2-select,html[data-theme] .f2-textarea{
+ background:var(--fl-field)!important;color:var(--fl-text)!important;
+ border:1px solid var(--fl-border)!important;border-radius:12px!important;
+ box-shadow:none!important}
+html[data-theme] input::placeholder,html[data-theme] textarea::placeholder{
+ color:var(--fl-muted)!important;opacity:.9}
+html[data-theme] input:focus-visible,html[data-theme] button:focus-visible,
+html[data-theme] textarea:focus-visible,html[data-theme] select:focus-visible{
+ outline:2px solid var(--fl-brand)!important;outline-offset:2px}
+html[data-theme] .btn:not(.primary),html[data-theme] .f10-secondary,
+html[data-theme] .f2-chip,html[data-theme] .v4-secondary-button,
+html[data-theme] .actions button{
+ color:var(--fl-text)!important;background:var(--fl-field)!important;border:1px solid var(--fl-border)!important;
+ border-radius:12px!important}
+html[data-theme] .btn.primary,html[data-theme] .f10-primary,
+html[data-theme] .v4-cta,html[data-theme] .f2-primary,
+html[data-theme] .more-sync button{
+ background:var(--fl-brand)!important;color:#fff!important;border-radius:12px!important;border:0!important}
+html[data-theme] .v4-row,html[data-theme] .v4-list-item,
+html[data-theme] .v4-budget-row,html[data-theme] .f10-cardtitle,
+html[data-theme] .budgetrow,html[data-theme] .table td,
+html[data-theme] .table th,html[data-theme] .report-tools,
+html[data-theme] .v4-stat{border-color:var(--fl-border)!important}
+html[data-theme] .nav button,html[data-theme] .mobile-dock .dock-item{
+ color:var(--fl-muted)!important}
+html[data-theme] .nav button.active,html[data-theme] .mobile-dock .dock-item.active{
+ background:var(--fl-field)!important;color:var(--fl-brand)!important}
+html[data-theme] .highlight,html[data-theme] .strip{background:var(--fl-card)!important;color:var(--fl-text)!important}
+html[data-theme] .highlight .value,html[data-theme] .brand-text,
+html[data-theme] .f10-step{color:var(--fl-brand)!important}
+html[data-theme] .report-preview{background:var(--fl-field)!important;border:1px solid var(--fl-border)!important}
+html[data-theme] .report-paper{background:#fff!important;color:#142535!important}
+html[data-theme] .report-paper *{color:inherit}
+html[data-theme] .report-paper .r-head{border-color:var(--fl-brand)!important}
+html[data-theme] .report-paper .r-head .r-brand{color:var(--fl-brand)!important}
+html[data-theme] .v4-fineprint a,html[data-theme] a{color:var(--fl-brand)!important}
+html[data-theme] .progress{background:var(--fl-field)!important}
+html[data-theme] .progress i{background:var(--fl-brand)!important}
+html[data-theme] .toast{background:var(--fl-card)!important;color:var(--fl-text)!important;
+ border:1px solid var(--fl-brand)!important}
+html[data-theme] .modalback{background:rgba(8,14,25,.64)!important}
+/* Remove in-engine obsolete providers and their mode selectors if any legacy screen
+   is inadvertently opened from stale navigation. Unified assistant lives on screen 8. */
+html[data-theme] #flosyAiMode,html[data-theme] #flosyAiConsent,
+html[data-theme] #flosyAiOpenAIKey,html[data-theme] .flosy-ai-provider-switch{
+ display:none!important}
