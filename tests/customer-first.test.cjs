@@ -18,3 +18,15 @@ test("fast entry rejects negative or ambiguous precision",()=>{
   assert.ok(Number.isNaN(amount(x)),x);
  }
 });
+
+test("quick repeat suggestions use only canonical expense/income, not transfers",()=>{
+ win.FLOSY_UNIFIED={state:()=>({transactions:[
+  {type:"transfer",amount:1000,accountId:"a",description:"مبلغ من حساب لحساب",date:"2026-11-13"},
+  {type:"expense",amount:75.50,accountId:"a",category:"قهوة",description:"قهوة",date:"2026-11-13"}
+ ]}),accounts:()=>[{id:"a"}]};
+ win.FLOSY_ULTRA_DATA={cleanTx:s=>s.transactions};
+ const templates=win.FLOSY_UX_V391.quickTemplates();
+ assert.equal(templates.length,1);
+ assert.equal(templates[0].amount,75.5);
+ assert.equal(templates[0].type,"expense");
+});
