@@ -23,8 +23,8 @@
  const safe=()=>{
   try{
    const plan=w.FLOSY_FINANCE_ENGINE?.plan?.(state());
-   if(plan?.ready)return {safe:Math.max(0,plan.profile.margin-plan.buffer),
-      daily:Math.max(0,plan.profile.margin-plan.buffer)/30,
+   if(plan?.ready)return {safe:Math.max(0,plan.profile.discretionary),
+      daily:Math.max(0,plan.profile.discretionary)/30,
       source:"financeProfileV393"};
    return ledger?.FLOSY_PHASE1?.calculate?.()||null;
   }catch{return null}
