@@ -60,10 +60,12 @@
   const hero='<section class="hero-card" style="border-radius:22px;padding:18px;margin-bottom:11px">'+
    '<div style="display:flex;justify-content:space-between;align-items:center"><small>إجمالي أرصدتك</small>'+
    '<button class="flosy-btn flosy-btn-secondary" style="min-height:26px;padding:4px 8px" data-flosy-screen="3">حساباتي</button></div>'+
-   '<div class="balance-num" style="font-size:25px;font-weight:900;margin:8px 0">'+money(s.total)+'</div>'+
+   '<div class="balance-num" style="font-size:25px;font-weight:900;margin:8px 0">'+(s.hasAccounts===false?"أضف حسابك الأول":money(s.total))+'</div>'+
    '<div style="border-top:1px solid #ffffff30;padding-top:10px;margin-top:10px"><small>المتاح الآمن للصرف</small>'+
    '<div class="balance-num" style="font-size:21px;font-weight:900">'+(s.safe===null?"لم يكتمل":money(s.safe))+'</div>'+
-   '<small>الحد اليومي '+(s.daily===null?"—":money(s.daily))+'</small></div></section>';
+   '<small>الحد اليومي '+(s.daily===null?"—":money(s.daily))+'</small>'+
+    '<p style="font-size:11px;margin-top:6px">'+(s.safe===null?"البيانات المالية غير مكتملة؛ لا تعتمد على صفر كحد آمن.":"المتاح تقدير إرشادي من أرصدتك والتزاماتك المسجلة.")+'</p>'+
+    '<button type="button" class="flosy-btn flosy-btn-secondary" style="margin-top:7px" data-flosy-screen="17">كيف اتحسب؟ / أكمل ملفي</button></div></section>';
   return '<div class="flosy-screen-top"><div><h2>فلوسك أوضح كل يوم ✦</h2><p>بياناتك الفعلية، بدون أرصدة نموذجية</p></div>'+
    '<button type="button" class="flosy-back" data-flosy-screen="16">☰ الخدمات</button></div>'+hero+
    '<div class="flosy-grid-2" style="margin-bottom:11px">'+metric("الدخل هذا الشهر",s.income)+metric("مصروفات الشهر",s.expense)+'</div>'+
