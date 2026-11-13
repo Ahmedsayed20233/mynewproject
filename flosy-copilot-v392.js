@@ -44,6 +44,18 @@
  function dailyAdvice(state,date=new Date()){
   const s=ledger(state,date),first=name(state);
   const greeting=first?"يا "+first+"، ":"";
+  const engine=typeof window!=="undefined"?window.FLOSY_FINANCE_ENGINE:null;
+  const linked=engine?.plan?.(state,date);
+  if(linked?.ready && linked.profile.margin<0)return {
+   title:greeting+"ملفك المالي محتاج تعديل",
+   message:"المصاريف والالتزامات المتوقعة أعلى من الدخل المتكرر. راجع خطة الشهر قبل أي قسط أو استثمار.",
+   subject:"cashflow",date:s.today};
+  if(linked?.ready&&Number(s.today.slice(-2))%4===0)return {
+   title:greeting+"هدف التوفير المحسوب",
+   message:"خطة فلوسي المقترحة للطوارئ "+money(linked.suggestedEmergency)+
+    "، والاستثمار المشروط "+money(linked.suggestedInvestment)+
+    "، بعد الاحتياجات وهامش الأمان. راجع التزامك الشهري أولًا.",
+   subject:"financial-plan",date:s.today};
   const day=Number(s.today.slice(-2));
   if(!s.rows.length)return {
    title:greeting+"ابدأ رحلة فلوسي",
