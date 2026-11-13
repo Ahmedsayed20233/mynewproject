@@ -88,8 +88,8 @@
     '<p class="fin393-note">دي حدود حسابية مبنية على البيانات اللي أدخلتها، وليست أوامر تحويل تلقائي أو ضمانًا للعائد. الأولوية لصندوق طوارئ وسيولة كافية وسداد الدين المرتفع التكلفة.</p>')+
    panel("اقتراح أدوات الاستثمار وفق الأفق والمخاطر",
      '<p class="fin393-note">'+esc(plan.assetSuggestion)+'</p>'+
-     '<div class="fin393-list"><a href="https://www.cbe.org.eg/ar/auctions/egp-t-bills" target="_blank" rel="noopener">البنك المركزي المصري — أذون الخزانة وآجالها</a>'+
-     '<a href="https://www.cbe.org.eg/ar/contact-us/website-faqs" target="_blank" rel="noopener">كيفية شراء الأذون عبر البنوك المصرية</a>'+
+     '<div class="fin393-list"><a href="https://www.cbe.org.eg/en/auctions/egp-t-bills" target="_blank" rel="noopener">البنك المركزي المصري — أذون الخزانة وآجالها</a>'+
+     '<a href="https://www.cbe.org.eg/en/auctions/auctions-overview" target="_blank" rel="noopener">كيفية شراء الأذون عبر البنوك المصرية</a>'+
      '<a href="https://www.investor.gov/introduction-investing/getting-started/asset-allocation" target="_blank" rel="noopener">الهيئة الأمريكية SEC — التنويع والأفق الزمني</a>'+
      '<a href="https://www.consumerfinance.gov/an-essential-guide-to-building-an-emergency-fund/" target="_blank" rel="noopener">CFPB — بناء صندوق الطوارئ</a></div>'+
      '<p class="fin393-note">لا توجد أسعار أو عوائد حية داخل هذا الحساب؛ راجع الرسوم والضرائب والمخاطر والسيولة من مصدر المنتج قبل الاستثمار.</p>')+
