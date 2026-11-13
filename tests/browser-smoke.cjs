@@ -84,6 +84,7 @@ async function startLocal(){
   assert.equal(await page.locator("#flosyAutoImportRoot .flosy-auto-panel").count(),0);
   // Simulate only an authorized native wrapper; no real SMS/notifications accessed.
   await page.evaluate(()=>{
+    window.FLOSY_FLAGS={FINANCIAL_MESSAGE_IMPORT_ENABLED:true}; // isolated legacy importer test only
     window.FLOSY_NATIVE_AUTO_IMPORT_AVAILABLE=true;
     window.__autoRequests=[];
     window.FlosyNative={postMessage:msg=>window.__autoRequests.push(JSON.parse(msg))};
@@ -114,6 +115,7 @@ async function startLocal(){
    "Auto-import is a review queue, never a silent finance ledger write");
   await page.evaluate(()=>{
     window.FLOSY_NATIVE_AUTO_IMPORT_AVAILABLE=false;
+     window.FLOSY_FLAGS={FINANCIAL_MESSAGE_IMPORT_ENABLED:false};
     window.FLOSY_AUTO_IMPORT.render();
   });
   console.log("PASS: Play-variant opt-in, allowlist, queue review and safe invisible default");
