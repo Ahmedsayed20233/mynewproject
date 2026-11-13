@@ -269,7 +269,10 @@
   captureStatus("flosyReceiptStatus","📸 جاري فتح "+(mode==="gallery"?"معرض الصور":"الكاميرا")+"...");
   const action=mode==="gallery"?"receipt-ocr":"receipt-camera";
   if(bridge(action))return true;
-  if(w.FLOSY_NATIVE_ANDROID===true){w.location.href="flosyapp://"+action;return true}
+  if(w.FLOSY_NATIVE_ANDROID===true){
+   w.location.href=mode==="gallery"?"flosyapp://ocr-receipt":"flosyapp://receipt-camera";
+   return true;
+  }
   const input=by("flosyReceiptFile");
   if(input){input.click();return true}
   go(6);notify("افتح قسم الفواتير واختر صورة من الجهاز");return false;
