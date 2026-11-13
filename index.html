@@ -752,7 +752,14 @@ loadAuthSession();categoryOptions();render();})();
 <script src="flosy-ai-analytics.js?v=1001"></script>
 <script src="flosy-report-kit.js?v=3601"></script>
 <script>document.getElementById('reportPreviewBtn')?.click();</script>
-<script src="flosy-ai.js?v=380"></script>
+<script>
+ // The unified app never loads API-backed legacy assistants. Historical QA can
+ // still inspect the retired module in an explicit test-only session.
+ (function(){var legacy=new URLSearchParams(location.search).has("flosy_test_ai");
+  var src=legacy?"flosy-ai.js?v=380":"flosy-ai-local.js?v=3901";
+  document.write('<scr'+'ipt src="'+src+'"></scr'+'ipt>');
+ })();
+</script>
 <script src="flosy-phase1.js?v=311"></script>
 <script src="flosy-sync-v3.js?v=302"></script>
 <script src="flosy-voice-nlu.js?v=3402"></script>
@@ -766,7 +773,10 @@ loadAuthSession();categoryOptions();render();})();
 <script src="flosy-v5-command.js?v=1001"></script>
 <script src="flosy-v5-private-backup.js?v=500"></script>
 <script src="flosy-repair.js?v=3401"></script>
-<script src="flosy-assistant-bridge.js?v=602"></script>
+<script>
+ if(new URLSearchParams(location.search).has("flosy_test_ai"))
+  document.write('<scr'+'ipt src="flosy-assistant-bridge.js?v=602"></scr'+'ipt>');
+</script>
 <script src="flosy-elevate.js?v=801"></script>
 <script src="flosy-studio.js?v=901"></script>
 <script src="flosy-aurora.js?v=3701"></script>
