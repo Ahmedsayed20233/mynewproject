@@ -1,0 +1,44 @@
+/* Flosy 3.9.2 polished A4 printable finance report — all themes. */
+@page{size:A4;margin:14mm}
+@media print{
+ html,body{overflow:visible!important;height:auto!important;background:#fff!important;color:#173249!important}
+ body.flosy-live>main,body.flosy-live .flosy-undo,body.flosy-live .flosy-floating-core,
+ body.flosy-live #flosyToastBox,body.flosy-live #flosyUndoBox{display:none!important}
+ html body.flosy-live #flosyUnifiedPrint{display:block!important;position:static!important;
+  height:auto!important;max-height:none!important;overflow:visible!important;padding:0!important}
+}
+body #flosyUnifiedPrint{display:none}
+.flosy-report-pro{direction:rtl;color:#183047;background:white;font-family:'Readex Pro','Cairo',Tahoma,sans-serif;font-size:10pt;line-height:1.75}
+.flosy-report-pro *{box-sizing:border-box}
+.flosy-report-pro .rp-cover{display:flex;justify-content:space-between;align-items:center;gap:12px;
+ border-bottom:3px solid #087f71;padding:10px 0 14px}
+.flosy-report-pro .rp-logo{width:48px;height:48px;border-radius:13px;background:#0a8077;color:white;
+ display:grid;place-items:center;font:900 27px sans-serif}
+.flosy-report-pro .rp-cover>div{flex:1}
+.flosy-report-pro h1{font-size:21pt;font-weight:900;margin:0;color:#143247}
+.flosy-report-pro h1 em{font-style:normal;color:#087f71;font-size:14pt}
+.flosy-report-pro .rp-cover p{font-size:8px;letter-spacing:1.4px;color:#6d8592;margin:0}
+.flosy-report-pro .rp-private{font-size:9px;padding:6px 10px;border:1px solid #b6d5cf;
+ background:#edf8f5;color:#126c65;border-radius:24px}
+.flosy-report-pro .rp-meta{display:flex;justify-content:space-between;gap:10px;
+ font-size:9pt;padding:13px 0;color:#567183}
+.flosy-report-pro .rp-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:13px}
+.flosy-report-pro .rp-stat{border-radius:12px;padding:15px 10px;background:#f5f8fa;border:1px solid #dce7eb}
+.flosy-report-pro .rp-stat small{display:block;color:#647c89;font-size:9pt}
+.flosy-report-pro .rp-stat b{display:block;font-size:14pt;margin-top:6px;font-variant-numeric:tabular-nums}
+.flosy-report-pro .rp-note{background:#ecf8f4;border-right:3px solid #108f81;
+ color:#2b6570;padding:9px;font-size:9pt}
+.flosy-report-pro h2{font-size:13pt;color:#183047;margin:20px 0 9px;break-after:avoid}
+.flosy-report-pro .rp-table{width:100%;border-collapse:collapse;font-size:9pt;table-layout:fixed}
+.flosy-report-pro .rp-table th{background:#176d6a;color:white;text-align:right;padding:8px 7px}
+.flosy-report-pro .rp-table td{border-bottom:1px solid #e3edf0;padding:8px 7px;overflow-wrap:anywhere}
+.flosy-report-pro .rp-table tbody tr:nth-child(even){background:#f5f9fa}
+.flosy-report-pro .rp-table tbody tr{break-inside:avoid;page-break-inside:avoid}
+.flosy-report-pro .rp-table thead{display:table-header-group}
+.flosy-report-pro .rp-table td small{display:block;color:#607b8c}
+.flosy-report-pro .rp-advice{padding-right:20px}
+.flosy-report-pro .rp-advice li{margin:7px 0}
+.flosy-report-pro footer{font-size:8pt;border-top:1px solid #dde7ea;padding:10px 0;text-align:center;margin-top:20px;color:#748994}
+#flosyReportStatus{margin:12px 0;padding:10px;border-radius:12px;border:1px solid var(--border);
+ background:var(--bg-elevated);color:var(--text-secondary);font-size:11px;line-height:1.8}
+#flosyReportStatus[data-error="true"]{color:var(--expense);border-color:var(--expense)}
