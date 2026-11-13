@@ -11,6 +11,8 @@ public final class FlosyReminderReceiver extends BroadcastReceiver {
         String action=intent.getAction();
         if(FlosyReminderScheduler.ACTION_DUE.equals(action)){
             FlosyReminderScheduler.notifyDue(context);
+        }else if(FlosyReminderScheduler.ACTION_DAILY.equals(action)){
+            FlosyReminderScheduler.notifyDaily(context);
         }else if(Intent.ACTION_BOOT_COMPLETED.equals(action)
             ||Intent.ACTION_MY_PACKAGE_REPLACED.equals(action)){
             FlosyReminderScheduler.reschedule(context);

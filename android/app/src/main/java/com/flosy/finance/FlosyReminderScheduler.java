@@ -27,13 +27,22 @@ import java.util.Locale;
 public final class FlosyReminderScheduler {
     static final String CHANNEL="flosy_payment_reminders";
     static final String ACTION_DUE="com.flosy.finance.LOCAL_BILL_DUE";
+    static final String ACTION_DAILY="com.flosy.finance.LOCAL_DAILY_INSIGHT";
+    private static final int DAILY_ID=43920;
     private static final String PREF="flosy_local_reminders_v1";
-    private static final String ENABLED="enabled",ROWS="rows",PENDING_IDS="pending_ids";
+    private static final String ENABLED="enabled",ROWS="rows",PENDING_IDS="pending_ids",DAILY="daily_enabled",FIRST_NAME="first_name";
     private FlosyReminderScheduler(){}
     private static SharedPreferences prefs(Context c){
         return c.getApplicationContext().getSharedPreferences(PREF,Context.MODE_PRIVATE);
     }
     public static boolean enabled(Context c){return prefs(c).getBoolean(ENABLED,false);}
+    public static boolean dailyEnabled(Context c){return prefs(c).getBoolean(DAILY,false);}
+    public static void setFirstName(Context c,String candidate){
+        String safe=String.valueOf(candidate==null?"":candidate)
+            .replaceAll("[^\\p{L} ]","").trim();
+        if(safe.length()>24)safe=safe.substring(0,24);
+        prefs(c).edit().putString(FIRST_NAME,safe).apply();
+    }
     public static boolean permission(Context c){
         return Build.VERSION.SDK_INT<33 ||
             c.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)==PackageManager.PERMISSION_GRANTED;
@@ -42,6 +51,7 @@ public final class FlosyReminderScheduler {
         JSONObject result=new JSONObject();
         try{
             result.put("enabled",enabled(c));
+            result.put("dailyEnabled",dailyEnabled(c));
             result.put("permission",permission(c)?"granted":"denied");
             result.put("scheduled",prefs(c).getString(PENDING_IDS,"").isEmpty()?0:
                 prefs(c).getString(PENDING_IDS,"").split(",").length);
@@ -50,13 +60,40 @@ public final class FlosyReminderScheduler {
     }
     public static void setEnabled(Context c,boolean on){
         prefs(c).edit().putBoolean(ENABLED,on).apply();
-        if(on)reschedule(c);else cancel(c,true);
+        if(on)reschedule(c);
+        else {cancel(c,true);setDaily(c,false);}
     }
     private static PendingIntent pending(Context c,int id,long timestamp){
         Intent intent=new Intent(c,FlosyReminderReceiver.class);
         intent.setAction(ACTION_DUE).putExtra("id",id).putExtra("timestamp",timestamp);
         return PendingIntent.getBroadcast(c,id,intent,
             PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
+    }
+    public static void setDaily(Context c,boolean on){
+        prefs(c).edit().putBoolean(DAILY,on).apply();
+        scheduleDaily(c);
+    }
+    private static void scheduleDaily(Context c){
+        AlarmManager alarm=(AlarmManager)c.getSystemService(Context.ALARM_SERVICE);
+        Intent intent=new Intent(c,FlosyReminderReceiver.class).setAction(ACTION_DAILY);
+        PendingIntent pi=PendingIntent.getBroadcast(c,DAILY_ID,intent,
+            PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
+        if(alarm==null)return;
+        alarm.cancel(pi);
+        if(!dailyEnabled(c)||!enabled(c)||!permission(c))return;
+        Calendar cal=Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY,9);cal.set(Calendar.MINUTE,0);
+        cal.set(Calendar.SECOND,0);cal.set(Calendar.MILLISECOND,0);
+        if(cal.getTimeInMillis()<=System.currentTimeMillis())cal.add(Calendar.DAY_OF_MONTH,1);
+        alarm.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,cal.getTimeInMillis(),pi);
+    }
+    public static void notifyDaily(Context c){
+        if(!enabled(c)||!dailyEnabled(c)||!permission(c))return;
+        String name=prefs(c).getString(FIRST_NAME,"");
+        notify(c,"فلوسي AI — اقتراحك المالي اليوم",
+            "صباح الخير"+(name.isEmpty()?"":" يا "+name)+
+            "! افتح فلوسي علشان تشوف خطة وتوصية اليوم المبنية على معاملاتك.");
+        scheduleDaily(c); // schedule the next local morning; OS may delay in Doze.
     }
     private static void cancel(Context c,boolean erase){
         AlarmManager alarms=(AlarmManager)c.getSystemService(Context.ALARM_SERVICE);
@@ -128,6 +165,7 @@ public final class FlosyReminderScheduler {
             }
         }
         prefs(c).edit().putString(PENDING_IDS,android.text.TextUtils.join(",",ids)).apply();
+        scheduleDaily(c);
     }
     public static void notifyDue(Context c){
         if(!enabled(c)||!permission(c))return;

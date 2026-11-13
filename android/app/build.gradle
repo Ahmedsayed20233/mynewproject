@@ -21,8 +21,8 @@ android {
         applicationId 'com.flosy.finance'
         minSdk 24
         targetSdk 35
-        versionCode 45
-        versionName '3.9.1'
+        versionCode 47
+        versionName '3.9.3'
     }
 
 
@@ -51,7 +51,7 @@ android {
         }
         mvp {
             dimension 'permissionLevel'
-            applicationIdSuffix '.unified.v391'
+            applicationIdSuffix '.unified.v393'
             // One unified Flosy app with the owner-provided 20 screens, 4 themes, safe auto-capture, AI charts, local bill alerts; no SMS permission.
         }
     }
