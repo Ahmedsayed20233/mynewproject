@@ -16,6 +16,8 @@
  function respond(question){
   const s=summary(),q=String(question||"").slice(0,600).trim(),data=state();
   if(!q)return {text:"اسألني عن مصروفاتك أو حساباتك أو أقساطك، وأنا معاك.",chart:null};
+  const personal=w.FLOSY_COPILOT?.answer?.(q,data,new Date());
+  if(personal)return personal;
   const analytics=core()?.FLOSY_LOCAL_ANALYTICS;
   let answer=null;
   try{answer=analytics?.query?.(q,data,new Date());}catch{}
@@ -177,7 +179,9 @@
    '<div class="flosy-buttonbar" style="margin:8px 0 10px">'+
     '<button type="button" class="flosy-ai-chip" data-ai-q="صرفت كام الشهر ده؟">مصروفات الشهر</button>'+
     '<button type="button" class="flosy-ai-chip" data-ai-q="ارسم فئات المصروفات">رسمة الإنفاق</button>'+
-    '<button type="button" class="flosy-ai-chip" data-ai-q="قارن هذا الشهر بالشهر اللي فات">مقارنة الشهور</button></div>'+
+    '<button type="button" class="flosy-ai-chip" data-ai-q="قارن هذا الشهر بالشهر اللي فات">مقارنة الشهور</button>'+
+    '<button type="button" class="flosy-ai-chip" data-ai-q="Roast me">🔥 Roast Me</button>'+
+    '<button type="button" class="flosy-ai-chip" data-ai-q="نصيحة اليوم">💡 نصيحة اليوم</button></div>'+
    '<form id="flosyAiUnifiedForm" class="flosy-buttonbar" style="flex-wrap:nowrap"><input id="flosyAiUnifiedInput" class="flosy-input" style="flex:1" placeholder="اسأل فلوسي بالمصري..." required>'+
     '<button class="flosy-btn" type="submit" aria-label="إرسال السؤال">إرسال</button></form>'+
    '<div class="flosy-buttonbar"><button id="flosyAiMic" class="flosy-btn flosy-btn-secondary" type="button">🎙️ اتكلم مع فلوسي</button>'+
@@ -199,7 +203,9 @@
    $("flosyAiVoiceToggle").setAttribute("aria-pressed",String(voiceEnabled));
   };
   $("flosyAiStop").onclick=stop;
-  addMessage("assistant","يا أهلاً! أنا فلوسي AI. اسألني عن فلوسك بالفاتورة أو المعاملة أو بالرسم البياني. تقدر تسجّل مصروف بصوتك كمان.");
+  const person=w.FLOSY_COPILOT?.name?.(state())||"";
+  addMessage("assistant",(person?"أهلاً يا "+person+"! ":"يا أهلاً! ")+
+   "أنا فلوسي AI. اسألني عن فلوسك، أو اضغط «Roast Me» للتعليق اللطيف على فئات الصرف، أو «نصيحة اليوم» للاقتراح الشخصي.");
  }
  function voiceStatus(message){
   const status=$("flosyAiVoiceStatus");
