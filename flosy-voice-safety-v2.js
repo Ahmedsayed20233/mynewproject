@@ -91,6 +91,13 @@
     const scale=[...t.matchAll(/(?:^|\s)([0-9]+)\s*(?:الف|الاف|تلاف)(?=\s|$)/g)]
       .map(m=>safeNumber(Number(m[1])*1000)).filter(x=>x!==null);
     if(scale.length===1)return scale[0];
+    // A spoken "1000 ونص" scales the half to the last round denomination.
+    const mixed=t.match(/(?:^|\s)(\d+)\s+ونص(?=\s+(?:جنيه|جم|egp)(?:\s|$))/);
+    if(mixed){
+      const n=Number(mixed[1]);
+      const step=n>=1000&&n%1000===0?1000:n>=100&&n%100===0?100:1;
+      return safeNumber(n+step/2);
+    }
     // Naked numerals can only be used if there is exactly one and a transaction verb.
     const bare=[...t.matchAll(/(?:^|\s)(\d+(?:\.\d+)?)(?=\s|$)/g)].map(m=>safeNumber(Number(m[1]))).filter(x=>x!==null);
     if(bare.length===1&&!/\b(?:20\d\d)[\/-]/.test(t))return bare[0];
