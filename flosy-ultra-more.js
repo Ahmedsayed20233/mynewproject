@@ -127,6 +127,22 @@
   });
   if(by("ultraMoreEmpty"))by("ultraMoreEmpty").hidden=shown>0;
  }
+ function bridgeNativeWorkbook(core){
+  // The original reports engine runs in a same-origin iframe. Route its XLSX
+  // bytes through the visible Ultra main frame (Android accepts main-frame
+  // native messages only). No arbitrary iframe-to-native message forwarding.
+  if(w.FLOSY_NATIVE_ANDROID!==true||w.FLOSY_NATIVE_XLSX_AVAILABLE!==true
+    ||!w.FLOSY_REPORT_KIT?.saveNativeXlsx)return;
+  const kit=core?.FLOSY_REPORT_KIT;
+  if(!kit||kit.__ultraNativeExport)return;
+  const oldDownload=kit.download;
+  kit.download=function(financeState,range){
+   const report=kit.build(financeState,range),bytes=kit.xlsxBytes(report);
+   if(w.FLOSY_REPORT_KIT.saveNativeXlsx(bytes,range))return;
+   return oldDownload(financeState,range);
+  };
+  kit.__ultraNativeExport=true;
+ }
  function openCore(page,label){
   if(!allowed.has(page))return false;
   const core=coreWindow(),frame=coreFrame();
@@ -137,6 +153,7 @@
   closeMenu();
   sourceScreen=Number(d.querySelector(".phone-frame.ultra-active")?.dataset.screen||2);
   // Navigate using the old app's actual controller, not a duplicate finance engine.
+  bridgeNativeWorkbook(core);
   nav.click();
   frame.classList.add("ultra-core-visible");
   frame.setAttribute("aria-hidden","false");
