@@ -358,19 +358,16 @@
   if(w.FLOSY_NATIVE_BRIDGE_AVAILABLE&&w.FlosyNative?.postMessage)
    try{w.FlosyNative.postMessage(JSON.stringify({action:"ultra-theme",theme}))}catch{}
   try{localStorage.setItem("flosy_ultra_theme_v1",theme)}catch{}
-  qa(".ultra-theme-switch button").forEach(b=>b.classList.toggle("active",b.dataset.theme===theme));
+  // Theme selection lives inside More, never above the home dashboard.
+  w.FLOSY_ULTRA_MORE?.syncTheme?.(theme);
  }
  function installThemes(){
-  if(by("ultraThemeSwitch"))return;
-  const x=d.createElement("nav");x.id="ultraThemeSwitch";x.className="ultra-theme-switch";
-  x.setAttribute("aria-label","تغيير ثيم فلوسي");
-  x.innerHTML='<button type="button" data-theme="emerald" title="الزمردي الفاخر" aria-label="الزمردي الفاخر">✦</button>'+
-   '<button type="button" data-theme="light" title="النهاري المريح" aria-label="النهاري المريح">☼</button>'+
-   '<button type="button" data-theme="sapphire" title="الياقوتي الملكي" aria-label="الياقوتي الملكي">◆</button>';
-  d.body.appendChild(x);
-  x.addEventListener("click",e=>{const b=e.target.closest("button[data-theme]");if(b)theme(b.dataset.theme)});
-  theme(localStorage.getItem("flosy_ultra_theme_v1")||"emerald");
+  // Restore saved theme; More provides accessible named choices without an overlay.
+  let choice="emerald";
+  try{choice=localStorage.getItem("flosy_ultra_theme_v1")||"emerald"}catch{}
+  theme(choice);
  }
+
  function handleFilters(){
   const txIn=by("txSearchInput");if(txIn)txIn.addEventListener("input",e=>{txQuery=e.target.value;transactionGroups()});
   const f=getFrame(9);qa(".screen-scroll > div:nth-child(2) button",f).forEach((b,i)=>b.onclick=()=>{
@@ -494,7 +491,7 @@
  function mountCore(){
   const frame=d.createElement("iframe");frame.id="flosyUltraCore";
   frame.src="./index.html";frame.title="محرك بيانات فلوسي";
-  frame.setAttribute("aria-hidden","true");
+  frame.setAttribute("aria-hidden","true");frame.tabIndex=-1;
   frame.style.cssText="position:fixed;inset:auto 0 0;width:1px;height:1px;border:0;opacity:0;pointer-events:none;z-index:-1";
   d.body.appendChild(frame);
   frame.addEventListener("load",()=>{
@@ -529,7 +526,8 @@
  }
  w.FLOSY_ULTRA={
   render:()=>renderLive(true),onNativeReceipt:receiptResult,onVoiceText:parseVoiceText,
-  startVoice,native,goToScreen:navigate,theme,exportReports,getSummary:()=>snapshot
+  startVoice,native,goToScreen:navigate,theme,exportReports,getSummary:()=>snapshot,
+  getCoreWindow:()=>core,getCoreFrame:()=>by("flosyUltraCore")
  };
  w.FLOSY_CAPTURE={receiveNativeVoice:parseVoiceText};
  w.FLOSY_REPAIR={receiveNativeReceipt:receiptResult,

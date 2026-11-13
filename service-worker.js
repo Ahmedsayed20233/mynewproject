@@ -1,8 +1,8 @@
 /* Flosy v4 offline application shell. NO database/API responses are cached. */
-const VERSION="flosy-ultra-v3802-20261113";
+const VERSION="flosy-ultra-more-v3810-20261113";
 const SHELL=[
  "./","./index.html","./manifest.webmanifest","./icon.svg",
- "./flosy-ultra.html","./flosy-ultra-live.css?v=3801","./flosy-ultra-data.js?v=3801","./flosy-ultra-ai.js?v=3801","./flosy-ultra-live.js?v=3801","./flosy-ultra-icon.svg","./flosy-ultra-avatar.svg","./flosy-ultra.webmanifest",
+ "./flosy-ultra.html","./flosy-ultra-live.css?v=3810","./flosy-ultra-more.css?v=3810","./flosy-ultra-data.js?v=3801","./flosy-ultra-ai.js?v=3801","./flosy-ultra-live.js?v=3810","./flosy-ultra-more.js?v=3810","./flosy-ultra-icon.svg","./flosy-ultra-avatar.svg","./flosy-ultra.webmanifest",
  "./finance-pro.js?v=1001","./finance-pro.css?v=130",
  "./flosy-next.css?v=202","./flosy-account-router.js?v=3602","./flosy-next.js?v=3102","./flosy-auto-import.js?v=2801","./flosy-automate-relay.js?v=3501","./flosy-automate-relay.css?v=2901","./flosy-auto-import.css?v=2801","./flosy-ai.css?v=210","./flosy-ai-analytics.js?v=1001","./flosy-report-kit.js?v=3601","./flosy-ai.js?v=380",
  "./flosy-phase1.js?v=311","./flosy-sync-v3.js?v=302",

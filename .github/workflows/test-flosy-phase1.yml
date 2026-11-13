@@ -78,6 +78,7 @@ jobs:
           node --check flosy-ultra-data.js
           node --check flosy-ultra-ai.js
           node --check flosy-ultra-live.js
+          node --check flosy-ultra-more.js
           node --check flosy-repair.js
           node --check flosy-assistant-bridge.js
           node --check service-worker.js
