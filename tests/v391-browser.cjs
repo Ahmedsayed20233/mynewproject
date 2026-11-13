@@ -65,6 +65,8 @@ const BASE="http://127.0.0.1:8141";
   assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length),1);
   assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions[0].category),"قهوة وكافيهات");
   assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions[0].icon),"fa-mug-hot");
+  assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions[0].accountId),"qa-cash-391",
+    "voice must respect the user's chosen account");
   const before=await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length);
   await page.evaluate(()=>window.FLOSY_CAPTURE.receiveNativeVoice("دفعت 75 جنيه قهوة من الكاش"));
   assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length),before,
@@ -81,6 +83,10 @@ const BASE="http://127.0.0.1:8141";
   },receipt);
   assert.ok(posted.some(x=>x.amount===125&&x.source==="flosy39_receipt_auto"),
     "bilingual photo route must auto-book to same ledger");
+  const savedReceipt=await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.find(x=>x.amount===125));
+  assert.equal(savedReceipt.accountId,"qa-cash-391","OCR must use chosen account");
+  await page.evaluate(()=>window.FLOSY_UNIFIED.go(5));
+  assert.ok((await page.locator(".fx-category-group-label").count())>=8,"grouped category table");
   await page.evaluate(()=>window.FLOSY_UNIFIED.go(8));
   assert.equal(await page.locator(".fx-ai-hero").isVisible(),true);
   await page.locator("#flosyAiUnifiedInput").fill("ارسم فئات المصروفات");
