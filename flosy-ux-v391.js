@@ -83,6 +83,21 @@
     'style="--cat:'+c.color+'"><span class="fx-cat-icon">'+icon(c.icon)+'</span>'+
     '<span>'+html(c.label)+'</span></button>').join("")).join("")+'</div>';
  }
+ function quickTemplates(){
+  const s=U()?.state?.()||{};
+  const rows=w.FLOSY_ULTRA_DATA?.cleanTx?.(s)||[];
+  const current=new Set(accounts().map(a=>a.id));
+  const seen=new Set(),choices=[];
+  for(const t of rows.slice().sort((a,b)=>String(b.date||"").localeCompare(String(a.date||""))).slice(0,150)){
+   if(!["expense","income"].includes(t.type)||!current.has(t.accountId))continue;
+   const category=String(t.category||""),description=String(t.description||category).trim().slice(0,90);
+   const amount=Number(t.amount),key=[t.type,t.accountId,category,description,amount].join("|");
+   if(!description||!Number.isFinite(amount)||amount<=0||seen.has(key))continue;
+   seen.add(key);choices.push({type:t.type,accountId:t.accountId,category,description,amount});
+   if(choices.length===3)break;
+  }
+  return choices;
+ }
  function manualPage(){
   const existing=accounts(),account=U()?.defaultAccount()||(existing.length===1?existing[0].id:"");
   return banner("معاملة جديدة","تسجيل سريع، كل التفاصيل بتتحدث في مكان واحد")+
@@ -91,6 +106,9 @@
     [["expense","مصروف","fa-arrow-trend-down"],["income","دخل","fa-arrow-trend-up"],["transfer","تحويل","fa-right-left"]].map(([t,l,i])=>
      '<button type="button" data-fx-entry-type="'+t+'" aria-pressed="'+(t==="expense")+'">'+icon(i)+" "+l+'</button>').join("")+'</div>'+
    '<input type="hidden" name="type" value="expense">'+
+   (quickTemplates().length?'<div class="fx-quick-repeats"><strong>عملياتك الأخيرة — اضغط للتعبئة فقط</strong><div>'+
+    quickTemplates().map((t,i)=>'<button type="button" data-fx-repeat="'+i+'">'+
+     html(t.description)+' · '+money(t.amount)+'</button>').join("")+'</div></div>':'')+
    '<div class="fx-amount-card"><span>المبلغ بالجنيه المصري</span><div><input class="fx-amount-input" type="text" name="amount" inputmode="decimal" autocomplete="off" required placeholder="0.00" aria-label="المبلغ بالجنيه المصري"><b>ج.م</b></div></div>'+
    '<label class="fx-form-field">الوصف (اختياري؛ اقترح فئة تلقائيًا)<input class="flosy-input" name="description" id="fxDescription" placeholder="مثال: بنزين العربية، قهوة، مرتب..." maxlength="90"></label>'+
    '<div class="fx-form-section-head"><strong>الفئة المناسبة <span id="fxCategoryCount"></span></strong>'+
@@ -330,6 +348,19 @@
    }catch(err){U().notify(err.message);}
   };
   setType("expense");
+  const templates=quickTemplates();
+  box.querySelectorAll("[data-fx-repeat]").forEach(b=>b.onclick=()=>{
+   const entry=templates[Number(b.dataset.fxRepeat)];
+   if(!entry||!accounts().some(a=>a.id===entry.accountId))return;
+   setType(entry.type);
+   get("amount").value=String(entry.amount);
+   get("description").value=entry.description;
+   get("accountId").value=entry.accountId;
+   const category=K.resolve(entry.category,entry.description,entry.type);
+   get("category").value=category?.label||entry.category;
+   refreshCats();
+   get("amount").focus();
+  });
  }
  function bindAccountSelect(box,id){
   const el=box.querySelector("#"+id);
@@ -389,6 +420,6 @@
   const [build,bind]=overwrites[id];
   box.innerHTML=build();bind(box);
  };
- w.FLOSY_UX_V391={categories:K,accountOptions,recordPage,manualPage,item,parseEgyptianMoney,
+ w.FLOSY_UX_V391={categories:K,accountOptions,recordPage,manualPage,item,parseEgyptianMoney,quickTemplates,
   version:"3.9.1",activeScreens:Object.keys(overwrites).map(Number)};
 })(window,document);
