@@ -43,14 +43,14 @@ const root="http://127.0.0.1:8139";
   await page.locator("#flosyNewTxForm").evaluate(el=>el.requestSubmit());
   await page.waitForFunction(()=>window.FLOSY_UNIFIED.state().transactions?.some(x=>x.description==="اشتريت بنزين للعربية"),null,{timeout:10000});
   const booked=await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.find(x=>x.description==="اشتريت بنزين للعربية"));
-  assert.equal(booked.icon,"fa-car-side");
+  assert.equal(booked.icon,"fa-gas-pump");
   assert.equal(booked.amount,250);
   const balance=await page.evaluate(()=>window.FLOSY_UNIFIED.summary().total);
   assert.equal(balance,299750);
   await page.evaluate(()=>window.FLOSY_UNIFIED.go(4));
   assert.ok((await page.locator("#flosyLiveTransactionList").innerText()).includes("اشتريت بنزين للعربية"));
   await page.locator("#flosyTxSearch").fill("بنزين");
-  assert.ok((await page.locator("#flosyLiveTransactionList .flosy-item").count())===1);
+  assert.ok((await page.locator("#flosyLiveTransactionList .fx-transaction").count())===1);
   await page.locator("#flosyUndoButton").click();
   assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.some(x=>x.description==="اشتريت بنزين للعربية")),false);
   // Each of 20 designer screens navigates in-place without a separate Ultra/pro shell.
