@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="android.permission.RECEIVE_SMS"/>
+    <!-- SMS permission deliberately excluded until explicit future release approval. -->
     <application>
         <activity android:name=".DirectCaptureSettingsActivity" android:exported="false"/>
-        <receiver android:name=".DirectSmsReceiver" android:exported="true">
+        <receiver android:name=".DirectSmsReceiver" android:enabled="false" android:exported="false">
             <intent-filter><action android:name="android.provider.Telephony.SMS_RECEIVED"/></intent-filter>
         </receiver>
-        <service android:name=".DirectNotificationListener"
+        <service android:name=".DirectNotificationListener" android:enabled="false"
             android:label="فلوسي — التقاط الإشعارات المالية"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:exported="true">
