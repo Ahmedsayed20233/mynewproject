@@ -9,7 +9,7 @@ import android.service.notification.StatusBarNotification;
 /** Direct financial-app notifications; exact package allowlist is checked before text extraction. */
 public final class DirectNotificationListener extends NotificationListenerService {
     @Override public void onNotificationPosted(StatusBarNotification sbn){
-        if(sbn==null||sbn.getNotification()==null)return;
+        if(!BuildConfig.FINANCIAL_MESSAGE_IMPORT_ENABLED||sbn==null||sbn.getNotification()==null)return;
         String pkg=sbn.getPackageName();
         if(!AutoRelayStore.allowedNativeApp(this,pkg))return;
         Bundle data=sbn.getNotification().extras;
