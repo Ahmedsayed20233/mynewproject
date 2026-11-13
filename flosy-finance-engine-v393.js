@@ -9,7 +9,7 @@
  if(root)root.FLOSY_FINANCE_ENGINE=api;
 })(typeof window!=="undefined"?window:null,function(){"use strict";
  const num=x=>Number.isFinite(+x)&&+x>=0&&+x<1e12?+x:0;
- const money=n=>new Intl.NumberFormat("ar-EG",{maximumFractionDigits:0}).format(num(n))+" ج.م";
+ const money=n=>new Intl.NumberFormat("ar-EG",{maximumFractionDigits:0}).format(Number.isFinite(+n)?+n:0)+" ج.م";
  const settings=s=>s?.settings?.financeProfileV393||{};
  const rows=s=>(Array.isArray(s?.transactions)?s.transactions:[]).filter(x=>
   ["expense","income","transfer"].includes(x.type)&&x.date&&num(x.amount)>0&&
@@ -130,15 +130,45 @@
     if(balances.has(t.targetAccountId))balances.set(t.targetAccountId,balances.get(t.targetAccountId)+val);
    }
   }
+  // Portfolio trades consume/release Thndr cash; positions are separate assets.
+  // Without these flows the same buy could count as both cash and securities.
+  const positions=new Map();
+  const trades=(Array.isArray(s?.trades)?s.trades:[])
+   .filter(t=>["buy","sell","opening"].includes(t?.kind)&&num(t.qty)>0&&num(t.price)>0)
+   .sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
+  const investmentAccount=(s?.accounts||[]).find(a=>a.id==="thndr"||
+    /thndr|ثاندر/i.test(String(a.name||"")))?.id;
+  for(const trade of trades){
+   const qty=num(trade.qty),price=num(trade.price),fee=num(trade.fee);
+   const symbol=String(trade.asset||"").trim().toUpperCase().slice(0,35);
+   if(!symbol)continue;
+   const position=positions.get(symbol)||{code:symbol,qty:0,lastPrice:0,priceDate:""};
+   const change=trade.kind==="sell"?-qty:qty;
+   position.qty=Math.max(0,position.qty+change);
+   position.lastPrice=price;position.priceDate=String(trade.date||"");
+   positions.set(symbol,position);
+   if(investmentAccount&&trade.kind!=="opening"){
+    const delta=qty*price*(trade.kind==="buy"?-1:1)-fee;
+    balances.set(investmentAccount,(balances.get(investmentAccount)||0)+delta);
+   }
+  }
+  const holdings=[...positions.values()].filter(x=>x.qty>0).map(x=>{
+   const quote=s?.prices?.[x.code],candidate=num(quote?.value);
+   const price=candidate>0?candidate:x.lastPrice;
+   return {...x,currentPrice:price,value:x.qty*price,
+     pricedManually:candidate>0,updatedAt:String(quote?.updatedAt||x.priceDate)};
+  });
+  const portfolioMarket=holdings.reduce((v,x)=>v+x.value,0);
   const cash=[...balances].map(([id,value])=>({id,
     name:s.accounts.find(a=>a.id===id)?.name||"حساب",value})),
     totalCash=cash.reduce((v,a)=>v+a.value,0);
-  const assets=(s?.assets||[]).map(a=>({...a,currentValue:num(a.value||num(a.qty)*num(a.unitPriceEgp))}));
+  const assets=(s?.assets||[]).map(a=>({...a,currentValue:num(a.value??(num(a.qty)*num(a.unitPriceEgp)))}));
   const manual=assets.reduce((v,a)=>v+a.currentValue,0);
-  const liabilities=(s?.liabilities||[]).map(x=>({...x,remaining:num(x.balance||x.amount)}));
+  const liabilities=(s?.liabilities||[]).map(x=>({...x,remaining:num(x.balance??x.amount)}));
   const debt=liabilities.reduce((v,a)=>v+a.remaining,0);
-  return {cash,assets,liabilities,totalCash,manualAssets:manual,totalDebt:debt,
-   netWorth:totalCash+manual-debt,warning:"لا تضف قيمة الأسهم أو الذهب إذا كانت مدرجة أصلًا داخل رصيد حساب آخر."};
+  return {cash,assets,liabilities,holdings,portfolioMarket,totalCash,manualAssets:manual,totalDebt:debt,
+   netWorth:totalCash+portfolioMarket+manual-debt,
+   warning:"مراكز ثاندر مأخوذة من الصفقات والأسعار اليدوية. لا تُضف قيمة المراكز مرة أخرى كأصول يدوية كي لا يتكرر احتسابها."};
  }
  function insight(s,date=new Date()){
   const p=profile(s,date),planInfo=plan(s,date),W=wealth(s);
