@@ -84,22 +84,22 @@
     '<span>'+html(c.label)+'</span></button>').join("")).join("")+'</div>';
  }
  function manualPage(){
-  const existing=accounts(),account=U()?.defaultAccount()||existing[0]?.id||"";
+  const existing=accounts(),account=U()?.defaultAccount()||(existing.length===1?existing[0].id:"");
   return banner("معاملة جديدة","تسجيل سريع، كل التفاصيل بتتحدث في مكان واحد")+
    '<form id="flosyNewTxForm" class="fx-entry-form">'+
    '<div class="fx-type-tabs fx-entry-types" role="group" aria-label="نوع المعاملة">'+
     [["expense","مصروف","fa-arrow-trend-down"],["income","دخل","fa-arrow-trend-up"],["transfer","تحويل","fa-right-left"]].map(([t,l,i])=>
      '<button type="button" data-fx-entry-type="'+t+'" aria-pressed="'+(t==="expense")+'">'+icon(i)+" "+l+'</button>').join("")+'</div>'+
    '<input type="hidden" name="type" value="expense">'+
-   '<div class="fx-amount-card"><span>المبلغ بالجنيه المصري</span><div><input class="fx-amount-input" type="number" name="amount" min=".01" max="999999999" step=".01" inputmode="decimal" required placeholder="0.00"><b>ج.م</b></div></div>'+
-   '<label class="fx-form-field">الوصف<input class="flosy-input" name="description" id="fxDescription" placeholder="مثال: بنزين العربية، قهوة، مرتب..." maxlength="90" required></label>'+
+   '<div class="fx-amount-card"><span>المبلغ بالجنيه المصري</span><div><input class="fx-amount-input" type="text" name="amount" inputmode="decimal" autocomplete="off" required placeholder="0.00" aria-label="المبلغ بالجنيه المصري"><b>ج.م</b></div></div>'+
+   '<label class="fx-form-field">الوصف (اختياري؛ اقترح فئة تلقائيًا)<input class="flosy-input" name="description" id="fxDescription" placeholder="مثال: بنزين العربية، قهوة، مرتب..." maxlength="90"></label>'+
    '<div class="fx-form-section-head"><strong>الفئة المناسبة <span id="fxCategoryCount"></span></strong>'+
     '<label class="fx-inline-search">'+icon("fa-magnifying-glass")+'<input type="search" id="fxCategorySearch" aria-label="بحث في الفئات" placeholder="بحث..."></label></div>'+
    '<div id="fxSelectedCategory" class="fx-selected-category" aria-live="polite"></div>'+
-   '<input type="hidden" name="category" value="مطاعم ووجبات">'+
-   '<div id="fxCategoryGrid">'+categoriesMarkup("expense","مطاعم ووجبات")+'</div>'+
+   '<input type="hidden" name="category" value="مشتريات">'+
+   '<details class="fx-category-picker"><summary>تغيير الفئة من القائمة الكاملة</summary><div id="fxCategoryGrid">'+categoriesMarkup("expense","مشتريات")+'</div></details>'+
    '<div class="fx-two-col">'+
-    '<label class="fx-form-field">من حساب<select class="flosy-input" name="accountId" required>'+accountOptions(account)+'</select></label>'+
+    '<label class="fx-form-field">من حساب<select class="flosy-input" name="accountId" required><option value="">اختر الحساب</option>'+accountOptions(account)+'</select></label>'+
     '<label class="fx-form-field" id="flosyTargetWrap" hidden>إلى حساب<select class="flosy-input" name="targetAccountId">'+accountOptions()+'</select></label>'+
     '<label class="fx-form-field">التاريخ<input class="flosy-input" type="date" name="date" required value="'+today()+'"></label>'+
     '<label class="fx-form-field">الوقت (اختياري)<input class="flosy-input" type="time" name="time"></label></div>'+
@@ -251,13 +251,21 @@
    const category=K.resolve(String(m.get("category")),desc,typ);
    U().core().FLOSY_BRIDGE.mutate(s=>{
     const t=s.transactions.find(x=>x.id===id);if(!t)return;
-    Object.assign(t,{amount:+amount.toFixed(2),type:typ,description:desc,date,accountId:acc,
+    Object.assign(t,{amount:+amount.toFixed(2),type:typ,description:desc||c.label,date,accountId:acc,
       targetAccountId:typ==="transfer"?target:null,category:category.label,categoryId:category.id,
       icon:category.icon,categoryColor:category.color,updatedAt:new Date().toISOString()});
    });
    dialog.close();update();U().notify("تم تعديل المعاملة وتحديث جميع الأرصدة");
   };
   update();
+ }
+ function parseEgyptianMoney(input){
+  const raw=String(input??"").trim().replace(/[٠-٩]/g,x=>String(x.charCodeAt(0)-1632))
+   .replace(/[۰-۹]/g,x=>String(x.charCodeAt(0)-1776))
+   .replace(/٫/g,".").replace(/٬/g,",").replace(/\s+/g,"");
+  if(/^\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?$/.test(raw))return Number(raw.replace(/,/g,""));
+  if(!/^\d+(?:[.,]\d{1,2})?$/.test(raw))return NaN;
+  return Number(raw.replace(",","."));
  }
  function bindEntry(box){
   const form=box.querySelector("#flosyNewTxForm"),get=name=>form.elements[name];
@@ -306,9 +314,9 @@
   };
   form.onsubmit=e=>{
    e.preventDefault();const m=new FormData(form),type=String(m.get("type"));
-   const amount=Number(m.get("amount")),date=String(m.get("date")),acc=String(m.get("accountId"));
+   const amount=parseEgyptianMoney(m.get("amount")),date=String(m.get("date")),acc=String(m.get("accountId"));
    const desc=String(m.get("description")||"").trim(),target=String(m.get("targetAccountId")||"");
-   if(!Number.isFinite(amount)||amount<=0||!desc||!parseDate(date)||!accounts().some(x=>x.id===acc))
+   if(!Number.isFinite(amount)||amount<=0||amount>=1e9||!parseDate(date)||!accounts().some(x=>x.id===acc))
     return U().notify("راجع المبلغ والوصف والحساب");
    if(type==="transfer"&&(!target||target===acc||!accounts().some(x=>x.id===target)))
     return U().notify("اختار حساب استقبال مختلف للتحويل");
@@ -317,6 +325,7 @@
     U().postBatch([{type,amount,category:c.label,description:desc,date,accountId:acc,
      targetAccountId:type==="transfer"?target:null,
      time:String(m.get("time")||""),note:String(m.get("note")||"")}],"flosy391_manual");
+    U().setDefaultAccount(acc);
     U().go(4);
    }catch(err){U().notify(err.message);}
   };
