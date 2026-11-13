@@ -4,10 +4,10 @@
  * Six intents; safety checks take precedence over all statistical predictions.
  */
 (function(root,factory){
-  const api=factory();
+  const api=factory(root);
   if(typeof module==="object"&&module.exports) module.exports=api;
   if(root) root.FLOSY_VOICE_SAFETY_V2=api;
-})(typeof window!=="undefined"?window:null,function(){"use strict";
+})(typeof window!=="undefined"?window:null,function(root){"use strict";
   const MAX=1e9;
   const normalize=value=>String(value??"").toLowerCase().replace(/[أإآ]/g,"ا")
     .replace(/ى/g,"ي").replace(/ة/g,"ه").replace(/[ً-ٟـ]/g,"")
@@ -162,6 +162,15 @@
   }
   function analyzeSingle(raw,accounts=[],today=""){
     const text=String(raw||"").slice(0,500),decision=classify(text),value=amount(text);
+    // A real TF-IDF/logistic student model trained on the user-supplied 60k
+    // synthetic dataset runs strictly as a SECOND opinion; safety gates win.
+    let learned=null;
+    try{learned=root?.FLOSY_EGYPTIAN_NLU_COMPACT?.classify?.(text)||null}catch{}
+    const trainedPrediction=learned?{
+      intent:learned.intent,uncalibratedConfidence:learned.confidence,
+      agreement:learned.intent===decision.intent,
+      modelVersion:learned.modelVersion,uncalibrated:true
+    }:null;
     const ids=resolveAccounts(text,accounts,decision.intent);
     const date=/^\d{4}-\d\d-\d\d$/.test(today)?today:new Date().toISOString().slice(0,10);
     const special=["refund","debt"].includes(decision.intent);
@@ -172,7 +181,7 @@
       reason:decision.reason,status:!valid?"blocked":!ids.verified?"needs_account":"needs_confirmation",
       requiresReview:true,autoPost:false,
       specialLedger:special,
-      text,model:"rule-based safety adapter; synthetic trained classifier not bundled"};
+      text,trainedPrediction,model:"safety rules + 60k-synthetic-trained, quantized student (shadow only)"};
   }
   function analyzeBatch(text,accounts=[],today=""){
     const parts=split(text);
