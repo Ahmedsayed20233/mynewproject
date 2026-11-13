@@ -121,6 +121,7 @@ async function startLocal(){
   // Free Automate relay must never request SMS/notification access in Flosy itself.
   assert.equal(await page.locator("#flosyAutomateRelayRoot .f29-panel").count(),0);
   await page.evaluate(()=>{
+    window.FLOSY_FLAGS={FINANCIAL_MESSAGE_IMPORT_ENABLED:true}; // isolated disabled-feature QA
     window.FLOSY_NATIVE_RELAY_AVAILABLE=true;
     window.__relayCalls=[];
     window.FlosyNative={postMessage:msg=>window.__relayCalls.push(JSON.parse(msg))};
@@ -145,6 +146,7 @@ async function startLocal(){
   assert.equal(await page.evaluate(()=>window.FLOSY_BRIDGE.getState().transactions.length),beforeRelay,
    "Free Automate import must remain review-only");
   await page.evaluate(()=>{
+   window.FLOSY_FLAGS={FINANCIAL_MESSAGE_IMPORT_ENABLED:false};
    window.FLOSY_NATIVE_RELAY_AVAILABLE=false;
    window.FLOSY_AUTOMATE_RELAY.render();
   });
@@ -385,20 +387,19 @@ async function startLocal(){
    return {before,savedVoice,afterVoice,savedReceipt,afterReceipt,smsResult,afterSMS,otpResult,afterOTP,afterUndo,
     receiptAmount:receipt.amount,receiptAutoQuality:receipt.autoQuality,receiptEvidence:receipt.receiptDetails?.evidence,receiptConfidence:receipt.receiptDetails?.confidence,receiptMerchant:receipt.receiptDetails?.merchant,receiptAccount:receipt.accountId,voiceAmount:voice.amount,wordVoiceAmount:wordVoice.amount,autoAccount:account};
   });
-  assert.equal(autoTests.savedVoice,true,"Explicit spoken expense should auto-save after opt-in");
-  assert.equal(autoTests.afterVoice,autoTests.before+1);
+  assert.equal(autoTests.savedVoice,false,"Speech suggestions require explicit approval");
+  assert.equal(autoTests.afterVoice,autoTests.before,"Speech did not touch ledger");
   assert.equal(autoTests.voiceAmount,63);
-  assert.equal(autoTests.wordVoiceAmount,150,"Egyptian spoken number words must parse");
-  console.log("Receipt auto-capture diagnostic (synthetic only)",JSON.stringify(autoTests));
-  assert.equal(autoTests.savedReceipt,true,"Clearly dated labeled receipt should auto-save");
+  assert.equal(autoTests.wordVoiceAmount,150);
+  assert.equal(autoTests.savedReceipt,false,"OCR suggestions require explicit approval");
   assert.equal(autoTests.receiptAmount,125);
-  assert.equal(autoTests.afterReceipt,autoTests.before+2);
-  assert.equal(autoTests.smsResult.saved,1,"Recognized instant transfer should auto-save");
-  assert.equal(autoTests.afterSMS,autoTests.before+3);
-  assert.equal(autoTests.otpResult.saved,0,"OTP must never auto-book");
-  assert.equal(autoTests.afterOTP,autoTests.afterSMS);
-  assert.equal(autoTests.afterUndo,autoTests.before+2,"Last auto-recorded transaction must be reversible");
-  console.log("PASS: opted-in auto-save voice, split-line receipt, instant transfer SMS, OTP rejection and undo");
+  assert.equal(autoTests.afterReceipt,autoTests.before);
+  assert.equal(autoTests.smsResult.saved,0,"Native financial import is disabled in the preview");
+  assert.equal(autoTests.afterSMS,autoTests.before);
+  assert.equal(autoTests.otpResult.saved,0);
+  assert.equal(autoTests.afterOTP,autoTests.before);
+  assert.equal(autoTests.afterUndo,autoTests.before);
+  console.log("PASS: review-only voice and OCR; import off, no silent ledger writes");
 
   fs.mkdirSync("tests/_artifacts",{recursive:true});
   await page.screenshot({path:"tests/_artifacts/elevate-dashboard.png",fullPage:true});
