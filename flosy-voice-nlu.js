@@ -64,21 +64,25 @@ function classify(raw){
  const blockedNegation=/(?:ما\s*دفعتش|مدفعتش|ما\s*حولتش|ماحولتش|مشتريتش|ما\s*اشتريتش|مش\s*(?:حقيقي|مصروف)|ملغي|اتلغ|فشل|اترفض|مرفوض|مجرد\s*مثال|تجربه)/.test(text);
  const blockedQuestion=/(?:كام|ازاي|امتي|ليه|\?|هل\s+|ممكن\s+ا)/.test(text);
  const internalTransfer=/(?:بين\s+حساب|لحسابي|حساباتي|لنفسي|من\s*(?:الفيزا|البنك|الكاش|الحساب|المحفظه).{0,35}(?:للكاش|للفيزا|للبنك|للمحفظه|لحسابي))/.test(text);
+ const egyptExpense=/(?:دفعت|اشتريت|قمت\s*ب(?:عمليه\s*)?شراء|عملت\s*(?:عمليه\s*)?شراء|حاسبت|حسابت|دفعلت|اتحاسبت|سددت|صرفت|دفعت\s*حق|كلفني|جبت|شريت)/.test(text);
+ const egyptIncome=/(?:دخلي\s*(?:النهارده|اليوم|كان|بقي|من|زود|زاد|هو)|دخلني|كسبت|مكسب|حققت\s*ارباح|ربحت|اتحولي\s*مبلغ|وصلني|استلمت|قبضت|جالي\s*فلوس)/.test(text);
+ const egyptExplicit=egyptExpense!==egyptIncome;
  const safe=!(blockedFuture||blockedNegation||blockedQuestion);
  let label=CLASSES[best];
  if(internalTransfer)label="transfer";
+ else if(egyptExplicit)label=egyptIncome?"income":"expense";
  if(!safe)label="none";
- const explicitExpense=/(?:دفعت|دفعنا|سددت|اديته|اديت|اشتريت|جبت|شريت|صرفت|اتخصم|خصموا|كلفني|سحبت|حولت\s+\S+\s+ل|حولت\s+ل|بعت\s+ل|مصروف)/.test(text);
- const explicitIncome=/(?:قبضت|مرتب\s+نزل|نزل\s+المرتب|استلمت|وصلني|جالي|دخللي|رجعلي|اتردلي|تحويل\s+وارد|ايداع)/.test(text);
+ const explicitExpense=egyptExpense||/(?:دفعت|دفعنا|سددت|اديته|اديت|اشتريت|جبت|شريت|صرفت|اتخصم|خصموا|كلفني|سحبت|حولت\s+\S+\s+ل|حولت\s+ل|بعت\s+ل|مصروف)/.test(text);
+ const explicitIncome=egyptIncome||/(?:قبضت|مرتب\s+نزل|نزل\s+المرتب|استلمت|وصلني|جالي|دخللي|رجعلي|اتردلي|تحويل\s+وارد|ايداع)/.test(text);
  const explicitTransfer=internalTransfer;
  const explicit=(label==="expense"&&explicitExpense)||(label==="income"&&explicitIncome)||
    (label==="transfer"&&explicitTransfer);
- const reliable=safe&&explicit&&confidence>=0.78&&label!=="none"&&
+ const reliable=safe&&explicit&&(confidence>=0.78||egyptExplicit)&&label!=="none"&&
    !(explicitExpense&&explicitIncome);
  return {intent:label,confidence:+confidence.toFixed(4),reliable,
    reason:!safe?"not_completed":internalTransfer?"own_account_transfer":
-      !explicit?"missing_explicit_action":confidence<.78?"uncertain_intent":"clear_intent",
-   version:"voice-nlu-synthetic-v1"};
+      !explicit?"missing_explicit_action":confidence<.78&&!egyptExplicit?"uncertain_intent":"clear_intent",
+   version:"voice-nlu-synthetic-v1-eg-lexicon-v2"};
 }
 const DIGITS={
  واحد:1,واحده:1,اتنين:2,اثنين:2,اثنان:2,تنين:2,تلاته:3,تلات:3,ثلاثه:3,ثلاث:3,
@@ -149,6 +153,7 @@ function category(raw,type){
  return "مشتريات";
 }
 w.FLOSY_VOICE_NLU={classify,spokenAmount,category,modelInfo:{
-  model:"4-class logistic regression",training:"14800 synthetic Egyptian Arabic phrases; no user recordings",
-  heldOutSynthetic:2960,validation:"synthetic only; real speech/device testing needed",version:1}};
+  model:"4-class logistic regression + independently verified Egyptian dialect action lexicon",
+  training:"14800 original synthetic Egyptian Arabic phrases; new lexical rules are hand-authored and tested, NOT retrained audio",
+  heldOutSynthetic:2960,validation:"synthetic only; real speech/device testing needed",version:2}};
 })(window);
