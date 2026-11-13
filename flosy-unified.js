@@ -93,7 +93,9 @@
   if(x.type==="transfer"&&(!x.targetAccountId||x.targetAccountId===accountId||
    !accounts().some(a=>a.id===x.targetAccountId)))throw Error("التحويل لازم حسابين مختلفين");
   const description=sanitizeName(x.description||x.category||"عملية");
-  const categorySpec=w.FLOSY_CATEGORIES?.resolve?.(x.category, (x.iconText||"")+" "+description,x.type);
+  const categorySpec=w.FLOSY_CATEGORIES?.resolve?.(
+   x.category,(x.iconText||"")+" "+description,x.type,
+   {preferDescription:source.includes("voice_auto")||source.includes("receipt_auto")});
   const now=new Date().toISOString();
   return {...x,id:"flosy39-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,9),
    amount:+Number(x.amount).toFixed(2),date:x.date,accountId,
@@ -196,7 +198,8 @@
   const items=Array.isArray(details.items)?details.items:[];
   const rows=[{...parsed,description:sanitizeName(parsed.description||"إيصال"),
     category:w.FLOSY_CATEGORIES?.resolve?.(parsed.category,
-      items.map(x=>x.name||"").join(" ")+" "+parsed.description,"expense")?.label||parsed.category,
+      items.map(x=>x.name||"").join(" ")+" "+parsed.description,"expense",
+      {preferDescription:true})?.label||parsed.category,
     iconText:items.map(x=>x.name).join(" ")||parsed.description}];
   const saved=postBatch(rows,"flosy39_receipt_auto");
   notify("اتسجلت الفاتورة مباشرة واتفعل زر التراجع");return saved;
