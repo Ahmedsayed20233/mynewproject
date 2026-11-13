@@ -74,6 +74,7 @@ const BASE="http://127.0.0.1:8152";
   assert.ok(await page.evaluate(()=>window.__msgs.some(m=>m.action==="notifications-daily-enable")));
   await page.evaluate(()=>window.FLOSY_NOTIFY_V392.nativeStatus({enabled:true,dailyEnabled:true,permission:"granted"}));
   assert.ok((await page.locator("#flosyNotificationStatus").innerText()).includes("مفعّلة"));
+  await page.locator(".service-v392-fold:has(#flosyFirstNameForm) > summary").click();
   await page.locator("#flosyFirstNameForm input[name=firstName]").fill("محمود");
   await page.locator("#flosyFirstNameForm").evaluate(e=>e.requestSubmit());
   assert.equal(await page.evaluate(()=>window.FLOSY_COPILOT.name(window.FLOSY_UNIFIED.state())),"محمود");
