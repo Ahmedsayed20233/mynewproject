@@ -84,7 +84,7 @@
  function normalize(s){return String(s||"").toLowerCase().replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي").replace(/[ًٌٍَُِّْ]/g,"").trim()}
  function forType(type){
   const base=type==="income"?income:type==="transfer"?transfer:type==="obligation"?obligation:expense;
-  const state=root?.FLOSY_UNIFIED?.state?.();
+  const state=(typeof window!=="undefined"?window:null)?.FLOSY_UNIFIED?.state?.();
   const custom=state?.settings?.customCategoriesV393;
   const records=Array.isArray(custom)?custom:[];
   return [...base,...records.filter(c=>c?.type===type&&typeof c.label==="string"&&
