@@ -27,7 +27,7 @@ test("all 20 routes are live, old static demo hidden and service routes use one 
  assert.match(js,/FLOSY_BRIDGE/);
  assert.match(js,/FLOSY_UNIFIED_PAGES/);
  assert.match(css,/\.flosy-section\.flosy-mounted>:not\(\.flosy-real\)/);
- assert.match(pages,/flosy-receipt/i);
+ assert.match(pages,/flosyReceiptPaste/);
 });
 test("single finance assistant has Egyptian speech and professional local SVG charts",()=>{
  assert.match(ai,/ar-EG/);
