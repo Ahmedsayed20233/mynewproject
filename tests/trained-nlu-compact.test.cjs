@@ -92,3 +92,29 @@ test("browser shell loads model locally and maintains SMS/notification imports d
  const model=fs.readFileSync("flosy-egyptian-nlu-compact-v2.js","utf8");
  assert.doesNotMatch(model,/fetch\s*\(|XMLHttpRequest|localStorage|C\.mutate|transactions\.push/);
 });
+
+
+test("all 58 independently authored hard examples: measured ML precision, safety never posts",()=>{
+ const rows=fs.readFileSync("tests/fixtures/egyptian-finance-hardcases-58.jsonl","utf8")
+  .trim().split("\n").map(JSON.parse);
+ assert.equal(rows.length,58);
+ const w=loadModel(),ml=w.FLOSY_EGYPTIAN_NLU_COMPACT,safe=w.FLOSY_VOICE_SAFETY_V2;
+ let mlCorrect=0,rulesCorrect=0,byClass={};
+ for(const row of rows){
+  const predicted=ml.classify(row.text);
+  const reviewed=safe.analyzeSingle(row.text,[],"2026-11-14");
+  if(predicted.intent===row.intent)mlCorrect++;
+  if(reviewed.intent===row.intent)rulesCorrect++;
+  byClass[row.intent]=byClass[row.intent]||{n:0,mlCorrect:0,safetyCorrect:0};
+  byClass[row.intent].n++;
+  if(predicted.intent===row.intent)byClass[row.intent].mlCorrect++;
+  if(reviewed.intent===row.intent)byClass[row.intent].safetyCorrect++;
+  assert.equal(predicted.canAutoPost,false,row.text);
+  assert.equal(reviewed.autoPost,false,row.text);
+  assert.equal(reviewed.requiresReview,true,row.text);
+ }
+ console.log("HARDCASES (synthetic text, not real audio):",JSON.stringify({
+  n:rows.length,trainedCompactCorrect:mlCorrect,safetyRuleCorrect:rulesCorrect,byClass
+ }));
+ assert.equal(mlCorrect,42,"trained compact model hard-case result is a fixed development metric");
+});
