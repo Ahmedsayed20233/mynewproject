@@ -43,6 +43,7 @@ const {setTimeout:pause}=require("node:timers/promises");
   assert.ok(await page.locator('[data-fx-cat="مصاريف الزراعات"]').count()>0);
   await page.locator('#flosyNewTxForm [name=amount]').fill("100");
   await page.locator("#fxDescription").fill("مصروف زراعة");
+  await page.locator(".fx-category-picker summary").click();
   await page.locator('[data-fx-cat="مصاريف الزراعات"]').click();
   await page.locator('#flosyNewTxForm').evaluate(el=>el.requestSubmit());
   await page.locator(".fx-transaction-main").first().click();

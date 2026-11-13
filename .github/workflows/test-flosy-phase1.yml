@@ -6,6 +6,9 @@ on:
       - 'index.html'
       - 'flosy-ultra.html'
       - 'flosy.html'
+      - 'flosy-import-staged.js'
+      - 'tests/staged-import.test.cjs'
+      - 'tests/customer-first.test.cjs'
       - 'flosy-unified*'
       - 'flosy-ux-v391.*'
       - 'flosy-categories-v391.js'
@@ -97,6 +100,7 @@ jobs:
           node --check flosy-unified-ai.js
           node --check flosy-unified-pages.js
           node --check flosy-unified.js
+          node --check flosy-import-staged.js
           node --check flosy-report-pro.js
           node --check flosy-services-v392.js
           node --check flosy-copilot-v392.js
@@ -108,4 +112,4 @@ jobs:
           node --check flosy-assistant-bridge.js
           node --check service-worker.js
       - name: Run financial safety regression suite
-        run: node --test tests/phase1.test.cjs tests/v4.test.cjs tests/offline-cache.test.cjs tests/direct-capture-ui.test.cjs tests/ai-analytics.test.cjs tests/report-kit.test.cjs tests/aurora.test.cjs tests/ultra.test.cjs tests/unified.test.cjs tests/v391.test.cjs tests/v392.test.cjs tests/v393.test.cjs tests/report-kit.test.cjs
+        run: node --test tests/phase1.test.cjs tests/v4.test.cjs tests/offline-cache.test.cjs tests/direct-capture-ui.test.cjs tests/ai-analytics.test.cjs tests/report-kit.test.cjs tests/aurora.test.cjs tests/ultra.test.cjs tests/unified.test.cjs tests/v391.test.cjs tests/v392.test.cjs tests/v393.test.cjs tests/report-kit.test.cjs tests/staged-import.test.cjs tests/customer-first.test.cjs
