@@ -38,7 +38,7 @@ test("single finance assistant has Egyptian speech and professional local SVG ch
  assert.doesNotMatch(ai,/Gemini API|OpenAI API|ChatGPT API/);
  assert.match(js,/nativeSpeechDone/);
 });
-test("voice and OCR write to same ledger with dedupe, validation and undo",()=>{
+test("voice and OCR require confirmation before using canonical ledger and undo",()=>{
  assert.match(js,/fromVoiceText/);
  assert.match(js,/fromReceiptText/);
  assert.match(js,/postBatch/);
@@ -47,8 +47,8 @@ test("voice and OCR write to same ledger with dedupe, validation and undo",()=>{
  assert.match(js,/sourceHash===old\.sourceHash/);
  assert.match(js,/arithmeticContradiction/);
  assert.match(js,/transactions\/"/);
- assert.match(js,/flosy39_receipt_auto/);
- assert.match(js,/flosy39_voice_auto/);
+ assert.match(js,/flosy39_receipt_confirmed/);
+ assert.match(js,/flosy39_voice_confirmed/);
 });
 test("car purchases get a specific vehicle icon; multiple other transaction icons exist",()=>{
  for(const k of ["عربيه","عربية","fa-car-side","fa-gas-pump","fa-utensils",
