@@ -44,6 +44,8 @@
  }
  function inferIcon(text,type="expense"){
   const v=String(text||"").toLowerCase().replace(/[أإآ]/g,"ا");
+  const explicit=w.FLOSY_CATEGORIES?.classify?.(v,type);
+  if(explicit&&explicit.id!=="other"&&explicit.id!=="other-income")return explicit.icon;
   if(/عربيه|عربية|سيارة|عربيات|موتوسيكل|car|vehicle|سيارات/.test(v))return "fa-car-side";
   if(/بنزين|سولار|محطة|fuel/.test(v))return "fa-gas-pump";
   if(/اوبر|تاكسي|مواصلات|مترو|اتوبيس|سرفيس/.test(v))return "fa-bus";
@@ -91,11 +93,13 @@
   if(x.type==="transfer"&&(!x.targetAccountId||x.targetAccountId===accountId||
    !accounts().some(a=>a.id===x.targetAccountId)))throw Error("التحويل لازم حسابين مختلفين");
   const description=sanitizeName(x.description||x.category||"عملية");
+  const categorySpec=w.FLOSY_CATEGORIES?.resolve?.(x.category, (x.iconText||"")+" "+description,x.type);
   const now=new Date().toISOString();
   return {...x,id:"flosy39-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,9),
    amount:+Number(x.amount).toFixed(2),date:x.date,accountId,
-   description,category:String(x.category||"مشتريات").slice(0,55),
-   icon:inferIcon((x.iconText||"")+" "+description+" "+(x.category||""),x.type),
+   description,category:categorySpec?.label||String(x.category||"مشتريات").slice(0,55),
+   categoryId:categorySpec?.id||null,categoryColor:categorySpec?.color||null,
+   icon:categorySpec?.icon||inferIcon((x.iconText||"")+" "+description+" "+(x.category||""),x.type),
    source,createdAt:now,updatedAt:now,
    sourceHash:x.sourceHash||source+"-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,9)};
  }
@@ -164,6 +168,7 @@
    if(!parsed||!parsed.amount||!parsed.type)throw Error("ما فهمتش مبلغ أو نوع إحدى المعاملات");
    if(!["expense","income"].includes(parsed.type))throw Error("تحويل الحسابات يحتاج تحديد المصدر والوجهة");
    return {...parsed,iconText:spoken,description:contextualName(spoken,parsed),
+    category:w.FLOSY_CATEGORIES?.resolve?.(parsed.category,spoken,parsed.type)?.label||parsed.category,
     sourceHash:parsed.sourceHash||"voice39-"+String(spoken).slice(0,25)};
   });
   const booked=postBatch(rows,"flosy39_voice_auto");notify("اتسجل كلامك مباشرة، وظهر زر التراجع");
@@ -182,30 +187,92 @@
    throw Error("مجموع الأصناف مختلف عن الإجمالي؛ لم أسجّل مبلغًا متناقضًا");
   if(parsed.receiptDetails?.confidence<0.72)
    throw Error("قراءة الإيصال غير مؤكدة؛ صوّر الإيصال مرة ثانية");
+  const details=parsed.receiptDetails||{};
+  const items=Array.isArray(details.items)?details.items:[];
   const rows=[{...parsed,description:sanitizeName(parsed.description||"إيصال"),
-    iconText:parsed.receiptDetails?.items?.map(x=>x.name).join(" ")||parsed.description}];
+    category:w.FLOSY_CATEGORIES?.resolve?.(parsed.category,
+      items.map(x=>x.name||"").join(" ")+" "+parsed.description,"expense")?.label||parsed.category,
+    iconText:items.map(x=>x.name).join(" ")||parsed.description}];
   const saved=postBatch(rows,"flosy39_receipt_auto");
   notify("اتسجلت الفاتورة مباشرة واتفعل زر التراجع");return saved;
  }
+ let captureBusy=false,receiptBusy=false;
+ function captureStatus(id,value,failed=false){
+  const el=by(id);if(el){el.textContent=String(value||"");el.dataset.state=failed?"error":"ok";}
+ }
  function nativeReceipt(text){
-  try{fromReceiptText(text)}catch(err){notify(err.message)}
+  const src=String(text||"").trim();
+  if(!src){captureStatus("flosyReceiptStatus","الإيصال غير واضح؛ صور الوصل تاني بإضاءة أقوى",true);return}
+  try{
+   const rows=fromReceiptText(src);
+   captureStatus("flosyReceiptStatus","✓ اتحفظ "+moneyLocal(rows[0].amount)+" في حسابك.",false);
+   if(current===6)go(4);
+  }catch(err){
+   captureStatus("flosyReceiptStatus",err.message,true);
+   const area=by("flosyReceiptPaste");if(area)area.value=src;
+   notify(err.message);
+  }
+ }
+ function moneyLocal(n){return new Intl.NumberFormat("ar-EG",{maximumFractionDigits:2}).format(+n||0)+" ج.م"}
+ async function nativeReceiptImage(imageDataUrl,latinText){
+  if(receiptBusy)return;
+  receiptBusy=true;captureStatus("flosyReceiptStatus","جارٍ قراءة الفاتورة بالعربي والإنجليزي واستخراج الإجمالي...");
+  let text=String(latinText||"").slice(0,12000),ocrError="";
+  try{
+   const extractor=ledger?.FLOSY_REPAIR?.extractForUnified;
+   if(typeof extractor==="function" && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(String(imageDataUrl||""))){
+    try{
+     const combined=await extractor(imageDataUrl,text);
+     if(combined?.trim())text=combined.slice(0,12000);
+    }catch(err){ocrError=String(err.message||err);}
+   }
+   if(text.trim())nativeReceipt(text);
+   else{
+    const message="لم يظهر إجمالي قابل للقراءة"+(ocrError?"؛ "+ocrError:"")+
+     ". جرّب صورة أوضح أو اختار صورة محفوظة.";
+    captureStatus("flosyReceiptStatus",message,true);notify(message);
+   }
+  }finally{receiptBusy=false;}
  }
  function nativeVoice(text){
-  if(voiceForAI){w.FLOSY_UNIFIED_AI?.onVoice?.(text);voiceForAI=false;return}
-  try{fromVoiceText(text)}catch(err){notify(err.message)}
+  captureBusy=false;
+  const spoken=String(text||"").trim();
+  if(!spoken){captureStatus("flosyCaptureStatus","مش سامع كلام واضح؛ حاول مرة تانية.",true);return}
+  if(voiceForAI){voiceForAI=false;w.FLOSY_UNIFIED_AI?.onVoice?.(spoken);return}
+  captureStatus("flosyCaptureStatus","سمعت: «"+spoken.slice(0,130)+"»؛ جاري تسجيل العمليات...");
+  try{
+   const rows=fromVoiceText(spoken);
+   captureStatus("flosyCaptureStatus","✓ تم تسجيل "+rows.length+" عملية في حسابك بنجاح");
+   if(current===7)go(4);
+  }catch(err){captureStatus("flosyCaptureStatus",err.message,true);notify(err.message);}
  }
  function startVoice(forAI=false){
-  voiceForAI=!!forAI;
-  if(bridge("voice"))return;
+  if(captureBusy)return false;
+  voiceForAI=!!forAI;captureBusy=true;
+  captureStatus("flosyCaptureStatus","🎙️ جاري فتح الميكروفون. اتكلم بالمصري...");
+  if(bridge("voice"))return true;
+  if(w.FLOSY_NATIVE_ANDROID===true){
+   w.location.href="flosyapp://voice-expense";
+   return true;
+  }
   const Recognition=w.SpeechRecognition||w.webkitSpeechRecognition;
-  if(!Recognition){notify("التسجيل الصوتي يحتاج Android أو متصفح يدعم التعرف العربي");return}
-  const r=new Recognition();r.lang="ar-EG";r.interimResults=false;r.continuous=false;
-  r.onresult=e=>nativeVoice(e.results?.[0]?.[0]?.transcript||"");
-  r.onerror=e=>notify("المكروفون غير متاح: "+e.error);r.start();
+  if(!Recognition){captureBusy=false;notify("التعرف الصوتي غير متاح؛ اكتب العملية في خانة التسجيل");return false}
+  try{
+   const r=new Recognition();r.lang="ar-EG";r.interimResults=false;r.continuous=false;r.maxAlternatives=3;
+   r.onresult=e=>nativeVoice(e.results?.[0]?.[0]?.transcript||"");
+   r.onerror=e=>{captureBusy=false;captureStatus("flosyCaptureStatus","تعذّر الميكروفون: "+e.error,true);notify("تأكد من إذن الميكروفون وخدمة التعرف الصوتي")};
+   r.onend=()=>{captureBusy=false;};
+   r.start();return true;
+  }catch(err){captureBusy=false;notify("فشل بدء التسجيل: "+err.message);return false}
  }
- function startReceipt(){
-  if(bridge("receipt-camera"))return;
-  notify("افتح كاميرا Android في النسخة المثبتة، أو الصق نص فاتورتك أدناه");
+ function startReceipt(mode="camera"){
+  captureStatus("flosyReceiptStatus","📸 جاري فتح "+(mode==="gallery"?"معرض الصور":"الكاميرا")+"...");
+  const action=mode==="gallery"?"receipt-ocr":"receipt-camera";
+  if(bridge(action))return true;
+  if(w.FLOSY_NATIVE_ANDROID===true){w.location.href="flosyapp://"+action;return true}
+  const input=by("flosyReceiptFile");
+  if(input){input.click();return true}
+  go(6);notify("افتح قسم الفواتير واختر صورة من الجهاز");return false;
  }
  function go(id,{replace=false}={}){
   const x=Number(id);if(!Number.isInteger(x)||x<1||x>20)return;
@@ -399,15 +466,20 @@
   w.simulateWhatsAppBotMsg=()=>notify("واتساب ليس مربوطًا بعد. استخدم مساعد فلوسي داخل التطبيق.");
   w.FLOSY_HANDLE_BACK=back;
   w.FLOSY_CAPTURE={receiveNativeVoice:nativeVoice};
-  w.FLOSY_REPAIR={receiveNativeReceipt:nativeReceipt,receiveNativeReceiptImage:(img,text)=>nativeReceipt(text),
-   nativeVoiceError:notify,nativeVoiceStatus:message=>{
-    const field=by("flosyCaptureStatus");if(field)field.textContent=message;
+  w.FLOSY_REPAIR={receiveNativeReceipt:nativeReceipt,receiveNativeReceiptImage:nativeReceiptImage,
+   nativeVoiceError:message=>{
+    captureBusy=false;voiceForAI=false;captureStatus("flosyCaptureStatus",message,true);
+    w.FLOSY_UNIFIED_AI?.voiceError?.(message);notify(message);
+   },nativeVoiceStatus:message=>{
+    captureStatus("flosyCaptureStatus",message);
+    w.FLOSY_UNIFIED_AI?.voiceStatus?.(message);
    }};
   w.FLOSY_UNIFIED={
    core:()=>ledger,state,summary,accounts,balances,safe,money,date,esc,inferIcon,
    defaultAccount,setDefaultAccount,postBatch,fromVoiceText,fromReceiptText,
    go,back,applyTheme,openFeature,closeFeature,renderAll,startVoice,startReceipt,
    bridge,sendReport,notify,THEMES,getCurrentScreen:()=>current,
+   nativeVoice,nativeReceipt,nativeReceiptImage,captureStatus,
    getLastSaved:()=>lastSaved?.slice()||[]
   };
   mountLedger();
@@ -421,7 +493,7 @@
    if(!action)return;
    switch(action.dataset.flosyAction){
     case "listen":startVoice(false);break;
-    case "receipt":startReceipt();break;
+    case "receipt":startReceipt(action.dataset.mode||"camera");break;
     case "ai":go(8);break;
     case "undo":undo();break;
     case "report":sendReport(action.dataset.kind||"pdf");break;
