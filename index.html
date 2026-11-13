@@ -1,6 +1,15 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
+<!-- Canonical Flosy entrypoint; internal finance engine is ?flosy_core=1 only. -->
+<script>
+(function(){
+ const q=new URLSearchParams(location.search);
+ if(!q.has("flosy_core")&&location.protocol!=="file:"){
+  location.replace(new URL("./flosy.html"+(location.hash||""),location.href).href);
+ }
+})();
+</script>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#191432">
 <title>فلوسي | Flosy Aurora — فلوسك أوضح</title><meta name="description" content="لوحة تحكم عربية ذكية لإدارة الدخل والمصروفات والأهداف المالية">
 <link rel="stylesheet" href="finance-pro.css?v=130"><link rel="stylesheet" href="flosy-next.css?v=202"><link rel="stylesheet" href="flosy-ai.css?v=210"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
