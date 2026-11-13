@@ -61,3 +61,34 @@ test("Egyptian custom category extension keeps obligation tags separate",()=>{
  assert.ok(K.forType("income").some(x=>x.label==="دخل إيجار"));
  assert.ok(K.forType("expense").some(x=>x.label==="رسوم إنستاباي والتحويلات"));
 });
+
+test("Thndr filled trades update cash once and add holdings once",()=>{
+ const x=make();x.accounts.push({id:"thndr",name:"ثاندر",opening:1000});
+ x.trades=[{id:"b",kind:"buy",asset:"ABC",qty:100,price:10,fee:5,date:"2026-11-01"},
+  {id:"s",kind:"sell",asset:"ABC",qty:20,price:15,fee:2,date:"2026-11-12"}];
+ x.prices={ABC:{value:16,updatedAt:"2026-11-12"}};
+ const a=F.wealth(x);
+ assert.equal(a.portfolioMarket,1280);
+ assert.equal(a.holdings[0].qty,80);
+ assert.equal(a.cash.find(z=>z.id==="thndr").value,293);
+ assert.equal(a.totalCash,5293);
+ assert.equal(a.netWorth,6573);
+ // An imported opening balance in securities must not move current cash.
+ x.trades.push({id:"op",kind:"opening",asset:"EFG",qty:3,price:20,date:"2026-11-12"});
+ assert.equal(F.wealth(x).cash.find(z=>z.id==="thndr").value,293);
+ assert.equal(F.wealth(x).netWorth,6633);
+});
+test("negative net worth remains signed and aliases keep canonical modules",()=>{
+ const x=make();
+ x.liabilities=[{id:"bigloan",name:"قرض",balance:25000}];
+ assert.equal(F.wealth(x).netWorth,-20000);
+ assert.match(F.money(F.wealth(x).netWorth),/20[٬,]?000/);
+ const fs=require("node:fs");
+ const ui=fs.readFileSync("flosy-finance-ui-v393.js","utf8");
+ const shell=fs.readFileSync("flosy-unified.js","utf8");
+ for(const token of ["portfolioMarket","x.holdings","data-flosy-feature=\"portfolio\"",
+  "data-flosy-feature=\"v4-family\""])
+  assert.ok(ui.includes(token),token);
+ for(const code of ["wealth:3","smart:14","plan:17","goals:12"])
+  assert.ok(shell.includes(code),code);
+});
