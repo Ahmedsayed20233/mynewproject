@@ -182,6 +182,30 @@ function saveNativeXlsx(bytes,range){
  post({action:"xlsx-finish"});
  return true;
 }
+function saveNativePdf(state,range){
+ // New Android versions expose an explicit report capability. Older versions
+ // keep using the existing Android print sheet instead of silently dropping data.
+ if(w.FLOSY_NATIVE_ANDROID!==true || w.FLOSY_NATIVE_REPORTS_AVAILABLE!==true)return false;
+ if(!w.FlosyNative?.postMessage)throw Error("تعذر الاتصال بنافذة حفظ Android. افتح التقرير في Chrome.");
+ const r=build(state,range);
+ const payload={range:r.range,income:r.income,expense:r.expense,net:r.net,transfers:r.transfers,
+  rows:r.rows,categories:r.categories,accounts:r.accounts,advice:r.advice};
+ const bytes=utf8(JSON.stringify(payload));
+ if(bytes.length<2||bytes.length>3*1024*1024)throw Error("التقرير كبير جدًا. اختار فترة أقصر.");
+ const post=x=>w.FlosyNative.postMessage(JSON.stringify(x));
+ post({action:"pdf-start",filename:"Flosy-"+range.start+"-"+range.end+".pdf",size:bytes.length});
+ for(let pos=0;pos<bytes.length;pos+=6100){
+  const part=bytes.subarray(pos,Math.min(pos+6100,bytes.length));
+  let binary="";for(const b of part)binary+=String.fromCharCode(b);
+  post({action:"pdf-chunk",data:btoa(binary)});
+ }
+ post({action:"pdf-finish"});
+ return true;
+}
+function nativeResult(kind,ok,message){
+ if(kind!=="pdf"&&kind!=="xlsx")return;
+ w.FLOSY_BRIDGE?.toast?.((ok?"✓ ":"⚠️ ")+String(message||""));
+}
 function download(state,range){
  const r=build(state,range),buffer=xlsxBytes(r);
  if(saveNativeXlsx(buffer,range))return;
@@ -190,5 +214,5 @@ function download(state,range){
  a.href=url;a.download="Flosy-"+range.start+"-"+range.end+".xlsx";a.click();
  setTimeout(()=>URL.revokeObjectURL(url),2000);
 }
-w.FLOSY_REPORT_KIT={build,printAppendix,xlsxBytes,download,saveNativeXlsx,iconFor:icon,version:"3.6.1"};
+w.FLOSY_REPORT_KIT={build,printAppendix,xlsxBytes,download,saveNativeXlsx,saveNativePdf,nativeResult,iconFor:icon,version:"3.6.2"};
 })(window);
