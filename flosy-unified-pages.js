@@ -124,13 +124,13 @@
    '<div class="flosy-grid-2">'+nav(7,"بالصوت","fa-microphone-lines")+nav(6,"فاتورة","fa-camera")+'</div>';
  }
  function capture(){
-  return h("تصوير الفواتير", "قراءة وحفظ مباشر بعد استخراج إجمالي واضح",2)+
+  return h("تصوير الفواتير", "استخراج بيانات الفاتورة ثم مراجعتها قبل الحفظ",2)+
    panel("الكاميرا الذكية",'<div style="text-align:center;padding:12px">'+
     '<div class="flosy-ai-avatar" style="margin:0 auto 12px;width:72px;height:72px">'+ico("fa-camera")+'</div>'+
-    '<p class="flosy-muted">صوّر فاتورتك باستخدام كاميرا Android؛ يُستخرج الإجمالي والأصناف والتاريخ، وتُحفظ العملية مباشرة عندما تكون البيانات قابلة للاعتماد.</p>'+
+    '<p class="flosy-muted">صوّر فاتورتك باستخدام كاميرا Android؛ يُستخرج الإجمالي والأصناف والتاريخ، ويُعرض ملخص قابل للتصحيح دون خصم أي مبلغ حتى تؤكد بنفسك.</p>'+
     '<button type="button" class="flosy-btn" data-flosy-action="receipt">📷 تصوير فاتورة حقيقية</button></div>')+
    panel("إدخال نص فاتورة أو اختبار نتيجة OCR",'<label class="flosy-field">نص الإيصال<textarea rows="6" id="flosyReceiptPaste" class="flosy-input" placeholder="الصق النص المستخرج من فاتورة حقيقية..."></textarea></label>'+
-     '<button class="flosy-btn" id="flosyReceiptSave" type="button">تحليل وتسجيل الفاتورة تلقائيًا</button>'+
+     '<button class="flosy-btn" id="flosyReceiptSave" type="button">تحليل الفاتورة ومراجعتها قبل الحفظ</button>'+
      '<p class="flosy-muted">الإجمالي الغامض أو المتناقض لا يُحجز في حسابك. يتم منع الإيصالات المكررة.</p>')+
    panel("إدارة الإدخال الذكي",feature("v4-capture","أدوات الصوت والإيصالات المتقدمة"));
  }
@@ -139,11 +139,11 @@
    panel("اتكلم بطبيعتك",'<div style="text-align:center;padding:12px">'+
     '<div class="flosy-ai-avatar" style="margin:0 auto 10px;width:70px;height:70px">'+ico("fa-microphone-lines")+'</div>'+
     '<button class="flosy-btn" type="button" data-flosy-action="listen">🎙️ ابدأ التسجيل الآن</button>'+
-    '<p id="flosyCaptureStatus" class="flosy-capture-status">مثال: «اشتريت عربية بـ 200000 جنيه» أو «دفعت 40 جنيه قهوة وبعدين 60 مواصلات»</p>'+
+    '<p id="flosyCaptureStatus" class="flosy-capture-status">مثال: «اشتريت عربية بـ 200000 جنيه» أو «دفعت 40 جنيه قهوة وبعدين دفعت 60 جنيه مواصلات»</p>'+
     '</div>')+
    panel("اكتب جملة عامية للاختبار",'<form id="flosyVoiceTypedForm"><label class="flosy-field">جملة مالية حقيقية'+
     '<input class="flosy-input" name="spoken" required placeholder="دفعت 75 جنيه قهوة من الكاش"></label>'+
-    '<button class="flosy-btn" type="submit">فهم وتسجيل العمليات مباشرة</button></form>')+
+    '<button class="flosy-btn" type="submit">فهم الجملة ومراجعة العمليات</button></form>')+
    panel("أيقونة تلقائية",'<p class="flosy-muted">«اشتريت عربية» → سيارة، «دفعت بنزين» → محطة، «اشتريت أكل» → مطعم. يتم اختيار الأيقونة من معنى وصف العملية وليس من الفئة العامة فقط.</p>');
  }
  function assistant(){
