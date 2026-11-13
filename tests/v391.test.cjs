@@ -28,7 +28,8 @@ test("specific item icons override generic spending descriptions",()=>{
  assert.equal(categories.classify("اشتريت هدية").icon,"fa-gift");
  assert.equal(categories.classify("دفعت 100 جنيه زكاة").icon,"fa-hand-holding-heart");
  assert.equal(categories.classify("قبضت مرتبي", "income").icon,"fa-money-bill-wave");
- assert.equal(categories.resolve("مطاعم ووجبات","اشتريت بنزين","expense").id,"fuel");
+ assert.equal(categories.resolve("مطاعم ووجبات","اشتريت بنزين","expense",{preferDescription:true}).id,"fuel");
+ assert.equal(categories.resolve("مطاعم ووجبات","اشتريت بنزين","expense").id,"food");
 });
 test("the full unified UI has accounts, category search and editable transaction filters",()=>{
  for(const s of ["flosyNewTxForm","flosyTxSearch","fxAdvancedFilters","fxAccountFilter",
