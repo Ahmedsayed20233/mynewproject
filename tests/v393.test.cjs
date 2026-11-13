@@ -82,7 +82,7 @@ test("negative net worth remains signed and aliases keep canonical modules",()=>
  const x=make();
  x.liabilities=[{id:"bigloan",name:"قرض",balance:25000}];
  assert.equal(F.wealth(x).netWorth,-20000);
- assert.match(F.money(F.wealth(x).netWorth),/20[٬,]?000/);
+ assert.ok(F.money(F.wealth(x).netWorth).includes("٢٠٬٠٠٠"),"Arabic-digit negative money format");
  const fs=require("node:fs");
  const ui=fs.readFileSync("flosy-finance-ui-v393.js","utf8");
  const shell=fs.readFileSync("flosy-unified.js","utf8");
