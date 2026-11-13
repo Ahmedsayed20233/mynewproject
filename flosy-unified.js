@@ -316,9 +316,12 @@
    const scroll=f.querySelector(".flosy-section");if(on&&scroll)scroll.scrollTop=0;
   });
   if(C)w.FLOSY_UNIFIED_PAGES?.render?.(x);
-  d.querySelectorAll(".bottom-dock button[onclick]").forEach(b=>{
-   const route=+(b.getAttribute("onclick")?.match(/goToScreen\((\d+)\)/)?.[1]||0);
-   b.classList.toggle("flosy-current",route===x);
+  const activeTab=[9,10,11,12,17,18].includes(x)?11:
+   [3,13,14,15,16,19,20].includes(x)?16:x;
+  d.querySelectorAll(".flosy-primary-dock .flosy-nav-item").forEach(b=>{
+   const active=Number(b.dataset.flosyScreen)===activeTab;
+   b.classList.toggle("flosy-current",active);
+   if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");
   });
   // The unified page owns the assistant mount.
   return x;
@@ -392,6 +395,17 @@
  }
  function closeFeature(){const modal=by("flosyLegacyPanel");modal?.classList.remove("open");
   modal?.setAttribute("aria-hidden","true");renderAll();}
+ function configurePrimaryNavigation(){
+  // Five stable destinations replace the designer-era 20 different bottom docks.
+  const destinations=[[2,"الرئيسية","fa-house"],[4,"المعاملات","fa-receipt"],[5,"إضافة","fa-plus"],[11,"خطتي","fa-bullseye"],[16,"المزيد","fa-grip"]];
+  const markup=destinations.map(([screen,label,icon])=>
+   '<button type="button" class="flosy-nav-item" data-flosy-screen="'+screen+'" aria-label="'+label+'">'+
+   '<i aria-hidden="true" class="fa-solid '+icon+'"></i><span>'+label+'</span></button>').join("");
+  d.querySelectorAll(".bottom-dock").forEach(dock=>{
+   dock.classList.add("flosy-primary-dock");dock.innerHTML=markup;
+   dock.setAttribute("aria-label","التنقل الرئيسي");
+  });
+ }
  function createChrome(){
   const toast=d.createElement("div");toast.id="flosyToastBox";toast.className="flosy-undo";toast.hidden=true;
   toast.innerHTML='<span id="flosyToastMessage">تم التحديث</span>';
@@ -473,6 +487,7 @@
  function init(){
   d.body.classList.add("flosy-live");
   createChrome();
+  configurePrimaryNavigation();
   const loading=d.createElement("div");loading.id="flosyLoading";
   loading.style.cssText="position:fixed;inset:0;z-index:150;display:grid;place-items:center;background:var(--bg-app);color:var(--text-primary);font-weight:900;text-align:center;padding:20px";
   loading.textContent="فلوسي بيجهّز حساباتك...";d.body.appendChild(loading);
