@@ -84,6 +84,11 @@
      '<button class="flosy-btn flosy-btn-secondary" type="button" data-notify-action="test">إشعار تجريبي</button>'+
      '<button class="flosy-btn flosy-btn-secondary" type="button" data-notify-action="stop">إيقاف الإشعارات</button>'+
      '<small>إشعارات Android محلية، ولا تعرض مبالغ أو تفاصيل بنكية على شاشة القفل. قد يؤخر النظام موعد التسليم. إشعارات الويب اليومية في الخلفية غير مدعومة في هذه النسخة.</small></div></details>'+
+   '<details class="service-v392-fold"><summary>'+icon("fa-shield-halved")+
+     ' استيراد SMS وإشعارات البنوك <span>غير مفعل حاليا</span></summary>'+
+     '<div class="service-v392-notify" role="status"><strong>الميزة مجهزة للتطوير لكنها متوقفة</strong>'+
+     '<p>لا يتم جمع رسائلك أو إشعارات التطبيقات، ولا طلب أذون لقراءتها أو إضافة معاملات منها. التشغيل في نسخة لاحقة يحتاج موافقة صريحة واختبارات على الهاتف.</p>'+
+     '<small>يمكنك استخدام الإدخال اليدوي أو الصوت أو CSV.</small></div></details>'+
    '<details class="service-v392-fold"><summary>'+icon("fa-id-card")+
      ' معلوماتي <span>علشان فلوسي يناديك باسمك</span></summary>'+
      '<form id="flosyFirstNameForm" class="service-v392-name"><label>الاسم الأول'+
