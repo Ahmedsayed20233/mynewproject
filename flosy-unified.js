@@ -34,7 +34,11 @@
     // balance with forecasted salary or the full monthly discretionary cap.
     return estimate.ready?{...estimate,source:"financeProfileV393-liquid-cash"}:null;
    }
-   return oldCalc;
+   // Do not present an unconfigured forecast as verified spendable cash.
+   const cfg=state().settings||{};
+   const legacyReady=n(cfg.salary)>0&&n(cfg.living)>0&&
+    Array.isArray(oldCalc?.components)&&oldCalc.components.length>0;
+   return legacyReady?{...oldCalc,source:"verified-legacy-budget"}:null;
   }catch{return null}
  };
  const summary=(key="month")=>U?.summary?.(state(),U.periodRange(key),balances(),safe())||{};
