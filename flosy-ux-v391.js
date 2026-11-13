@@ -389,6 +389,6 @@
   const [build,bind]=overwrites[id];
   box.innerHTML=build();bind(box);
  };
- w.FLOSY_UX_V391={categories:K,accountOptions,recordPage,manualPage,item,
+ w.FLOSY_UX_V391={categories:K,accountOptions,recordPage,manualPage,item,parseEgyptianMoney,
   version:"3.9.1",activeScreens:Object.keys(overwrites).map(Number)};
 })(window,document);
