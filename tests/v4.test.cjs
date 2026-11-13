@@ -573,8 +573,8 @@ test("Flosy AI defaults to free mode, API stays optional and offline shell is ve
  assert.ok(sw.includes("flosy-ai-analytics.js?v=1001"));
  assert.ok(sw.includes("flosy-ai-local.js?v=3901"));
  assert.ok(sw.includes("flosy-receipt-ml.js?v=3401"));
- assert.ok(sw.includes("flosy-voice-nlu.js?v=3402"));
- assert.ok(sw.includes("flosy-v4-capture.js?v=3402"));
+ assert.ok(sw.includes("flosy-voice-nlu.js?v=3403"));
+ assert.ok(sw.includes("flosy-v4-capture.js?v=3403"));
  assert.ok(sw.includes("flosy-repair.js?v=3910"));
 });
 
@@ -849,4 +849,32 @@ test("Automate web component and cache have matching version without SMS permiss
  assert.match(sw,/flosy-automate-relay\.js\?v=3501/);
  assert.match(sw,/flosy-automate-relay\.css\?v=2901/);
  assert.match(index,/id="flosyAutomateRelayRoot"/);
+});
+
+test("Egyptian voice fractions use the preceding hundred/thousand scale, not piasters",()=>{
+ const c=context();load("flosy-voice-nlu.js",c);load("flosy-v4-capture.js",c);
+ const m=c.window.FLOSY_VOICE_NLU,cap=c.window.FLOSY_CAPTURE;
+ const cases=[
+  ["دفعت الف ونص جنيه من الكاش",1500],
+  ["دفعت ألف وربع جنيه من الكاش",1250],
+  ["دفعت الفين ونص جنيه من الكاش",2500],
+  ["دفعت تلات الاف وربع جنيه من الكاش",3250],
+  ["دفعت نص الف جنيه من الكاش",500],
+  ["دفعت ميتين ونص جنيه من الكاش",250],
+  ["دفعت مية وخمسين ونص جنيه من الكاش",150.5],
+  ["دفعت اتنين ونص جنيه من الكاش",2.5],
+  ["دفعت 1000 ونص جنيه من الكاش",1500],
+  ["دفعت تلاتين ونص جنيه من الكاش",30.5]
+ ];
+ for(const [phrase,amount] of cases){
+  assert.equal(m.spokenAmount(phrase),amount,phrase);
+  assert.equal(cap.parseVoice(phrase).amount,amount,phrase);
+ }
+ const income=cap.parseVoice("قبضت الفين ونص جنيه من الشغل على الفيزا");
+ assert.equal(income.type,"income");
+ assert.equal(income.amount,2500);
+ const future="هشتري الف ونص جنيه بكرة";
+ assert.equal(m.classify(future).intent,"none");
+ assert.throws(()=>cap.parseVoice(future),/معاملة مكتملة/);
+ assert.equal(c.data.transactions.length,0,"Parsing alone must never post to the ledger");
 });

@@ -120,17 +120,26 @@ function spokenAmount(raw){
   }else if(suffix.length)break;
  }
  if(!suffix.length)return null;
- let value=0,segment=0;
+ let value=0,segment=0,lastScale=0;
  for(const rawToken of suffix){
   let token=rawToken.startsWith("و")&&isThousand(rawToken.slice(1))?rawToken.slice(1):rawToken;
   if(isThousand(token)){
-   let n=segment||1;if(token==="الفين")n=2;
-   value+=n*1000;segment=0;continue;
+   const n=token==="الفين"?2:(segment||1);
+   value+=n*1000;segment=0;lastScale=1000;continue;
   }
   const word=parseWord(token);
   const n=word===null?Number(token):word;
   if(!Number.isFinite(n)||n<0)return null;
-  segment+=n;
+  // In colloquial Egyptian, "alf w noss" is 1,500, not 1,000.50;
+  // "meyya w noss" is 150; "etneen w noss" remains 2.50.
+  // Only an immediately preceding round thousand/hundred gives the
+  // fraction a larger unit; do not magnify fractions after tens or units.
+  if(n===0.5||n===0.25){
+   segment+=n*(lastScale||1);lastScale=0;
+  }else{
+   segment+=n;
+   lastScale=Number.isInteger(n)&&n>=100&&n%100===0?(n%1000===0?1000:100):0;
+  }
  }
  const amount=value+segment;
  return amount>0&&amount<1e9?+amount.toFixed(2):null;
