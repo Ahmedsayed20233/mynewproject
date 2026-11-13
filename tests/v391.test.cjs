@@ -45,7 +45,7 @@ test("the full unified UI has accounts, category search and editable transaction
 test("receipt data URL and gallery file are accepted for bilingual OCR extraction",()=>{
  assert.match(repair,/extractForUnified/);
  assert.match(repair,/createWorker\(\["ara","eng"\]\)/);
- assert.match(repair,/imageDataUrl instanceof Blob/);
+ assert.match(repair,/imageDataUrl\.arrayBuffer/);
  assert.match(repair,/readMultipleOCR\(worker,imageDataUrl\)/);
  assert.match(core,/receiveNativeReceiptImage:nativeReceiptImage/);
  assert.match(core,/receiptBusy/);
