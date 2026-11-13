@@ -47,7 +47,7 @@
   const cash=Array.isArray(s?.accounts)?s.accounts.reduce((v,x)=>v+num(x.opening),0):0;
   return {period,actualIncome:income,actualExpense:expense,manualSalary,extras,
     salaryConfigured,predictableIncome,essentials,commitments:fixed,fixedSum,livingCost,
-    free,margin,monthlyDebtService:fixed.filter(x=>x.kind==="debt").reduce((v,x)=>v+x.amount,0),
+    free,margin,monthlyDebtService:fixed.filter(x=>/(?:debt|loan|installment|bnpl|friend)/i.test(x.kind)).reduce((v,x)=>v+x.amount,0),
     emergencyCash:num(cfg.emergencyCash),goalMonths:Math.min(12,Math.max(3,num(cfg.emergencyMonths)||3)),
     risk:["low","medium","high"].includes(cfg.riskTolerance)?cfg.riskTolerance:"unset",
     horizonMonths:num(cfg.investmentHorizonMonths),desiredReserve:num(cfg.minimumMonthlyBuffer)};
@@ -102,8 +102,7 @@
     balanceByAccount[t.targetAccountId]=(balanceByAccount[t.targetAccountId]||0)+amount;
    }
   }
-  const liquid=(Array.isArray(s?.accounts)?s.accounts:[]).reduce((v,a)=>
-   v+Math.max(0,num(a.opening)+(balanceByAccount[a.id]||0)),0);
+  const liquid=Math.max(0,wealth(s).totalCash); // one canonical bank cash for zakat and net worth
   const assets=(Array.isArray(s?.assets)?s.assets:[])
     .filter(a=>a.zakatEligible===true).reduce((v,a)=>v+num(a.value||num(a.qty)*num(a.unitPriceEgp)),0);
   const deductible=num(cfg.zakatDeductibleDebt),base=Math.max(0,liquid+assets-deductible);
