@@ -148,6 +148,7 @@
     s.settings=s.settings||{};s.settings.flosyFirstName=first;
    });
    api().notify("يا "+first+"، هتوصلك نصائح شخصية داخل فلوسي.");
+   api().bridge("notifications-daily-name",{name:first});
    api().renderAll();
   };
   el.querySelector("#flosyDefaultAccount").onchange=e=>{
@@ -156,6 +157,7 @@
   el.querySelector(".service-v392-daily").onkeydown=e=>{
    if(e.key==="Enter"||e.key===" "){e.preventDefault();api().go(8)}
   };
+  api().bridge("notifications-daily-name",{name:CP()?.name?.(api().state())||""});
   if(lastStatus)nativeStatus(lastStatus);else api().bridge("notifications-status");
  }
  Pages.render=function(id){
