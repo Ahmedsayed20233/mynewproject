@@ -20,6 +20,7 @@ const {setTimeout:pause}=require("node:timers/promises");
   await page.locator('[name="monthlySalary"]').fill("20000");
   await page.locator('[name="recurringExtraIncome"]').fill("2000");
   await page.locator('[name="essentialVariableSpend"]').fill("7000");
+  await page.locator('[name="minimumMonthlyBuffer"]').fill("1000");
   await page.locator('#fin393ProfileForm').evaluate(el=>el.requestSubmit());
   await page.locator('#fin393CommitmentForm [name=name]').fill("إيجار شهري");
   await page.locator('#fin393CommitmentForm [name=amount]').fill("3000");
