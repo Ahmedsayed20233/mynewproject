@@ -365,7 +365,14 @@
  }
  function openFeature(page,label){
   if(!ledger||!C)return notify("جاري تحميل المزايا");
-  if(page==="ai"){go(8);return}
+  // Old names are navigation aliases, not a second independent finance app.
+  // Unique advanced modules (portfolio trades, CSV, backups, family sharing,
+  // recurring editor) remain explicitly accessible inside their home screen.
+  const canonicalRoutes={ai:8,wealth:3,"v4-wealth":3,smart:14,
+   plan:17,goals:12};
+  if(Object.prototype.hasOwnProperty.call(canonicalRoutes,page)){
+   closeFeature();go(canonicalRoutes[page]);return;
+  }
   const nav=ledger.document.querySelector('.sidebar .nav button[data-page="'+page+'"]');
   const target=ledger.document.getElementById("page-"+page);
   if(!target||!nav){notify("الخاصية دي غير متاحة حاليًا");return}
