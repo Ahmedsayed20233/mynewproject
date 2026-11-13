@@ -143,7 +143,7 @@
   busy=true;
   const note=$("flosyAiVoiceStatus");if(note)note.textContent="🎙️ سامعك.. اتكلم بالمصري";
   if(w.FLOSY_NATIVE_BRIDGE_AVAILABLE&&w.FlosyNative?.postMessage){
-   try{w.FlosyNative.postMessage(JSON.stringify({action:"voice"}));return}catch{}
+   api()?.startVoice?.(true);return;
   }
   const Speech=w.SpeechRecognition||w.webkitSpeechRecognition;
   if(!Speech){busy=false;if(note)note.textContent="التعرف الصوتي غير متاح على هذا الجهاز";return}
