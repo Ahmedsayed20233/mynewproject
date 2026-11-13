@@ -25,7 +25,8 @@
  function item(t){
   const cat=categorySpec(t),tag=cat?.label||String(t.category||"أخرى"),account=accounts().find(a=>a.id===t.accountId);
   const iconName=t.icon||K.resolve(tag,t.description,t.type)?.icon||"fa-wallet";
-  const palette=t.categoryColor||cat?.color||"#64748B";
+  const candidate=t.categoryColor||cat?.color||"#64748B";
+  const palette=/^#[0-9A-Fa-f]{6}$/.test(candidate)?candidate:"#64748B";
   return '<div class="fx-transaction" data-transaction="'+html(t.id)+'">'+
    '<div class="fx-transaction-main"><span class="fx-transaction-symbol" style="--tx-color:'+palette+'">'+icon(iconName)+'</span>'+
    '<div class="fx-transaction-copy"><strong>'+html(t.description||tag)+'</strong>'+
