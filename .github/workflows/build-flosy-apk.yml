@@ -71,7 +71,7 @@ jobs:
           grep -Fq 'ACTION_CREATE_DOCUMENT' android/app/src/main/java/com/flosy/finance/MainActivity.java
 
       - name: Compile founder-test MVP APK
-        run: gradle -p android --no-daemon --stacktrace assembleMvpDebug
+        run: gradle -p android --no-daemon --stacktrace assembleMvpDebug assembleStandardDebug assembleSmsDebug
 
       - name: Verify installable APK manifest, signing and contents
         run: |

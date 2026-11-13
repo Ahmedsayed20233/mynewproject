@@ -243,12 +243,10 @@ public class MainActivity extends Activity {
                                 if(!receipt.isEmpty() && receipt.length()<=12000)
                                     exportReceiptText(receipt);
                             }
-                            else if(("xlsx-start".equals(action)||"xlsx-chunk".equals(action)
-                                ||"xlsx-finish".equals(action)||"pdf-start".equals(action)
-                                ||"pdf-chunk".equals(action)||"pdf-finish".equals(action))&&isMvp())
-                                reportBridge.onMessage(action,msg);
                             else if("xlsx-start".equals(action)||"xlsx-chunk".equals(action)
-                                ||"xlsx-finish".equals(action))receiveWorkbookPart(action,msg);
+                                ||"xlsx-finish".equals(action)||"pdf-start".equals(action)
+                                ||"pdf-chunk".equals(action)||"pdf-finish".equals(action))
+                                reportBridge.onMessage(action,msg);
                         });
                     }catch(Exception ignored){}
                 });
@@ -353,7 +351,8 @@ public class MainActivity extends Activity {
                         + (("direct".equals(BuildConfig.FLAVOR)||"notify".equals(BuildConfig.FLAVOR))?"true":"false") + ";"
                         + "window.FLOSY_NATIVE_VOICE_AVAILABLE=true;"
                         + "window.FLOSY_NATIVE_OCR_AVAILABLE=true;"
-                        + "window.FLOSY_NATIVE_XLSX_AVAILABLE=true;"
+                        + "window.FLOSY_NATIVE_XLSX_AVAILABLE="+(webMessageReady ? "true" : "false")+";"
+                        + "window.FLOSY_NATIVE_REPORTS_AVAILABLE="+(webMessageReady ? "true" : "false")+";"
                         + "window.FLOSY_NATIVE_BRIDGE_AVAILABLE="+(webMessageReady ? "true" : "false")+";"
                         + "window.FLOSY_NATIVE_BIOMETRIC_AVAILABLE="
                         + (Build.VERSION.SDK_INT >= 28 ? "true" : "false") + ";"

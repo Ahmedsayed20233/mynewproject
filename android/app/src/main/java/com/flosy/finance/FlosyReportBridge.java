@@ -33,9 +33,12 @@ public final class FlosyReportBridge {
             type);
     }
     private void status(boolean ok,String msg){
+        String result=JSONObject.quote(pendingExt)+","+
+            (ok?"true":"false")+","+JSONObject.quote(msg);
         String js="if(window.FLOSY_REPORT_PRO&&window.FLOSY_REPORT_PRO.nativeResult)"+
-            "window.FLOSY_REPORT_PRO.nativeResult("+JSONObject.quote(pendingExt)+","+
-            (ok?"true":"false")+","+JSONObject.quote(msg)+");";
+            "window.FLOSY_REPORT_PRO.nativeResult("+result+");"+
+            "else if(window.FLOSY_REPORT_KIT&&window.FLOSY_REPORT_KIT.nativeResult)"+
+            "window.FLOSY_REPORT_KIT.nativeResult("+result+");";
         web.post(()->web.evaluateJavascript(js,null));
     }
     public void onMessage(String action,JSONObject msg){
