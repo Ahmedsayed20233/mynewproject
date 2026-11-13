@@ -66,6 +66,10 @@
     const eligible=["income","expense","transfer"].includes(p.intent);
     return '<fieldset'+(eligible?"":' class="flosy-v2-blocked"')+'><legend>عملية '+(i+1)+' • '+escape(labels[p.intent]||"غير معروفة")+'</legend>'+
       '<p class="flosy-v2-transcript">'+escape(p.text||p.description||"فاتورة")+'</p>'+
+      (p.trainedPrediction?'<p class="flosy-v2-model" aria-label="توقع النموذج المدرب">'+
+       'تصنيف النموذج المدرّب: '+escape(labels[p.trainedPrediction.intent]||"غير مكتمل")+
+       (p.trainedPrediction.agreement?' • متوافق مع قواعد الأمان':' • يحتاج مراجعة أدق')+
+       ' — الثقة غير معايرة على صوت حقيقي</p>':"")+
       (!eligible?'<p class="flosy-v2-alert">'+escape(errors[p.intent]||"لا يمكن تسجيل هذه العملية.")+'</p>':"")+
       '<div class="flosy-v2-grid"><label>المبلغ بالجنيه<input type="number" min="0.01" max="999999999" step=".01" name="amount-'+i+'" value="'+escape(p.amount??"")+'"'+(eligible?" required":" disabled")+'></label>'+
       '<label>التاريخ<input type="date" name="date-'+i+'" value="'+escape(p.date||"")+'"'+(eligible?" required":" disabled")+'></label>'+
