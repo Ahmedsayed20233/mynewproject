@@ -16,6 +16,34 @@
  function respond(question){
   const s=summary(),q=String(question||"").slice(0,600).trim(),data=state();
   if(!q)return {text:"اسألني عن مصروفاتك أو حساباتك أو أقساطك، وأنا معاك.",chart:null};
+  const personal=w.FLOSY_COPILOT?.answer?.(q,data,new Date());
+  if(personal)return personal;
+  const finance=w.FLOSY_FINANCE_ENGINE;
+  const linkedPlan=finance?.plan?.(data,new Date());
+  if(/استثمر كام|استثمر قد ايه|اوفر كام|ادخر كام|احوش كام|خطة مالي|قسّم المرتب|قسم المرتب/.test(q)){
+   if(!linkedPlan?.ready)return {text:"علشان أديك رقم حقيقي، افتح الخدمات ← ملفي المالي وحدد المرتب الشهري والالتزامات ومصاريف المعيشة، وبعدها هحسب لك الفائض.",intent:"linked-plan"};
+   return {text:"حسب مرتبك المتكرر "+money(linkedPlan.profile.predictableIncome)+
+    " والتزاماتك "+money(linkedPlan.profile.livingCost)+
+    "، الفائض المحسوب "+money(linkedPlan.monthlySurplus)+
+    ". المقترح للطوارئ هذا الشهر "+money(linkedPlan.suggestedEmergency)+
+    " والحد المشروط للاستثمار "+money(linkedPlan.suggestedInvestment)+
+    ". "+linkedPlan.liquidity+". مش نسبة ثابتة، ورأي استثماري مش مضمون.",
+    intent:"linked-plan"};
+  }
+  if(/زكا[ةه]|نصاب|حول هجري/.test(q)){
+   const z=finance?.zakat?.(data);if(!z)return null;
+   return {text:"وعاء الزكاة التقديري "+money(z.base)+
+    "، النصاب "+(z.nisab===null?"غير محدد لحين إدخال سعر جرام الذهب عيار 21":money(z.nisab))+
+    ". تقدير الزكاة بعد تحقق النصاب والحول "+money(z.estimatedZakat)+
+    ". راجع شروط الحول والأصول والديون مع دار الإفتاء المصرية.",intent:"zakat"};
+  }
+  if(/ثروت[يك]|صافي ثروة|اصولي|أصولي/.test(q)){
+   const wInfo=finance?.wealth?.(data);
+   if(wInfo)return {text:"الفلوس في حساباتك "+money(wInfo.totalCash)+
+     "، الأصول الإضافية "+money(wInfo.manualAssets)+
+     "، الديون "+money(wInfo.totalDebt)+
+     ". صافي الثروة المحسوب "+money(wInfo.netWorth)+".",intent:"wealth"};
+  }
   const analytics=core()?.FLOSY_LOCAL_ANALYTICS;
   let answer=null;
   try{answer=analytics?.query?.(q,data,new Date());}catch{}
@@ -177,7 +205,9 @@
    '<div class="flosy-buttonbar" style="margin:8px 0 10px">'+
     '<button type="button" class="flosy-ai-chip" data-ai-q="صرفت كام الشهر ده؟">مصروفات الشهر</button>'+
     '<button type="button" class="flosy-ai-chip" data-ai-q="ارسم فئات المصروفات">رسمة الإنفاق</button>'+
-    '<button type="button" class="flosy-ai-chip" data-ai-q="قارن هذا الشهر بالشهر اللي فات">مقارنة الشهور</button></div>'+
+    '<button type="button" class="flosy-ai-chip" data-ai-q="قارن هذا الشهر بالشهر اللي فات">مقارنة الشهور</button>'+
+    '<button type="button" class="flosy-ai-chip" data-ai-q="Roast me">🔥 Roast Me</button>'+
+    '<button type="button" class="flosy-ai-chip" data-ai-q="نصيحة اليوم">💡 نصيحة اليوم</button></div>'+
    '<form id="flosyAiUnifiedForm" class="flosy-buttonbar" style="flex-wrap:nowrap"><input id="flosyAiUnifiedInput" class="flosy-input" style="flex:1" placeholder="اسأل فلوسي بالمصري..." required>'+
     '<button class="flosy-btn" type="submit" aria-label="إرسال السؤال">إرسال</button></form>'+
    '<div class="flosy-buttonbar"><button id="flosyAiMic" class="flosy-btn flosy-btn-secondary" type="button">🎙️ اتكلم مع فلوسي</button>'+
@@ -199,7 +229,9 @@
    $("flosyAiVoiceToggle").setAttribute("aria-pressed",String(voiceEnabled));
   };
   $("flosyAiStop").onclick=stop;
-  addMessage("assistant","يا أهلاً! أنا فلوسي AI. اسألني عن فلوسك بالفاتورة أو المعاملة أو بالرسم البياني. تقدر تسجّل مصروف بصوتك كمان.");
+  const person=w.FLOSY_COPILOT?.name?.(state())||"";
+  addMessage("assistant",(person?"أهلاً يا "+person+"! ":"يا أهلاً! ")+
+   "أنا فلوسي AI. اسألني عن فلوسك، أو اضغط «Roast Me» للتعليق اللطيف على فئات الصرف، أو «نصيحة اليوم» للاقتراح الشخصي.");
  }
  function voiceStatus(message){
   const status=$("flosyAiVoiceStatus");

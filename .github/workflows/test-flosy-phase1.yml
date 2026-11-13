@@ -11,6 +11,14 @@ on:
       - 'flosy-categories-v391.js'
       - 'flosy-legacy-theme-v391.css'
       - 'tests/v391.test.cjs'
+      - 'flosy-voice-nlu.js'
+      - 'flosy-report-pro.*'
+      - 'flosy-services-v392.*'
+      - 'flosy-copilot-v392.js'
+      - 'tests/v392.test.cjs'
+      - 'flosy-finance-*.js'
+      - 'flosy-finance-*.css'
+      - 'tests/v393.test.cjs'
       - 'tests/unified.test.cjs'
       - 'flosy-ultra-*'
       - 'tests/ultra.test.cjs tests/unified.test.cjs'
@@ -89,10 +97,15 @@ jobs:
           node --check flosy-unified-ai.js
           node --check flosy-unified-pages.js
           node --check flosy-unified.js
+          node --check flosy-report-pro.js
+          node --check flosy-services-v392.js
+          node --check flosy-copilot-v392.js
+          node --check flosy-finance-engine-v393.js
+          node --check flosy-finance-ui-v393.js
           node --check flosy-categories-v391.js
           node --check flosy-ux-v391.js
           node --check flosy-repair.js
           node --check flosy-assistant-bridge.js
           node --check service-worker.js
       - name: Run financial safety regression suite
-        run: node --test tests/phase1.test.cjs tests/v4.test.cjs tests/offline-cache.test.cjs tests/direct-capture-ui.test.cjs tests/ai-analytics.test.cjs tests/report-kit.test.cjs tests/aurora.test.cjs tests/ultra.test.cjs tests/unified.test.cjs tests/v391.test.cjs
+        run: node --test tests/phase1.test.cjs tests/v4.test.cjs tests/offline-cache.test.cjs tests/direct-capture-ui.test.cjs tests/ai-analytics.test.cjs tests/report-kit.test.cjs tests/aurora.test.cjs tests/ultra.test.cjs tests/unified.test.cjs tests/v391.test.cjs tests/v392.test.cjs tests/v393.test.cjs tests/report-kit.test.cjs

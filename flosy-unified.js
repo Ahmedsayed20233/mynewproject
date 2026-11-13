@@ -20,7 +20,15 @@
  const tx=()=>U?.cleanTx?.(state())||[];
  const accounts=()=>Array.isArray(state().accounts)?state().accounts:[];
  const balances=()=>{try{return ledger?.FLOSY_PRO?.rowsForAccounts?.()||{}}catch{return{}}};
- const safe=()=>{try{return ledger?.FLOSY_PHASE1?.calculate?.()||null}catch{return null}};
+ const safe=()=>{
+  try{
+   const plan=w.FLOSY_FINANCE_ENGINE?.plan?.(state());
+   if(plan?.ready)return {safe:Math.max(0,plan.profile.discretionary),
+      daily:Math.max(0,plan.profile.discretionary)/30,
+      source:"financeProfileV393"};
+   return ledger?.FLOSY_PHASE1?.calculate?.()||null;
+  }catch{return null}
+ };
  const summary=(key="month")=>U?.summary?.(state(),U.periodRange(key),balances(),safe())||{};
  const live=fn=>{if(!C)throw Error("دفتر فلوسي لسه بيتحمّل");return C.mutate(fn)};
  const notify=text=>{const target=by("flosyToastMessage");if(target){target.textContent=text;by("flosyToastBox").hidden=false;
@@ -357,7 +365,14 @@
  }
  function openFeature(page,label){
   if(!ledger||!C)return notify("جاري تحميل المزايا");
-  if(page==="ai"){go(8);return}
+  // Old names are navigation aliases, not a second independent finance app.
+  // Unique advanced modules (portfolio trades, CSV, backups, family sharing,
+  // recurring editor) remain explicitly accessible inside their home screen.
+  const canonicalRoutes={ai:8,wealth:3,"v4-wealth":3,smart:14,
+   plan:17,goals:12};
+  if(Object.prototype.hasOwnProperty.call(canonicalRoutes,page)){
+   closeFeature();go(canonicalRoutes[page]);return;
+  }
   const nav=ledger.document.querySelector('.sidebar .nav button[data-page="'+page+'"]');
   const target=ledger.document.getElementById("page-"+page);
   if(!target||!nav){notify("الخاصية دي غير متاحة حاليًا");return}
@@ -420,6 +435,7 @@
  }
  function renderAll(){if(!C)return;try{w.FLOSY_UNIFIED_PAGES?.render?.(current)}catch(err){notify("خطأ عرض: "+err.message)}}
  function sendReport(kind){
+  if(w.FLOSY_REPORT_PRO?.download)return w.FLOSY_REPORT_PRO.download(kind);
   const from=by("flosyReportFrom")?.value||U.periodRange("month").start,
         to=by("flosyReportTo")?.value||date(),range={start:from,end:to};
   if(from>to)return notify("نطاق التقرير غير صالح");
