@@ -609,8 +609,8 @@ public class MainActivity extends Activity {
             startActivityForResult(intent,REQ_CAMERA);
         } catch(Exception ex){
             cleanupPhoto();
-            Toast.makeText(this,"لا يوجد تطبيق كاميرا متاح. اختر صورة من المعرض بدلًا منها.",
-                Toast.LENGTH_LONG).show();
+            Toast.makeText(this,"الكاميرا غير متاحة؛ هفتح معرض الصور لاختيار إيصال واضح.",Toast.LENGTH_LONG).show();
+            pickNativeReceipt();
         }
     }
 
@@ -867,8 +867,17 @@ public class MainActivity extends Activity {
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO},REQ_AUDIO);
             return;
         }
-        if(!SpeechRecognizer.isRecognitionAvailable(this)){
+        // The system recognition Activity has the most consistent permission UI
+        // on Samsung, Xiaomi and other OEMs. Book its recognized text directly
+        // through the unified ledger result callback; use SpeechRecognizer only
+        // if the system activity is not provided on this device.
+        Intent systemRecognizer=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        if(systemRecognizer.resolveActivity(getPackageManager())!=null){
             launchSystemVoice();
+            return;
+        }
+        if(!SpeechRecognizer.isRecognitionAvailable(this)){
+            notifyVoiceFailure("لا توجد خدمة تحويل الكلام إلى نص؛ ثبّت Speech Services أو اكتب العملية.");
             return;
         }
         try{
@@ -903,7 +912,7 @@ public class MainActivity extends Activity {
                     if(phrases!=null&&!phrases.isEmpty()&&phrases.get(0)!=null&&!phrases.get(0).trim().isEmpty()){
                         pendingVoiceText=phrases.get(0).substring(0,Math.min(320,phrases.get(0).length()));
                         deliverNativePending();
-                        sendVoiceStatus("تم التعرف على الكلام، وسيتم تسجيل العملية الواضحة تلقائيًا إذا فعّلت الخيار.");
+                        sendVoiceStatus("تم التعرف على الكلام؛ جاري تسجيل العملية في دفتر فلوسي.");
                     }else notifyVoiceFailure("لم يتعرف على الكلام. جرّب الجملة مرة أخرى.");
                 }
                 @Override public void onPartialResults(Bundle partialResults){}
@@ -994,8 +1003,9 @@ public class MainActivity extends Activity {
                     pendingVoiceText=results.get(0).substring(0,Math.min(320,results.get(0).length()));
                     deliverNativePending();
                 } else notifyVoiceFailure("لم يتم التقاط كلام واضح. حاول مرة أخرى أو اكتب المصروف.");
-            } else if(resultCode!=RESULT_CANCELED)
-                notifyVoiceFailure("التعرف الصوتي لم يُرجع نتيجة؛ راجع الخدمة والإذن.");
+            } else if(resultCode==RESULT_CANCELED){
+                notifyVoiceFailure("تم إلغاء التسجيل الصوتي؛ تقدر تحاول تاني أو تكتب جملتك.");
+            }else notifyVoiceFailure("التعرف الصوتي لم يُرجع نتيجة؛ راجع الخدمة والإذن.");
             return;
         }
         if (requestCode == PICK_FILE && selectedFiles != null) {
