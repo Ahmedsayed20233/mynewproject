@@ -18,8 +18,8 @@ const BASE="http://127.0.0.1:8189";
   await page.evaluate(()=>{
    const a=window.FLOSY_UNIFIED;
    a.go(2);window.__testTheme="emerald-dark";a.applyTheme(window.__testTheme);
-   const bank=a.accounts().find(x=>x.name==="صندوق التجربة");
-   if(!bank)a.createAccount({name:"صندوق التجربة",opening:5000,type:"cash"});
+   const bank=a.accounts().find(x=>x.name==="صندوق الندى");
+   if(!bank)a.createAccount({name:"صندوق الندى",opening:5000,type:"cash"});
    a.go(2);
   });
   assert.equal(await page.locator('.phone-frame.flosy-active .flosy-nav399 button').count(),5);
@@ -39,13 +39,13 @@ const BASE="http://127.0.0.1:8189";
   });
   assert.equal(state.after,state.count);
   assert.ok(await page.locator("#flosyV399CorrectedVoice").isVisible());
-  await page.locator("#flosyV399CorrectedVoice").fill("دفعت 75 جنيه قهوة من صندوق التجربة");
+  await page.locator("#flosyV399CorrectedVoice").fill("دفعت 75 جنيه قهوة من صندوق الندى");
   await page.locator("[data-v399-reanalyse]").click();
   assert.ok(await page.locator("#flosyV2Form").isVisible());
   assert.ok(await page.locator("#flosyV399CorrectedVoice").isVisible());
   await page.locator("[data-v2-cancel]").first().click();
   const direct=await page.evaluate(()=>{
-   const a=window.FLOSY_UNIFIED,script="دفعت 75 جنيه قهوة من صندوق التجربة";
+   const a=window.FLOSY_UNIFIED,script="دفعت 75 جنيه قهوة من صندوق الندى";
    const before=a.state().transactions.length;
    const analyses=window.FLOSY_VOICE_SAFETY_V2.analyzeBatch(script,a.accounts(),a.date());
    const gate=window.FLOSY_VOICE_AUTO_V399.decide(analyses,{enabled:true,accounts:a.accounts(),today:a.date()});
@@ -54,7 +54,7 @@ const BASE="http://127.0.0.1:8189";
   assert.equal(direct.gate.accepted,true,JSON.stringify(direct));
   const persisted=await page.evaluate(()=>{
    const a=window.FLOSY_UNIFIED;
-   const sample="دفعت 75 جنيه قهوة من صندوق التجربة";
+   const sample="دفعت 75 جنيه قهوة من صندوق الندى";
    const booked=a.fromVoiceText(sample);
    return {newCount:a.state().transactions.length,direct:booked.autoSaved?.length||0,
     added:a.state().transactions.at(-1)};
@@ -67,7 +67,7 @@ const BASE="http://127.0.0.1:8189";
   const savedNow=await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length);
   assert.equal(savedNow,direct.before+1);
   const dup=await page.evaluate(()=>{
-   try{window.FLOSY_UNIFIED.fromVoiceText("دفعت 75 جنيه قهوة من صندوق التجربة");return false}
+   try{window.FLOSY_UNIFIED.fromVoiceText("دفعت 75 جنيه قهوة من صندوق الندى");return false}
    catch{return true}
   });
   assert.equal(dup,true,"same speech callback in 5m should not deduct a second time");
