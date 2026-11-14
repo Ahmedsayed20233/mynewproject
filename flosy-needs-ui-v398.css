@@ -42,3 +42,18 @@
  .needs-v398-title h3{font-size:12px}
 }
 @media(min-width:500px){.needs-v398-grid{gap:12px}}
+
+/* Item-level OCR correction: attention to uncertain numbers without alarmist colors. */
+.flosy-v398-warnings{border-right:3px solid #BD8D37;background:var(--bg-elevated);
+ padding:10px 12px;border-radius:12px;margin:8px 0;display:grid;gap:5px}
+.flosy-v398-warnings strong{font-size:12px;color:var(--text-primary)}
+.flosy-v398-warnings p{font-size:11px;color:var(--text-secondary);line-height:1.8;margin:0}
+.flosy-v398-add-item{min-height:44px;display:block;width:100%;border-radius:11px;
+ border:1px dashed var(--primary);background:var(--primary-soft);color:var(--primary);
+ padding:9px 13px;font:900 12px 'Cairo',sans-serif;margin:9px 0}
+.flosy-v398-add-item:disabled{opacity:.5}
+.flosy-v398-skip{display:flex;align-items:start;gap:9px;font-size:11px;line-height:1.85;
+ color:var(--text-primary);margin:8px 0;padding:8px 10px;border:1px solid var(--border);border-radius:11px}
+.flosy-v398-skip input{width:20px;height:20px;accent-color:var(--primary);flex:0 0 20px}
+.flosy-v398-tips{font-size:11px;line-height:1.8;color:var(--text-secondary);margin:7px 0}
+.flosy-v398-line-items .flosy-v2-item-row label{font-size:11px}
