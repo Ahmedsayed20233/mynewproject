@@ -531,6 +531,17 @@
      (n===id?' aria-current="page"':'')+'>'+esc(tabNames[n]||entry[1])+'</button>';
    }).join("")+'</nav>';
  }
+ // Each unusual tool is surfaced once, only in its relevant money workspace.
+ // The original code/data remains in the existing same-origin feature module.
+ function relatedTools(id){
+  const links=w.FLOSY_SCREEN_MAP_V395?.related?.(id)||[];
+  if(!links.length)return "";
+  return '<details class="flosy-workspace-related"><summary>أدوات متقدمة مرتبطة بالقسم</summary>'+
+   '<div class="flosy-workspace-related-items">'+links.map(x=>
+    '<button type="button" data-flosy-feature="'+esc(x[0])+'" data-label="'+esc(x[1])+'">'+
+    ic(x[3])+'<span><strong>'+esc(x[1])+'</strong><small>'+esc(x[2])+'</small></span>'+
+    ic("fa-chevron-left")+'</button>').join("")+'</div></details>';
+ }
  P.render=function(id){
   old(id);
   if(pages[id])mount(id,pages[id][0],el=>pages[id][1](id,el));
@@ -550,6 +561,9 @@
   if(container){
    container.querySelector(".flosy-workspace-tabs")?.remove();
    if(tabs)container.insertAdjacentHTML("afterbegin",tabs);
+   container.querySelector(".flosy-workspace-related")?.remove();
+   const extras=relatedTools(id);
+   if(extras)container.insertAdjacentHTML("beforeend",extras);
   }
  };
  w.FLOSY_FINANCE_UI={profileCard,planPage,budgetsPage,insightPage,wealthPage,zakatPage,debtsPage,
