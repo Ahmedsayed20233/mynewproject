@@ -139,6 +139,7 @@
    if(!repeat)return;
    const t=latestExpense();if(!t)return;
    const type=form.querySelector('[data-ux312-type="expense"]');type?.click();
+   form.dataset.cx313RepeatPrepared="yes";
    form.elements.amount.value=String(t.amount);
    form.elements.description.value=String(t.description||"مصروف");
    if([...form.elements.accountId.options].some(o=>o.value===t.accountId))
