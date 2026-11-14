@@ -28,21 +28,43 @@
  function prepareRows(items,fields,owned){
   if(!Array.isArray(items)||!items.length)throw Error("لا توجد معاملات لمراجعتها");
   const ids=new Set((owned||[]).filter(a=>a?.id).map(a=>String(a.id)));
-  return items.map((p,i)=>{
+  const useSelection=Object.keys(fields||{}).some(k=>k.startsWith("include-"));
+  const chosen=items.map((p,i)=>({p,i})).filter(({i})=>!useSelection||fields["include-"+i]==="on");
+  if(!chosen.length)throw Error("اختار عملية واحدة على الأقل قبل الحفظ");
+  return chosen.map(({p,i})=>{
    if(!["expense","income","transfer"].includes(p.intent))
-    throw Error("توجد حركة غير مكتملة أو دين/استرداد يحتاج مساراً خاصاً؛ لم يُحفظ شيء.");
+    throw Error("العمليات غير المكتملة والديون والاستردادات لها مسار خاص؛ لم يُحفظ شيء.");
    const amount=Number(fields["amount-"+i]),date=String(fields["date-"+i]||"");
-   const accountId=String(fields["account-"+i]||""),targetAccountId=p.intent==="transfer"?
-     String(fields["target-"+i]||""):"";
+   const accountId=String(fields["account-"+i]||""),targetAccountId=p.intent==="transfer"?String(fields["target-"+i]||""):"";
    const description=String(fields["description-"+i]||"").trim().slice(0,90).replace(/[<>]/g,"");
    if(!Number.isFinite(amount)||amount<=0||amount>=1e9||!validDate(date)||!ids.has(accountId)||!description)
     throw Error("راجع مبلغ وتاريخ وحساب ووصف الحركة رقم "+(i+1));
    if(p.intent==="transfer"&&(!ids.has(targetAccountId)||targetAccountId===accountId))
     throw Error("التحويل يحتاج حسابين مختلفين مملوكين لك.");
-   const category=String(p.category||
-    (p.intent==="income"?"دخل آخر":p.intent==="transfer"?"تحويل داخلي":"مشتريات"));
+   const category=String(p.category|| (p.intent==="income"?"دخل آخر":p.intent==="transfer"?"تحويل داخلي":"مشتريات"));
+   let receiptDetails=p.receiptDetails;
+   if(p.intent==="expense"&&Array.isArray(receiptDetails?.items)&&receiptDetails.items.length){
+    const itemsEdited=receiptDetails.items.map((item,j)=>{
+     const name=String(fields["receipt-name-"+i+"-"+j]??item.name??"").trim().slice(0,80);
+     const qty=Number(fields["receipt-qty-"+i+"-"+j]??item.quantity);
+     const price=Number(fields["receipt-price-"+i+"-"+j]??item.unitPrice);
+     if(!name||!Number.isFinite(qty)||qty<=0||qty>100000||!Number.isFinite(price)||price<0||price>=1e9)
+      throw Error("راجع اسم وكمية وسعر الصنف رقم "+(j+1));
+     return {name,quantity:qty,unitPrice:price,total:Math.round(qty*price*100)/100};
+    });
+    const tax=Number(fields["receipt-tax-"+i]??receiptDetails.tax??0);
+    const discount=Number(fields["receipt-discount-"+i]??receiptDetails.discount??0);
+    if(!Number.isFinite(tax)||tax<0||!Number.isFinite(discount)||discount<0)
+     throw Error("الضريبة والخصم لا يجوز أن يكونا سالبين");
+    const itemsSum=Math.round(itemsEdited.reduce((v,x)=>v+x.total,0)*100)/100;
+    const expected=Math.round((itemsSum+tax-discount)*100)/100;
+    if(receiptDetails.arithmeticConsistent&&Math.abs(expected-amount)>.05)
+     throw Error("مجموع الأصناف بعد الضريبة والخصم "+expected+" جنيه لا يساوي إجمالي الفاتورة "+amount+" جنيه");
+    receiptDetails={...receiptDetails,items:itemsEdited,itemsSum,tax,discount,
+     arithmeticConsistent:Math.abs(expected-amount)<=.05,arithmeticContradiction:Math.abs(expected-amount)>.05};
+   }
    return {type:p.intent,amount:Math.round(amount*100)/100,date,accountId,targetAccountId,
-    description,category,sourceHash:sourceHash(p,amount,accountId,targetAccountId,date)};
+    description,category,...(receiptDetails?{receiptDetails}:{}),sourceHash:sourceHash(p,amount,accountId,targetAccountId,date)};
   });
  }
  function close(){
