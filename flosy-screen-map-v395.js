@@ -43,6 +43,24 @@
   ["settings","إعدادات الحساب والمزامنة","إدارة تسجيل الدخول والسحابة","fa-gear","settings",true],
   ["v4-privacy","الخصوصية والأجهزة","جلسات وقفل وإعدادات الخصوصية","fa-user-shield","settings",true]
  ]);
+ // "More" must not mirror the main navigation. Finance tools appear where used.
+ const moreKeys=Object.freeze(["settings","recovery","v4-privacy","rules"]);
+ const contextual=Object.freeze({
+  3:Object.freeze(["portfolio"]),5:Object.freeze(["v4-bank"]),
+  9:Object.freeze(["recurring"]),11:Object.freeze(["v4-crisis"]),
+  19:Object.freeze(["v4-family"])
+ });
+ const byKey=new Map(advanced.map(item=>[item[0],item]));
+ const more=Object.freeze(moreKeys.map(key=>byKey.get(key)));
+ const related=id=>Object.freeze((contextual[Number(id)]||[]).map(key=>byKey.get(key)));
+ function auditMore(){
+  const ids=[...moreKeys,...Object.values(contextual).flat()];
+  if(ids.length!==advanced.length||new Set(ids).size!==advanced.length||
+    ids.some(key=>!byKey.has(key)))throw Error("An advanced feature was lost or duplicated");
+  if(more.some(item=>!item||item[4]!=="settings"))throw Error("More must contain settings only");
+  return {more:more.length,contextual:ids.length-more.length,allAdvanced:advanced.length};
+ }
+ auditMore();
  const canonical=Object.freeze({1:1,2:2,3:3,4:4,5:5,6:5,7:5,8:8,9:9,10:9,
   11:11,12:11,13:3,14:15,15:15,16:16,17:11,18:9,19:11,20:5});
  function audit(){
@@ -59,6 +77,7 @@
   return {screens:20,primary:primary.length,details:details.length,advanced:advanced.length};
  }
  audit();
- return {primary,details,advanced,canonical,canonicalFor:id=>canonical[Number(id)]||null,
+ return {primary,details,advanced,more,contextual,related,auditMore,
+  canonical,canonicalFor:id=>canonical[Number(id)]||null,
   audit,version:"3.9.5"};
 });
