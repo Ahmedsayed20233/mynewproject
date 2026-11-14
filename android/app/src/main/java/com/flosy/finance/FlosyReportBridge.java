@@ -39,7 +39,7 @@ public final class FlosyReportBridge {
         web.post(()->web.evaluateJavascript(js,null));
     }
     public void onMessage(String action,JSONObject msg){
-        if(action==null || !(action.startsWith("pdf-")||action.startsWith("xlsx-")))return;
+        if(action==null || !(action.startsWith("pdf-")||action.startsWith("xlsx-")||action.startsWith("csv-")))return;
         String[] split=action.split("-",2);
         if(split.length!=2)return;
         String kind=split[0],step=split[1];
@@ -77,15 +77,23 @@ public final class FlosyReportBridge {
                     pending=FlosyPdfExporter.build(data);
                     if(pending.length<100 || pending[0]!='%'||pending[1]!='P'||pending[2]!='D'||pending[3]!='F')
                         throw new Exception("Invalid PDF");
-                }else{
+                }else if("xlsx".equals(kind)){
                     if(bytes.length<4||bytes[0]!='P'||bytes[1]!='K'||
                       bytes[2]!=3||bytes[3]!=4)throw new Exception("Invalid Excel file");
                     pending=bytes;
-                }
+                }else if("csv".equals(kind)){
+                    if(bytes.length<10||(bytes[0]&0xff)!=0xef||(bytes[1]&0xff)!=0xbb||
+                       (bytes[2]&0xff)!=0xbf)throw new Exception("CSV must start with UTF-8 BOM");
+                    String text=new String(bytes,StandardCharsets.UTF_8);
+                    if(!text.contains("التاريخ")||!text.contains("المبلغ بالجنيه"))
+                        throw new Exception("CSV financial header missing");
+                    pending=bytes;
+                }else throw new Exception("Unsupported file format");
                 pendingExt=kind;
                 Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 intent.setType("pdf".equals(kind)?"application/pdf":
+                  "csv".equals(kind)?"text/csv":
                   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
                 intent.putExtra(Intent.EXTRA_TITLE,filename);
                 activity.startActivityForResult(intent,REQ_SAVE_REPORT);
