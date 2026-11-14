@@ -68,10 +68,13 @@ test("new PDF and Excel links are bound to native file-chunk workflow",()=>{
  const services=fs.readFileSync("flosy-services-v392.js","utf8");
  for(const token of ["pdf-start","xlsx-start"])assert.ok(js.includes(token)||js.includes('kind+"-start"'));
  for(const token of ["FLOSY_REPORT_PRO","flosyReportStatus","flosy-report-pro.js?v=3920",
-  "flosy-copilot-v392.js?v=3920","flosy-services-v392.js?v=3920"])
+  "flosy-copilot-v392.js?v=3920","flosy-screen-map-v395.js?v=3950","flosy-services-v392.js?v=3950"])
   assert.ok(js.includes(token)||shell.includes(token)||services.includes(token),token);
  assert.match(css,/@page\{size:A4/);
  assert.match(services,/notifications-daily-enable/);
- assert.match(services,/data-sfilter/);
+ assert.match(services,/FLOSY_SCREEN_MAP_V395/);
+ assert.match(services,/flosyMoreNotifications/);
+ assert.doesNotMatch(services,/id="servicesV392Search"/);
+ assert.doesNotMatch(services,/data-notify-action="test"/);
  assert.match(services,/flosyFirstNameForm/);
 });

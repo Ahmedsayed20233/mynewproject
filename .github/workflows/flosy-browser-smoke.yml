@@ -31,6 +31,8 @@ on:
       - 'flosy-report-kit.js'
       - 'flosy-report-pro.*'
       - 'flosy-services-v392.*'
+      - 'flosy-screen-map-v395.js'
+      - 'tests/screen-consolidation.test.cjs'
       - 'flosy-copilot-v392.js'
       - 'flosy-finance-*.js'
       - 'flosy-finance-*.css'

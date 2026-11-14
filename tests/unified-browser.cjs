@@ -67,6 +67,7 @@ const root="http://127.0.0.1:8139";
      ["emerald-dark","unified-emerald-dark.png"],
      ["calm-light","unified-calm-light.png"],
      ["serene-dark","unified-serene-dark.png"]]){
+   await page.locator("#flosyMorePreferences > summary").click();
    await page.locator('[data-theme-select="'+theme+'"]').click();
    assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),theme);
    await page.evaluate(()=>window.FLOSY_UNIFIED.go(2));

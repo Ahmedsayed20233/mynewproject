@@ -79,3 +79,23 @@
 @media(max-width:345px){.fin393-grid,.fin393-bento{grid-template-columns:1fr}
  .fin393-icons{grid-template-columns:repeat(5,1fr)}}
 @media(prefers-reduced-motion:reduce){.fin393-panel,.fin393-metric{animation:none}}
+
+/* v3.9.5 grouped workspaces: distinct subfunctions share one compact tab bar. */
+.flosy-workspace-tabs{display:flex;gap:7px;overflow-x:auto;scrollbar-width:thin;
+ align-items:center;white-space:nowrap;padding:3px 0 12px;margin-bottom:10px;
+ border-bottom:1px solid var(--border);direction:rtl}
+.flosy-workspace-tabs button{flex:0 0 auto;border:1px solid var(--border);border-radius:99px;
+ background:var(--bg-surface);color:var(--text-secondary);
+ min-height:38px;padding:8px 13px;font:800 11px 'Cairo',sans-serif;cursor:pointer}
+.flosy-workspace-tabs button[aria-current="page"]{background:var(--primary);
+ border-color:var(--primary);color:white}
+.flosy-workspace-tabs button:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+
+/* v3.9.5 More consolidation: no repeated financial tool tiles. */
+.flosy-workspace-related{margin-top:16px;border:1px solid var(--border);border-radius:16px;background:var(--bg-surface)}
+.flosy-workspace-related>summary{cursor:pointer;padding:12px 14px;font-weight:800;font-size:11px;color:var(--text-primary)}
+.flosy-workspace-related-items{display:grid;gap:8px;padding:0 12px 12px}
+.flosy-workspace-related-items button{display:flex;align-items:center;gap:10px;width:100%;padding:11px;border-radius:12px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--text-primary);text-align:right;font-size:11px;cursor:pointer}
+.flosy-workspace-related-items button>span{display:grid;flex:1;gap:3px}
+.flosy-workspace-related-items button small{color:var(--text-secondary);font-size:9px}
+.flosy-workspace-related-items button:focus-visible{outline:3px solid var(--primary)}

@@ -63,13 +63,40 @@ const BASE="http://127.0.0.1:8152";
   assert.equal(roast.intent,"roast");
   assert.ok(roast.text.includes("قهوة"));
   await page.evaluate(()=>window.FLOSY_UNIFIED.go(16));
-  assert.ok((await page.locator(".service-v392-item").count())>=25);
-  await page.locator("#servicesV392Search").fill("تقارير");
-  assert.equal(await page.locator(".service-v392-item:visible").count(),1);
-  await page.locator("#servicesV392Search").fill("");
-  await page.locator('[data-sfilter="ai"]').click();
-  assert.ok((await page.locator(".service-v392-item:visible").count())>=3);
-  await page.locator('[data-sfilter="all"]').click();
+  assert.deepEqual(await page.evaluate(()=>window.FLOSY_SCREEN_MAP_V395.audit()),
+    {screens:20,primary:8,details:10,advanced:9});
+  assert.deepEqual(await page.evaluate(()=>window.FLOSY_SCREEN_MAP_V395.auditMore()),
+    {more:4,contextual:5,allAdvanced:9});
+  assert.equal(await page.locator(".service-v392-item").count(),4);
+  assert.equal(await page.locator(".service-v392-item[data-service-primary]").count(),0);
+  assert.equal(await page.locator(".service-v392-item[data-service-detail]").count(),0);
+  assert.equal(await page.locator("#servicesV392Search").count(),0);
+  assert.equal(await page.locator(".service-v392-daily").count(),0);
+  assert.equal(await page.locator('[data-notify-action="test"]').count(),0);
+  assert.deepEqual(await page.locator("#servicesV392Grid [data-flosy-feature]").evaluateAll(
+    els=>els.map(x=>x.dataset.flosyFeature)),
+    ["settings","recovery","v4-privacy","rules"]);
+  // Financial extras are accessible in context, never duplicated in More.
+  for(const [id,key] of [[3,"portfolio"],[5,"v4-bank"],[9,"recurring"],
+                         [11,"v4-crisis"],[19,"v4-family"]]){
+    await page.evaluate(id=>window.FLOSY_UNIFIED.go(id),id);
+    const related=page.locator('.phone-frame[data-screen="'+id+'"] .flosy-workspace-related');
+    assert.equal(await related.count(),1,"related tools missing on screen "+id);
+    await related.locator("summary").click();
+    assert.ok(await related.locator('[data-flosy-feature="'+key+'"]').isVisible());
+    await page.evaluate(()=>window.FLOSY_UNIFIED.go(16));
+    assert.equal(await page.locator("#servicesV392Grid .service-v392-item").count(),4);
+  }
+  await page.evaluate(()=>window.FLOSY_UNIFIED.go(18));
+  assert.equal(await page.locator('.phone-frame[data-screen="18"] .flosy-workspace-tabs button').count(),3);
+  await page.locator('.phone-frame[data-screen="18"] .flosy-workspace-tabs [data-flosy-screen="9"]').click();
+  assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.getCurrentScreen()),9);
+  await page.evaluate(()=>window.FLOSY_UNIFIED.go(5));
+  assert.equal(await page.locator('.phone-frame[data-screen="5"] .flosy-workspace-tabs button').count(),4);
+  await page.locator('.phone-frame[data-screen="5"] .flosy-workspace-tabs [data-flosy-screen="7"]').click();
+  assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.getCurrentScreen()),7);
+  await page.evaluate(()=>window.FLOSY_UNIFIED.go(16));
+  await page.locator("#flosyMoreNotifications > summary").click();
   await page.locator('[data-notify-action="daily"]').click();
   assert.ok(await page.evaluate(()=>window.__msgs.some(m=>m.action==="notifications-daily-enable")));
   await page.evaluate(()=>window.FLOSY_NOTIFY_V392.nativeStatus({enabled:true,dailyEnabled:true,permission:"granted"}));
@@ -83,7 +110,7 @@ const BASE="http://127.0.0.1:8152";
    assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),theme);
   }
   assert.equal(errors.filter(x=>/SyntaxError|ReferenceError|TypeError/.test(x)).length,0,errors.join(" | "));
-  console.log("PASS: PDF/Excel native chunks, real ledger, named AI/Roast Me, grouped services, notifications & 4 themes");
+  console.log("PASS: reports, AI, four-setting More menu, five contextual tools, no duplicate routes, notifications and themes");
  }catch(err){console.error(err);process.exitCode=1}
  finally{if(browser)await browser.close();server.kill()}
 })();
