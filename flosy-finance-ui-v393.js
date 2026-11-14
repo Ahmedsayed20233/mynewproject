@@ -513,6 +513,24 @@
  }
  const pages={3:[wealthPage,bindFinance],10:[debtsPage,bindFinance],11:[budgetsPage,bindFinance],
   13:[zakatPage,bindFinance],14:[insightPage,bindFinance],17:[planPage,bindFinance],19:[familyPage,bindFinance]};
+ // Keep all detail routes, but present them as tabs of one money workflow.
+ const tabNames={3:"حساباتي",13:"الزكاة",5:"يدوي",6:"فاتورة",7:"صوت",
+  20:"أسعار فواتيري",9:"المستحقات",10:"الديون والشلة",18:"التقويم",
+  11:"الميزانية",12:"أهدافي",17:"الخطة المالية",19:"العيلة",
+  15:"التقارير",14:"التحليلات"};
+ function workflowTabs(id){
+  const map=w.FLOSY_SCREEN_MAP_V395,main=map?.canonicalFor?.(id);
+  if(!main)return "";
+  const members=[...map.primary,...map.details].filter(entry=>map.canonicalFor(entry[0])===main);
+  if(members.length<2)return "";
+  const groupName=map.primary.find(entry=>+entry[0]===main)?.[1]||"القسم";
+  return '<nav class="flosy-workspace-tabs" aria-label="أدوات '+esc(groupName)+'">'+
+   members.map(entry=>{
+    const n=Number(entry[0]);
+    return '<button type="button" data-flosy-screen="'+n+'"'+
+     (n===id?' aria-current="page"':'')+'>'+esc(tabNames[n]||entry[1])+'</button>';
+   }).join("")+'</nav>';
+ }
  P.render=function(id){
   old(id);
   if(pages[id])mount(id,pages[id][0],el=>pages[id][1](id,el));
@@ -527,8 +545,12 @@
      host.querySelector('[name="type"]')?.value||"expense"));
    }
   }
-  // Services v3.9.2 now routes directly to the canonical feature screens.
-  // No separate "wealth 2" or "plan 2" shortcuts are injected.
+  // The screen's original form handlers stay bound; only its navigation is grouped.
+  const container=root(id),tabs=workflowTabs(id);
+  if(container){
+   container.querySelector(".flosy-workspace-tabs")?.remove();
+   if(tabs)container.insertAdjacentHTML("afterbegin",tabs);
+  }
  };
  w.FLOSY_FINANCE_UI={profileCard,planPage,budgetsPage,insightPage,wealthPage,zakatPage,debtsPage,
   familyPage,openCategory,version:"3.9.3"};
