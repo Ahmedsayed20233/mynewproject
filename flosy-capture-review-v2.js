@@ -48,6 +48,7 @@
     const itemIndices=Object.keys(fields||{}).filter(k=>k.startsWith("receipt-name-"+i+"-"))
      .map(k=>Number(k.slice(("receipt-name-"+i+"-").length)))
      .filter(j=>Number.isInteger(j)&&j>=0&&j<60).sort((a,b)=>a-b);
+    if(fields["receipt-skip-items-"+i]==="on")itemIndices.length=0;
     const itemsEdited=itemIndices.map(j=>{
      const item=original[j]||{};
      const name=String(fields["receipt-name-"+i+"-"+j]??item.name??"").trim().slice(0,80);
@@ -91,6 +92,7 @@
    '<div class="flosy-v398-line-items">'+rows+'</div>'+
    (!list.length?'<p>OCR ما حددش الأصناف بدقة. ممكن تضيف أصناف يدويًا أو تحفظ إجمالي الفاتورة بعد التأكد منه.</p>':'')+
    '<button type="button" class="flosy-v398-add-item" data-add-receipt-item="'+i+'">+ إضافة صنف مفقود</button>'+
+   '<label class="flosy-v398-skip"><input type="checkbox" name="receipt-skip-items-'+i+'" data-skip-receipt-items="'+i+'"> أصناف OCR مش كاملة — اعتمد الإجمالي اللي راجعته بنفسي بدون تفاصيل الأصناف</label>'+
    '<div class="flosy-v2-item-row"><label>الضريبة<input type="number" min="0" step="0.01" name="receipt-tax-'+i+'" value="'+escape(details.tax??0)+'"></label>'+
    '<label>الخصم<input type="number" min="0" step="0.01" name="receipt-discount-'+i+'" value="'+escape(details.discount??0)+'"></label></div>'+
    '<p role="status" class="flosy-v2-item-sum" data-receipt-calc="'+i+'"></p>'+
@@ -137,7 +139,8 @@
   const reconcile=()=>{
    node.querySelectorAll("[data-receipt-calc]").forEach(out=>{
     const i=out.dataset.receiptCalc,list=items[Number(i)]?.receiptDetails?.items||[];
-    const rowCount=node.querySelectorAll('.flosy-v2-items [name^="receipt-name-'+i+'-"]').length;
+    const skip=node.querySelector('[data-skip-receipt-items="'+i+'"]')?.checked===true;
+    const rowCount=skip?0:node.querySelectorAll('.flosy-v2-items [name^="receipt-name-'+i+'-"]:not([disabled])').length;
     let sum=0,invalid=false;
     for(let j=0;j<rowCount;j++){
      const q=Number(node.querySelector('[name="receipt-qty-'+i+'-'+j+'"]')?.value);
@@ -150,13 +153,20 @@
     const expected=Math.round((sum+tax-discount)*100)/100;
     const total=Number(node.querySelector('[name="amount-'+i+'"]')?.value||0);
     const ok=!invalid&&(rowCount===0||Math.abs(expected-total)<=0.05);
-    out.textContent=rowCount===0?
+    out.textContent=skip?"أنت هتحفظ إجمالي الفاتورة فقط بدون أصناف؛ راجع الرقم والتاريخ والحساب.":rowCount===0?
      "لم تُستخرج أصناف؛ راجع إجمالي الفاتورة مباشرة قبل الحفظ.":
      "مجموع الأصناف: "+expected.toFixed(2)+" ج.م | الإجمالي: "+total.toFixed(2)+" ج.م "+(ok?"✓ متطابق":"— راجع الفرق");
     out.dataset.valid=ok?"true":"false";
    });
   };
   node.addEventListener("input",reconcile);reconcile();
+  node.addEventListener("change",event=>{
+   const box=event.target.closest("[data-skip-receipt-items]");if(!box)return;
+   const parent=box.closest(".flosy-v2-items");
+   parent.querySelectorAll(".flosy-v398-line-items input").forEach(input=>input.disabled=box.checked);
+   parent.querySelector("[data-add-receipt-item]").disabled=box.checked;
+   reconcile();
+  });
   node.addEventListener("click",event=>{
    const button=event.target.closest("[data-add-receipt-item]");if(!button)return;
    const i=Number(button.dataset.addReceiptItem);
