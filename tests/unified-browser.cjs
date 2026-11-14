@@ -75,7 +75,16 @@ const root="http://127.0.0.1:8139";
    await page.evaluate(()=>window.FLOSY_UNIFIED.go(16));
   }
   await page.evaluate(()=>window.FLOSY_UNIFIED.go(8));
-  assert.ok(await page.locator("#flosyAiUnifiedInput").isVisible());
+  assert.ok(await page.locator("#flosyAiInputV396").isVisible());
+   assert.ok(await page.locator('.faix-robot img').isVisible());
+   assert.equal(await page.locator('[data-ai-action="voice"]').count(),2);
+   await page.locator('[data-ai-tab="actions"]').click();
+   assert.ok(await page.locator('[data-ai-action="budget"]').isVisible());
+   await page.locator('[data-ai-action="budget"]').click();
+   assert.ok(await page.locator("#faixActionResult").innerText().then(t=>t.includes("ملفك المالي")));
+   await page.locator('[data-ai-tab="insights"]').click();
+   assert.ok(await page.locator('.faix-safecard').isVisible());
+   await page.locator('[data-ai-tab="chat"]').click();
   const reply=await page.evaluate(()=>window.FLOSY_UNIFIED_AI.ask("صرفت كام الشهر ده؟"));
   assert.ok(typeof reply.text==="string"&&reply.text.length>10);
   // Legacy advanced reports and settings must inherit the same theme.
