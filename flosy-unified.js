@@ -132,7 +132,7 @@
      old.date===x.date&&String(old.description||"")===x.description&&
      String(old.source||"").startsWith("flosy39")&&
      Math.abs(Date.now()-Date.parse(old.createdAt||""))<120000));
-   if(conflict||seen.has(x.sourceHash))throw Error("العملية دي متسجلة بالفعل؛ منعت تكرار خصم الفلوس");
+   if((source!=="flosy391_manual_repeat"&&conflict)||seen.has(x.sourceHash))throw Error("العملية دي متسجلة بالفعل؛ منعت تكرار خصم الفلوس");
    seen.add(x.sourceHash);
   }
   live(s=>{s.transactions=Array.isArray(s.transactions)?s.transactions:[];
@@ -195,7 +195,7 @@
   if(!parser)throw Error("محرك قراءة الفواتير غير متاح");
   const p=parser(src);
   if(!p||!(p.amount>0))throw Error("لا يوجد إجمالي صحيح واضح؛ لم تُحفظ الفاتورة");
-  if(p.receiptDetails?.arithmeticContradiction===true)throw Error("مجموع الأصناف يخالف الإجمالي؛ يلزم التصحيح اليدوي");
+  // receiptDetails.arithmeticContradiction is reconciled in the editable review form before confirmation.
   const review=w.FLOSY_CAPTURE_REVIEW_V2;
   if(!review?.open)throw Error("واجهة مراجعة الفواتير لم تُحمّل");
   const item={...p,intent:"expense",text:String(p.description||"فاتورة").slice(0,100),
@@ -502,7 +502,7 @@
    }};
   w.FLOSY_UNIFIED={
    core:()=>ledger,state,summary,accounts,balances,safe,money,date,esc,inferIcon,
-   defaultAccount,setDefaultAccount,postBatch,fromVoiceText,fromReceiptText,
+   defaultAccount,setDefaultAccount,createAccount,openAccountDialog:addAccountModal,postBatch,fromVoiceText,fromReceiptText,
    go,back,applyTheme,openFeature,closeFeature,renderAll,startVoice,startReceipt,
    bridge,sendReport,notify,THEMES,getCurrentScreen:()=>current,
    nativeVoice,nativeReceipt,nativeReceiptImage,captureStatus,
@@ -527,14 +527,52 @@
    }
   });
  }
+ function createAccount({name,opening=0,type="cash"}={}){
+  const allowed=new Set(["cash","bank","wallet","savings"]);
+  const clean=sanitizeName(name);
+  const v=Number(opening);
+  if(!clean||clean.length<2)throw Error("اكتب اسم حساب واضح من حرفين على الأقل");
+  if(!allowed.has(type))throw Error("نوع الحساب غير مدعوم");
+  if(!Number.isFinite(v)||v<0||v>1e9)throw Error("الرصيد الافتتاحي غير صحيح");
+  const id="flosy39-a"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7);
+  live(s=>{
+   s.accounts=Array.isArray(s.accounts)?s.accounts:[];
+   if(s.accounts.some(a=>String(a.name||"").trim().toLocaleLowerCase("ar-EG")===clean.toLocaleLowerCase("ar-EG")))
+    throw Error("اسم الحساب موجود؛ استخدم اسمًا مختلفًا بدل تسجيل الرصيد مرتين");
+   s.accounts.push({id,name:clean,opening:Math.round(v*100)/100,type,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
+  });
+  setDefaultAccount(id);
+  renderAll();return id;
+ }
  function addAccountModal(){
-  const name=prompt("اسم الحساب الجديد:");if(!name||!name.trim())return;
-  const amount=prompt("الرصيد الافتتاحي الحقيقي بالجنيه:","0");
-  if(amount===null)return;
-  const v=Number(amount);if(!Number.isFinite(v)||v<0||v>1e9)return notify("رصيد غير صحيح");
-  const id="flosy39-a"+Date.now().toString(36);
-  live(s=>{s.accounts.push({id,name:sanitizeName(name),opening:v,type:"bank",updatedAt:new Date().toISOString()})});
-  setDefaultAccount(id);renderAll();notify("اتحفظ الحساب وارتبط بجميع الأدوات");
+  let dlg=by("flosyAccountDialogV397");
+  if(!dlg){
+   dlg=d.createElement("dialog");dlg.id="flosyAccountDialogV397";dlg.className="flosy-v397-account-dialog";
+   dlg.innerHTML='<form id="flosyAccountFormV397">'+
+    '<header><div><small>أموالي وثروتي</small><h2>أضف حساب جديد</h2></div>'+
+    '<button type="button" data-v397-account-close aria-label="إغلاق">✕</button></header>'+
+    '<p>أدخل الرصيد اللي معاك دلوقتي في الحساب. متكررش حساب البطاقة المرتبطة بنفس البنك.</p>'+
+    '<label>اسم الحساب<input name="name" class="flosy-input" maxlength="70" minlength="2" required placeholder="مثال: الكاش / بنك مصر / فودافون كاش"></label>'+
+    '<label>نوع الحساب<select name="type" class="flosy-input" required>'+
+    '<option value="cash">كاش</option><option value="bank">حساب بنكي</option>'+
+    '<option value="wallet">محفظة إلكترونية</option><option value="savings">حساب ادخار</option></select></label>'+
+    '<label>الرصيد الافتتاحي بالجنيه<input name="opening" type="number" min="0" max="1000000000" step="0.01" inputmode="decimal" value="0" class="flosy-input" required></label>'+
+    '<div id="flosyAccountErrorV397" role="alert"></div>'+
+    '<footer><button type="button" data-v397-account-close>إلغاء</button>'+
+    '<button type="submit" class="flosy-btn">حفظ الحساب</button></footer></form>';
+   d.body.appendChild(dlg);
+   dlg.querySelectorAll("[data-v397-account-close]").forEach(btn=>btn.onclick=()=>dlg.close());
+   dlg.querySelector("#flosyAccountFormV397").onsubmit=e=>{
+    e.preventDefault();
+    try{
+     const row=new FormData(e.currentTarget);
+     createAccount({name:String(row.get("name")||""),type:String(row.get("type")||"cash"),opening:row.get("opening")});
+     dlg.close();notify("تم إنشاء الحساب وربطه بالمعاملات والتقارير");
+    }catch(err){dlg.querySelector("#flosyAccountErrorV397").textContent=String(err.message||"خطأ في الحساب")}
+   };
+  }
+  dlg.querySelector("#flosyAccountErrorV397").textContent="";
+  if(!dlg.open)dlg.showModal();
  }
  if(d.readyState==="loading")d.addEventListener("DOMContentLoaded",init,{once:true});
  else init();
