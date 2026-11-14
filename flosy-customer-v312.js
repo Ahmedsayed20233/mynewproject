@@ -4,7 +4,7 @@
 (function(w,d){"use strict";
  const P=w.FLOSY_UNIFIED_PAGES;if(!P||typeof P.render!=="function")return;
  const original=P.render,api=()=>w.FLOSY_UNIFIED;
- const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;',"'" :"&#39;"}[c]));
+ const esc=x=>String(x??"").replace(/[&<>"']/g,c=>c==="&"?"&amp;":c==="<"?"&lt;":c===">"?"&gt;":c==='"'?"&quot;":"&#39;");
  const money=x=>api()?.money?.(Number(x)||0)||new Intl.NumberFormat("ar-EG").format(Number(x)||0)+" ج.م";
  const clean=s=>{
   const excluded=new Set((s?.deletedIds||[]).map(x=>String(x).split("/").pop()));
