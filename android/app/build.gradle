@@ -21,8 +21,8 @@ android {
         applicationId 'com.flosy.finance'
         minSdk 24
         targetSdk 35
-        versionCode 49
-        versionName '3.9.6'
+        versionCode 50
+        versionName '3.9.7'
     }
 
 
@@ -51,7 +51,7 @@ android {
         }
         mvp {
             dimension 'permissionLevel'
-            applicationIdSuffix '.unified.v396'
+            applicationIdSuffix '.unified.v397'
             // Unified Flosy AI screenshot-designed web UI with safe voice/OCR review, contextual services, 4 themes, local alerts; no SMS permission.
         }
     }
