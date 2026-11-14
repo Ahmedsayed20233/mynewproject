@@ -30,6 +30,8 @@
      {name:"المنتصف",value_minor:Math.round(v.totals.flexible*100)},
      {name:"اختياري",value_minor:Math.round(v.totals.optional*100)}]},intent:"spending-priorities"};
   }
+  const intelligent=w.FLOSY_AI_BRAIN_V399?.answer?.(q,data,s,new Date());
+  if(intelligent)return intelligent;
   const personal=w.FLOSY_COPILOT?.answer?.(q,data,new Date());
   if(personal)return personal;
   const finance=w.FLOSY_FINANCE_ENGINE;
@@ -145,12 +147,22 @@
       '<text x="'+(x+width/2)+'" y="203" text-anchor="middle" font-size="9" fill="var(--text-primary)">'+esc(p.name.slice(0,7))+'</text>';
    }).join("")+'</svg></figure>';
  }
- function addMessage(role,content,chart){
+ function addMessage(role,content,chart,actions){
   const stream=$("flosyAiStream");if(!stream)return;
   const item=d.createElement("div");item.className="flosy-message "+(role==="user"?"user":"");
   item.textContent=String(content||"").slice(0,1400);
   stream.appendChild(item);
   if(chart){const fig=d.createElement("div");fig.innerHTML=chartHtml(chart);stream.appendChild(fig)}
+  if(role!=="user"&&Array.isArray(actions)&&actions.length){
+   const box=d.createElement("div");box.className="flosy-ai-actions-v399";
+   for(const entry of actions.slice(0,3)){
+    if(!Number.isInteger(entry.screen)||![2,3,4,5,6,7,8,9,11,15,16,17].includes(entry.screen))continue;
+    const b=d.createElement("button");b.type="button";b.className="flosy-ai-link-v399";
+    b.textContent=String(entry.label||"افتح").slice(0,45);
+    b.addEventListener("click",()=>api()?.go?.(entry.screen));box.appendChild(b);
+   }
+   stream.appendChild(box);
+  }
   stream.scrollTop=stream.scrollHeight;
  }
  function say(text){
@@ -166,9 +178,14 @@
  }
  function ask(text){
   const q=String(text||"").trim().slice(0,550);if(!q)return null;
-  if(hasWords(q,/^(دفعت|اشتريت|صرفت|قبضت|استلمت|دخل|دفعة|حولت|حولت من)/i)&&/\d/.test(q)){
+  const voiceGate=w.FLOSY_VOICE_SAFETY_V2;
+  const candidateIntent=voiceGate?.classify?.(q)?.intent||"none";
+  const candidateAmount=voiceGate?.amount?.(q);
+  if(["income","expense","transfer"].includes(candidateIntent)&&candidateAmount!==null){
    try{const booked=api()?.fromVoiceText?.(q);
-    if(booked?.length){const msg="جهزت "+booked.length+" اقتراح للمراجعة. لم تُحفظ أي عملية قبل اختيار الحساب وتأكيدك.";
+    if(booked?.length){const msg=booked.autoSaved?.length?
+      "✓ سجلت "+booked.autoSaved.length+" عملية واضحة مباشرة في معاملاتك. لو سمعت الكلام غلط تقدر تستخدم «تراجع».":
+      "جهزت "+booked.length+" اقتراح للمراجعة. لو الكلمة أو المبلغ غلط، صحح الكلام ثم أعد التحليل؛ لم يُحفظ أي مبلغ.";
       addMessage("user",q);addMessage("assistant",msg);say(msg);return {text:msg,booked};}}
    catch(err){const msg="ما قدرتش أسجل الجملة: "+(err.message||"البيانات ناقصة");
     addMessage("user",q);addMessage("assistant",msg);return {text:msg};}
@@ -176,7 +193,7 @@
   const result=respond(q);
   session.push({role:"user",content:q},{role:"assistant",content:result.text});
   if(session.length>90)session.splice(0,session.length-90);
-  addMessage("user",q);addMessage("assistant",result.text,result.chart);
+  addMessage("user",q);addMessage("assistant",result.text,result.chart,result.actions);
   say(result.text);
   return result;
  }
@@ -218,6 +235,8 @@
    '<div id="flosyAiStream" class="flosy-ai-stream" role="log" aria-live="polite"></div>'+
    '<div class="flosy-buttonbar" style="margin:8px 0 10px">'+
     '<button type="button" class="flosy-ai-chip" data-ai-q="صرفت كام الشهر ده؟">مصروفات الشهر</button>'+
+    '<button type="button" class="flosy-ai-chip" data-ai-q="فلوسي راحت فين؟">فلوسي راحت فين؟</button>'+
+    '<button type="button" class="flosy-ai-chip" data-ai-q="قارن مصاريف الشهر ده بالشهر اللي فات">قارن الشهرين</button>'+
     '<button type="button" class="flosy-ai-chip" data-ai-q="ارسم فئات المصروفات">رسمة الإنفاق</button>'+
     '<button type="button" class="flosy-ai-chip" data-ai-q="قارن هذا الشهر بالشهر اللي فات">مقارنة الشهور</button>'+
     '<button type="button" class="flosy-ai-chip" data-ai-q="Roast me">🔥 Roast Me</button>'+
