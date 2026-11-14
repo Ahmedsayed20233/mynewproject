@@ -179,8 +179,12 @@
     if(!["expense","income","transfer"].includes(type))return;
     api()?.go?.(5);
     const frame=d.querySelector('.phone-frame[data-screen="5"] .flosy-real');
-    const field=frame?.querySelector('select[name="type"]');
-    if(field){field.value=type;field.dispatchEvent(new Event("change",{bubbles:true}))}
+    const tab=frame?.querySelector('[data-fx-entry-type="'+type+'"]');
+    if(tab)tab.click();
+    else {
+     const field=frame?.querySelector('[name="type"]');
+     if(field){field.value=type;field.dispatchEvent(new Event("change",{bubbles:true}))}
+    }
     return;
    }
    if(ev.target.closest("[data-ai-speech-toggle]")){
