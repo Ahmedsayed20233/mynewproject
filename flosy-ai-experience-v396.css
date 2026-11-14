@@ -22,9 +22,9 @@
  font-size:10px;font-weight:900;white-space:nowrap}
 .faix-tab[aria-selected="true"]{background:var(--primary);color:white;
  box-shadow:0 5px 12px rgba(0,0,0,.10)}
-.faix-pane{min-width:0;display:grid;gap:13px;animation:faixIn .22s ease-out}
+.faix-pane{min-width:0;display:grid;gap:13px;opacity:1;transform:none}
 .faix-pane[hidden]{display:none!important}
-@keyframes faixIn{from{opacity:.2;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+/* Tab content is fully visible immediately; avoid faded financial numbers. */
 .faix-robot{height:145px;display:flex;justify-content:center;align-items:center;
  border-radius:28px 28px 9px 9px;background:
  radial-gradient(ellipse 75% 60% at 50% 90%,var(--primary-soft),transparent 90%),
