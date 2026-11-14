@@ -38,6 +38,19 @@
    label:offset===-1?"الشهر اللي فات":"الشهر الحالي"};
  }
  function range(q,at){
+  const months=q.match(/(?:اخر|آخر)\s+([1-9]|1[0-2])\s*(?:شهور|اشهر|شهر|months?)/);
+  if(months){const count=Number(months[1]),first=new Date(at.getFullYear(),at.getMonth()-count+1,1);
+   return {from:iso(first.getFullYear(),first.getMonth()+1,1),
+    to:iso(at.getFullYear(),at.getMonth()+1,at.getDate()),label:"آخر "+count+" شهور"};}
+  if(/الاسبوع اللي فات|الاسبوع الماضي|الاسبوع السابق/.test(q)){
+   const lastSat=new Date(at.getFullYear(),at.getMonth(),at.getDate()-((at.getDay()+1)%7)-7);
+   const lastFri=new Date(lastSat.getFullYear(),lastSat.getMonth(),lastSat.getDate()+6);
+   return {from:iso(lastSat.getFullYear(),lastSat.getMonth()+1,lastSat.getDate()),
+    to:iso(lastFri.getFullYear(),lastFri.getMonth()+1,lastFri.getDate()),label:"الأسبوع اللي فات"};}
+  if(/(?:اخر|آخر)\s+7\s*(?:ايام|يوم)/.test(q)){
+   const start=new Date(at.getFullYear(),at.getMonth(),at.getDate()-6);
+   return {from:iso(start.getFullYear(),start.getMonth()+1,start.getDate()),
+    to:iso(at.getFullYear(),at.getMonth()+1,at.getDate()),label:"آخر 7 أيام"};}
   if(/الشهر اللي فات|الشهر السابق|الشهر الماضي|last month/.test(q))return monthRange(at,-1);
   if(/النهارده|النهاردة|اليوم|today/.test(q)){
    const today=iso(at.getFullYear(),at.getMonth()+1,at.getDate());
@@ -97,17 +110,18 @@
    /شهر|مصاريف|صرف|انفاق|المقارنه|قارن/.test(q);
   if(comparison){
    const curr=monthRange(at),last=monthRange(at,-1);
-   const curRows=all.filter(x=>x.type==="expense"&&x.date>=curr.from&&x.date<=curr.to);
-   const oldRows=all.filter(x=>x.type==="expense"&&x.date>=last.from&&x.date<=last.to);
+   const group=detectCategory(q);
+   const curRows=all.filter(x=>x.type==="expense"&&x.date>=curr.from&&x.date<=curr.to&&(!group||matchCategory(x,group)));
+   const oldRows=all.filter(x=>x.type==="expense"&&x.date>=last.from&&x.date<=last.to&&(!group||matchCategory(x,group)));
    const a=money(curRows.reduce((v,x)=>v+Number(x.amount),0));
    const b=money(oldRows.reduce((v,x)=>v+Number(x.amount),0));
-   previous={intent:"spending",category:""};
+   previous={intent:"spending",category:group};
    if(!curRows.length||!oldRows.length)return {intent:"v399-compare",text:
     "مقدرش أقارن الشهرين بشكل عادل: "+(curRows.length?"":"الشهر الحالي مفيهوش مصروفات، ")+
     (oldRows.length?"":"الشهر الماضي مفيهوش مصروفات. ")+
     "سجل بيانات الفترتين وبعدين أعرضلك الفرق الحقيقي.",actions:actions.ledger};
    const delta=money(a-b),pct=b?Math.round(Math.abs(delta)/b*1000)/10:null;
-   return {intent:"v399-compare",text:"حسب العمليات المسجلة: الشهر الحالي "+format(a)+
+   return {intent:"v399-compare",text:"حسب العمليات المسجلة"+(group?" لفئة "+group:"")+": الشهر الحالي "+format(a)+
     " ("+curRows.length+" عملية)، والشهر السابق "+format(b)+" ("+oldRows.length+
     " عملية). "+(delta>0?"الإنفاق زاد بمقدار ":delta<0?"الإنفاق قل بمقدار ":"الإنفاق متساوٍ: ")+
     format(Math.abs(delta))+(pct===null?"":" (حوالي "+pct+"%)")+
@@ -140,13 +154,22 @@
     chart:chart(parts,"المصروفات حسب الفئة"),
     actions:actions.ledger};
   }
-  if(/قبضت كام|دخل كام|الدخل كام|ايراد|المرتب نزل كام|كسبت كام/.test(q)){
+  if(/قبضت كام|دخل كام|الدخل كام|دخلي كام|ايراد|المرتب نزل كام|كسبت كام|كام قبضت|دخلتلي كام/.test(q)){
    previous={intent:"income",category:""};
    return {intent:"v399-income",text:income.length?
     "الدخل المسجل في "+periodText+" = "+format(earned)+" من "+income.length+
     " عملية. التحويلات الداخلية غير محسوبة دخل.":
     "مافيش دخل مسجل في "+periodText+". المرتب المتوقع في ملفك مش معناها إنه اتقبض.",
     actions:actions.ledger};
+  }
+  if(/آخر عمليا|اخر عمليا|احدث عمليا|اخر مصروف|آخر مصروف/.test(q)){
+   const activity=all.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,5);
+   return {intent:"v399-recent",text:activity.length?
+    "آخر "+activity.length+" حركة دخل/مصروف مسجلة: "+
+     activity.map(x=>x.date+" — "+(x.type==="income"?"دخل":"مصروف")+" "+format(x.amount)+
+      " ("+String(x.description||x.category||"بدون وصف").slice(0,35)+")").join("؛ ")+
+      ". افتح معاملاتك لمراجعة التفاصيل وتعديلها.":
+    "لسه ما فيش معاملات مسجلة أقدر أعرضها. ابدأ بأول عملية.",actions:actions.ledger};
   }
   if(/عايز اسجل|عاوز اسجل|ازاي اسجل|اضيف مصروف|اسجل فاتور|صوره فاتور|بالصوت|ميكروفون|اضافه عمليه|اضافة عملية/.test(q))
    return {intent:"v399-help-capture",text:"أسرع طريقة: اضغط «+ إضافة» واختار يدوي، صوت، أو تصوير فاتورة. الصوت الواضح يقدر يتحفظ مباشرة بعد تفعيل الخيار من شاشة الصوت، وأي كلام ناقص بيتفتح للتصحيح. الفواتير تفضل بمراجعة الإجمالي.",actions:[action("إضافة عملية",5),action("سجل بالصوت",7),action("صوّر فاتورة",6)]};
