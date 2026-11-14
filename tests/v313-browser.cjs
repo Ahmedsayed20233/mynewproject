@@ -1,0 +1,95 @@
+"use strict";
+const assert=require("node:assert/strict"),fs=require("node:fs");
+const {chromium}=require("playwright"),{spawn}=require("node:child_process");
+const {setTimeout:delay}=require("node:timers/promises"),base="http://127.0.0.1:8293";
+(async()=>{
+ const server=spawn("python3",["-m","http.server","8293","--bind","127.0.0.1"],{stdio:"ignore"});
+ let browser;
+ try{
+  let connected=false;
+  for(let i=0;i<150;i++){try{connected=(await fetch(base+"/flosy.html")).ok;if(connected)break}catch{}await delay(100)}
+  assert.ok(connected);
+  browser=await chromium.launch({headless:true,args:["--no-sandbox"]});
+  const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,
+   isMobile:true,hasTouch:true,acceptDownloads:true,serviceWorkers:"block"});
+  const page=await context.newPage(),errs=[];page.on("pageerror",e=>errs.push(e.message));
+  await page.route(/https:\/\/fonts\.(googleapis|gstatic)\.com/,route=>route.abort());
+  await page.goto(base+"/flosy.html",{waitUntil:"domcontentloaded",timeout:70000});
+  await page.waitForFunction(()=>window.FLOSY_UNIFIED?.core()?.FLOSY_BRIDGE&&window.FLOSY_CUSTOMER_V313,null,{timeout:80000});
+  await page.evaluate(()=>window.FLOSY_UNIFIED.go(1));
+  await page.locator("#cx313QuickStartForm").waitFor({state:"visible",timeout:20000});
+  assert.equal(await page.locator("#cx313AdvancedSetup").getAttribute("open"),null);
+  assert.equal(await page.locator("#cx313QuickStartForm input").count(),2);
+  await page.locator('#cx313QuickStartForm input[name="name"]').fill("الكاش التجريبي");
+  await page.locator('#cx313QuickStartForm input[name="balance"]').fill("7000");
+  await page.locator('#cx313QuickStartForm button[type="submit"]').click();
+  await page.locator(".cx312-home").waitFor({state:"visible"});
+  const first=await page.evaluate(()=>({accounts:window.FLOSY_UNIFIED.state().accounts,
+    daily:window.FLOSY_UNIFIED.summary().daily,screen:window.FLOSY_UNIFIED.getCurrentScreen()}));
+  assert.equal(first.screen,2);
+  assert.ok(first.accounts.some(a=>a.name==="الكاش التجريبي"&&a.opening===7000));
+  assert.equal(await page.locator(".cx313-home-rail button").count(),3);
+  assert.equal(await page.locator(".cx312-greeting>button").count(),0);
+  assert.ok(await page.locator(".cx313-safe-setup").isVisible());
+  assert.equal(await page.locator(".cx312-setup").getAttribute("data-flosy-screen"),"17");
+  await page.locator(".cx312-setup").click();
+  assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.getCurrentScreen()),17);
+  await page.evaluate(()=>window.FLOSY_UNIFIED.go(2));
+  await page.locator('.phone-frame.flosy-active .flosy-nav399 button[data-ux312-quick="expense"]').click();
+  await page.locator("#cx313QuickPreview").waitFor();
+  assert.ok((await page.locator("#cx313QuickPreview").innerText()).includes("اكتب المبلغ"));
+  await page.locator('#cx312QuickForm input[name="amount"]').fill("65");
+  await page.locator("#cx312QuickSave").click();
+  assert.ok(await page.locator("#cx312QuickError").isVisible());
+  assert.ok((await page.locator("#cx312QuickError").innerText()).includes("وصف"));
+  assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length),0);
+  await page.locator('[data-ux312-preset="قهوة"]').click();
+  await page.locator("#cx313QuickPreview").waitFor();
+  const preview=await page.locator("#cx313QuickPreview").innerText();
+  assert.ok(preview.includes("65")||preview.includes("٦٥"));
+  assert.ok(preview.includes("قهوة"));
+  await page.locator("#cx312QuickSave").click();
+  await page.locator("#cx312Overlay").waitFor({state:"detached"});
+  assert.equal((await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions
+   .filter(x=>x.source==="flosy312_quick_add"))).length,1);
+  await page.locator('.phone-frame.flosy-active .flosy-nav399 button[data-ux312-quick="expense"]').click();
+  const repeat=page.locator('[data-cx313-repeat="yes"]');
+  assert.ok(await repeat.isVisible());
+  const previous=await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length);
+  await repeat.click();
+  assert.equal(await page.locator('#cx312QuickForm input[name="amount"]').inputValue(),"65");
+  assert.equal(await page.locator("#cx312Description").inputValue(),"قهوة");
+  assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length),previous,"repeat must not auto-post");
+  await page.locator("#cx312QuickSave").click();
+  await page.locator("#cx312Overlay").waitFor({state:"detached"});
+  const rows=await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.map(t=>({amount:t.amount,source:t.source})));
+  assert.equal(rows.length,2);assert.ok(rows.some(x=>x.source==="flosy391_manual_repeat"));
+  await page.locator("#flosyUndoButton").click();
+  assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length),1);
+  await page.evaluate(()=>window.FLOSY_UNIFIED.go(7));
+  assert.ok(await page.locator(".cx313-capture-steps").isVisible());
+  await page.evaluate(()=>window.FLOSY_UNIFIED.go(6));
+  assert.ok(await page.locator(".cx313-capture-steps").isVisible());
+  await page.evaluate(()=>window.FLOSY_UNIFIED.go(8));
+  await page.waitForSelector(".cx312-ai-prompts");
+  const question=page.locator(".cx312-ai-prompts [data-ux312-ai-question]").first();
+  await question.click();
+  await page.locator("#cx313AiFeedback").waitFor({state:"visible"});
+  await page.locator('[data-cx313-rate="yes"]').click();
+  assert.ok((await page.locator(".cx313-rate-status").innerText()).includes("الجهاز فقط"));
+  const rating=await page.evaluate(()=>JSON.parse(localStorage.getItem("flosy_ai_feedback_v313")||"{}"));
+  assert.equal(rating.total,1);
+  assert.equal(rating.useful,1);
+  await page.evaluate(()=>window.FLOSY_UNIFIED.go(15));
+  await page.locator(".cx313-report-intro").waitFor({state:"visible"});
+  assert.ok(await page.locator('.report311-files button[data-kind="pdf"]').count());
+  await page.evaluate(()=>window.FLOSY_UNIFIED.applyTheme("serene-dark"));
+  await page.evaluate(()=>window.FLOSY_UNIFIED.go(2));
+  assert.equal(await page.locator("html").getAttribute("data-theme"),"serene-dark");
+  fs.mkdirSync("tests/_artifacts",{recursive:true});
+  await page.locator(".cx312-home").screenshot({path:"tests/_artifacts/flosy-v313-home-mobile.png"});
+  assert.equal(errs.filter(x=>/ReferenceError|TypeError|SyntaxError/.test(x)).length,0,errs.join(" | "));
+  console.log("PASS v313 mobile-first onboarding, 3-action home, Safe to Spend setup, quick-entry validation, intentional repeat/undo, AI feedback, receipt/voice steps, reports and dark mode");
+ }catch(e){console.error(e);process.exitCode=1}
+ finally{await browser?.close();server.kill()}
+})();
