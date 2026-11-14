@@ -24,6 +24,9 @@ on:
       - 'flosy-experience-v399.*'
       - 'tests/v399-browser.cjs'
       - 'tests/v310-browser.cjs'
+      - 'tests/v311-browser.cjs'
+      - 'flosy-report-plus-v311.js'
+      - 'flosy-report-plus-v311.css'
       - 'flosy-receipt-egypt-v310.js'
       - 'flosy-receipt-coru-model-v310.js'
       - 'flosy-needs-ui-v398.*'
@@ -91,6 +94,8 @@ jobs:
         run: node tests/v399-browser.cjs
       - name: Test CORU-trained Egyptian receipt import, photo preview and owner review
         run: node tests/v310-browser.cjs
+      - name: Verify v311 real report CSV/XLSX and PDF print dashboard in Chromium
+        run: node tests/v311-browser.cjs
       - name: Test real new customer account wizard, repeat and selective OCR/voice review
         run: node tests/customer-v397-browser.cjs
       - name: Test Flosy AI reference-image UI, voice, OCR, budget and crisis actions
@@ -115,6 +120,7 @@ jobs:
             tests/_artifacts/flosy-v397-onboarding.png
             tests/_artifacts/flosy-v398-needs.png
             tests/_artifacts/flosy-v310-receipt-review.png
+            tests/_artifacts/flosy-v311-reports-mobile.png
             tests/_artifacts/flosy-v397-home-safe.png
             tests/_artifacts/flosy-ai-v396-actions.png
             tests/_artifacts/flosy-ai-v396-insights.png
