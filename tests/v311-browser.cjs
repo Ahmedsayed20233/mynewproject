@@ -32,6 +32,7 @@ const BASE="http://127.0.0.1:8193";
   await page.waitForSelector("#flosyReportLivePreview .report311-kpis",{timeout:20000});
   assert.ok(await page.locator('.flosy-report-ui-v311').isVisible());
   assert.equal(await page.locator('.report311-files button').count(),3);
+  if(await page.locator("#cx312ReportAdvanced").count())await page.locator("#cx312ReportAdvanced summary").click();
   await page.locator("#flosyReportFrom").fill("2026-11-01");
   await page.locator("#flosyReportTo").fill("2026-11-14");
   await page.locator("#flosyReportTo").dispatchEvent("change");

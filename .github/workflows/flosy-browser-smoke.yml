@@ -25,6 +25,10 @@ on:
       - 'tests/v399-browser.cjs'
       - 'tests/v310-browser.cjs'
       - 'tests/v311-browser.cjs'
+      - 'tests/v312-browser.cjs'
+      - 'flosy-customer-v312.js'
+      - 'flosy-customer-v312.css'
+      - 'flosy-ai-coach-v312.js'
       - 'flosy-report-plus-v311.js'
       - 'flosy-report-plus-v311.css'
       - 'flosy-receipt-egypt-v310.js'
@@ -96,6 +100,8 @@ jobs:
         run: node tests/v310-browser.cjs
       - name: Verify v311 real report CSV/XLSX and PDF print dashboard in Chromium
         run: node tests/v311-browser.cjs
+      - name: Verify v312 customer fast entry, undo, AI prompts and reports at 390px
+        run: node tests/v312-browser.cjs
       - name: Test real new customer account wizard, repeat and selective OCR/voice review
         run: node tests/customer-v397-browser.cjs
       - name: Test Flosy AI reference-image UI, voice, OCR, budget and crisis actions
@@ -121,6 +127,7 @@ jobs:
             tests/_artifacts/flosy-v398-needs.png
             tests/_artifacts/flosy-v310-receipt-review.png
             tests/_artifacts/flosy-v311-reports-mobile.png
+            tests/_artifacts/flosy-v312-home-390px.png
             tests/_artifacts/flosy-v397-home-safe.png
             tests/_artifacts/flosy-ai-v396-actions.png
             tests/_artifacts/flosy-ai-v396-insights.png

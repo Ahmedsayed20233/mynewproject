@@ -98,6 +98,8 @@ const BASE="http://127.0.0.1:8141";
   await page.locator("[data-v2-cancel]").first().click();
   assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.getCurrentScreen()),7);
   await page.evaluate(()=>window.FLOSY_UNIFIED.go(6));
+  if(await page.locator("details.cx312-optional summary").filter({hasText:"نص الفاتورة"}).count())
+   await page.locator("details.cx312-optional summary").filter({hasText:"نص الفاتورة"}).click();
   await page.locator("#flosyReceiptPaste").fill("TEST CAFE\nDate: 13/11/2026\nTOTAL: EGP 149.00");
   await page.locator("#flosyReceiptSave").click();
   assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.getCurrentScreen()),6);

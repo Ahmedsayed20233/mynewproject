@@ -30,6 +30,7 @@ const BASE="http://127.0.0.1:8152";
    window.FlosyNative={postMessage:x=>window.__msgs.push(JSON.parse(x))};
    api.go(15);
   });
+  if(await page.locator("#cx312ReportAdvanced").count())await page.locator("#cx312ReportAdvanced summary").click();
   await page.locator("#flosyReportFrom").fill("2026-11-01");
   await page.locator("#flosyReportTo").fill("2026-11-13");
   await page.locator('[data-kind="pdf"]').click();
