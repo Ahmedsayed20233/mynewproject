@@ -1,0 +1,87 @@
+/* Flosy 3.9.9: consistent surfaces and one touch-first navigation across all 20 views. */
+body.flosy-live .phone-frame .bottom-dock{display:none!important}
+body.flosy-live .phone-frame.flosy-active{
+ background:var(--bg-app)!important;color:var(--text-primary)!important}
+body.flosy-live .phone-frame.flosy-active .flosy-real{
+ color:var(--text-primary)!important;background:var(--bg-app)!important;
+ padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+body.flosy-live .phone-frame.flosy-active .flosy-real .fx-transaction,
+body.flosy-live .phone-frame.flosy-active .flosy-real .fx-quickbox,
+body.flosy-live .phone-frame.flosy-active .flosy-real .fx-amount-card,
+body.flosy-live .phone-frame.flosy-active .flosy-real .fx-form-section,
+body.flosy-live .phone-frame.flosy-active .flosy-real .fx-hero-capture,
+body.flosy-live .phone-frame.flosy-active .flosy-real .faix-panel,
+body.flosy-live .phone-frame.flosy-active .flosy-real .faix-card,
+body.flosy-live .phone-frame.flosy-active .flosy-real .flosy-panel,
+body.flosy-live .phone-frame.flosy-active .flosy-real .needs-v398-card{
+ background:var(--bg-surface)!important;color:var(--text-primary)!important;
+ border-color:var(--border)!important;box-shadow:var(--card-shadow)}
+body.flosy-live .phone-frame.flosy-active .flosy-real input,
+body.flosy-live .phone-frame.flosy-active .flosy-real select,
+body.flosy-live .phone-frame.flosy-active .flosy-real textarea{
+ color:var(--text-primary);background:var(--bg-elevated);border-color:var(--border)}
+body.flosy-live .phone-frame.flosy-active .flosy-real p,
+body.flosy-live .phone-frame.flosy-active .flosy-real label{
+ max-width:100%;overflow-wrap:anywhere}
+body.flosy-live .phone-frame.flosy-active .flosy-real button{touch-action:manipulation}
+.flosy-nav399{
+ display:flex;align-items:center;justify-content:space-between;gap:2px;
+ flex:none;min-height:72px;background:var(--nav-bg);border-top:1px solid var(--border);
+ padding:7px 6px calc(8px + env(safe-area-inset-bottom,0px));
+ width:100%;z-index:3;box-shadow:0 -4px 19px rgba(20,34,55,.06)}
+.flosy-nav399 button{display:flex;flex:1 1 0;min-width:0;flex-direction:column;
+ align-items:center;justify-content:center;gap:4px;border:0;border-radius:13px;
+ font-family:inherit;font-weight:800;font-size:10px;background:transparent;
+ color:var(--text-secondary);min-height:50px;padding:5px 2px}
+.flosy-nav399 button i{font-size:17px}
+.flosy-nav399 button span{white-space:nowrap}
+.flosy-nav399 button[aria-current="page"]{color:var(--primary);background:var(--primary-soft)}
+.flosy-nav399 button[data-flosy-screen="5"]{
+ color:#fff;background:var(--primary);flex:0 0 58px;min-height:53px;border-radius:16px}
+.flosy-nav399 button[data-flosy-screen="5"][aria-current="page"]{
+ box-shadow:0 0 0 3px var(--primary-soft)}
+.flosy-v399-home-capture,.flosy-v399-entry-switch,.flosy-v399-ai-capture{
+ background:var(--bg-surface);border:1px solid var(--border);border-radius:18px;
+ padding:12px;margin:11px 0;color:var(--text-primary)}
+.flosy-v399-title{display:flex;align-items:center;justify-content:space-between;gap:9px}
+.flosy-v399-title strong,.flosy-v399-entry-switch>strong,.flosy-v399-ai-capture>strong{
+ font-size:13px;font-weight:900}
+.flosy-v399-title small{color:var(--text-secondary);font-size:10px}
+.flosy-v399-capture{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:9px;margin-top:10px}
+.flosy-v399-capture button{min-width:0;min-height:80px;border:1px solid var(--border);
+ background:var(--bg-elevated);color:var(--text-primary);
+ padding:10px 6px;border-radius:15px;display:flex;flex-direction:column;
+ align-items:center;justify-content:center;gap:4px;font-family:inherit}
+.flosy-v399-capture button i{font-size:19px;color:var(--primary)}
+.flosy-v399-capture button b{font-size:12px;font-weight:900}
+.flosy-v399-capture button small{font-size:9px;color:var(--text-secondary)}
+.flosy-v399-voice-opt{border:1px solid var(--border);background:var(--bg-elevated);
+ display:flex;align-items:center;justify-content:space-between;gap:10px;
+ padding:12px;border-radius:14px;margin-top:13px;color:var(--text-primary)}
+.flosy-v399-voice-opt span{display:grid;gap:5px;flex:1;text-align:right}
+.flosy-v399-voice-opt strong{font-size:12px;font-weight:900}
+.flosy-v399-voice-opt small{font-size:10px;line-height:1.7;color:var(--text-secondary)}
+.flosy-v399-voice-opt input[type="checkbox"]{flex:none;appearance:auto;
+ width:21px;height:21px;accent-color:var(--primary)}
+.flosy-v399-repair{border:1px solid var(--border);background:var(--bg-elevated);
+ border-radius:15px;padding:11px;margin:10px 0;color:var(--text-primary)}
+.flosy-v399-repair textarea{width:100%;box-sizing:border-box;min-height:75px;
+ margin-top:8px;padding:9px;color:var(--text-primary);background:var(--bg-surface);
+ border:1px solid var(--border);border-radius:10px;font-family:inherit;line-height:1.8}
+.flosy-v399-repair-actions{display:flex;gap:8px;flex-wrap:wrap;margin:9px 0}
+.flosy-v399-repair-actions button,.flosy-ai-link-v399{font-family:inherit;
+ font-size:11px;font-weight:800;padding:8px 11px;min-height:39px;
+ border-radius:11px;background:var(--primary-soft);color:var(--primary);
+ border:1px solid var(--border)}
+.flosy-v399-repair p{font-size:10px;line-height:1.6;color:var(--text-secondary)}
+.flosy-ai-actions-v399{display:flex;flex-wrap:wrap;gap:7px;margin:7px 0}
+.flosy-ai-link-v399{cursor:pointer}
+body.flosy-live .fx-action-rail{display:none!important}
+@media(max-width:360px){
+ .flosy-nav399 button{font-size:9px}.flosy-v399-capture{gap:5px}
+ .flosy-v399-capture button{min-height:71px}
+}
+@media(prefers-reduced-motion:reduce){
+ .flosy-v399-capture *, .flosy-nav399 *{transition:none!important;animation:none!important}
+}
