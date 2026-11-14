@@ -206,7 +206,7 @@
   }
   if(Number(id)===5){
    box.querySelector(".flosy-v399-entry-switch")?.remove();
-   box.querySelectorAll(".flosy-workspace-related").forEach(el=>el.hidden=true);
+   // Advanced tools remain available in their existing collapsed details controls.
    const f=box.querySelector("#flosyNewTxForm");
    if(f&&!f.querySelector("#cx312MoreManual")){
     const opts=d.createElement("details");opts.id="cx312MoreManual";opts.className="cx312-optional";
