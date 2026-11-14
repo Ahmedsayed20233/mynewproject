@@ -51,7 +51,7 @@ const BASE="http://127.0.0.1:8176";
   await page.locator('[data-ai-action="budget"]').click();
   const budget=await page.locator("#faixActionResult").innerText();
   assert.ok(budget.includes("20")||budget.includes("٢٠"),"Budget should reflect real configured salary");
-  assert.ok(budget.includes("الطوارئ"),"budget actual: "+budget);
+  assert.ok(budget.includes("للطوارئ"),"budget actual: "+budget);
   await page.locator('[data-ai-action="crisis"]').click();
   assert.ok((await page.locator("#faixActionResult").innerText()).includes("صندوق الطوارئ"));
   await page.locator('[data-ai-intent="transfer"]').click();
