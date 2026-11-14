@@ -6,39 +6,17 @@
  const original=Pages.render,api=()=>w.FLOSY_UNIFIED,esc=x=>api()?.esc?.(x)||String(x??"");
  const CP=()=>w.FLOSY_COPILOT;
  const icon=x=>'<i class="fa-solid '+x+'" aria-hidden="true"></i>';
- const items=[
-  ["2","الرئيسية","نظرة عامة وأمان الصرف","fa-house","main"],
-  ["3","الثروة والحسابات","أرصدة وأصول وديون وصافي الثروة","fa-wallet","main"],
-  ["4","معاملاتي","ابحث وعدّل العمليات","fa-right-left","main"],
-  ["5","إضافة معاملة","إدخال مالي ذكي","fa-circle-plus","capture"],
-  ["7","الصوت المصري","سجّل جملة وسيُحفظ المصروف","fa-microphone","capture"],
-  ["6","الفواتير بالكاميرا","OCR عربي وإنجليزي","fa-camera","capture"],
-  ["8","فلوسي AI","مساعد شخصي وروست مي","fa-robot","ai"],
-  ["14","مركز الرؤى الذكي","تحليل الفئات ونصائح استباقية","fa-chart-pie","ai"],
-  ["15","التقارير","PDF منسق وExcel","fa-file-pdf","ai"],
-  ["11","الميزانية المتصلة","حدود الفئات وخطة الدخل","fa-gauge","plan"],
-  ["12","الأهداف","حصالة وادخار","fa-bullseye","plan"],
-  ["18","تقويم السيولة","المواعيد والالتزامات","fa-calendar-days","plan"],
-  ["9","الأقساط والجمعيات","جدول الاستحقاقات","fa-receipt","plan"],
-  ["10","ديوني وديون الشلة","قسط وديون صديق وتسوية","fa-handshake","plan"],
-  ["17","ملفي المالي والخطة الذكية","مرتب والتزامات وطوارئ واستثمار","fa-user-gear","plan"],
-  ["13","زكاتي التقديرية","أصول ونصاب وحول محسوب","fa-coins","wealth"],
-  ["19","ميزانية العيلة","أفراد ومصروفات مترابطة","fa-people-roof","wealth"],
-  ["20","رادار أسعار الفواتير","قارن مشترياتك","fa-tags","wealth"],
-  ["portfolio","محفظة ثاندر","تابع استثماراتك","fa-chart-line","wealth",true],
-  ["v4-bank","استيراد CSV","كشف حساب تختاره بنفسك","fa-file-csv","capture",true],
-  ["v4-crisis","محاكاة الأزمات","سيناريوهات فقدان الدخل","fa-life-ring","plan",true],
-  ["rules","قواعد الفئات","تصنيف قابل للتخصيص","fa-layer-group","settings",true],
-  ["recovery","النسخ الاحتياطية","حماية واسترجاع البيانات","fa-cloud-arrow-up","settings",true],
-  ["settings","الإعدادات والمزامنة","الحساب وإدارة المزامنة","fa-gear","settings",true],
-  ["v4-privacy","الأجهزة والخصوصية","أدوات التحكم والخصوصية","fa-user-shield","settings",true]
- ];
- const types=[["all","الكل"],["main","الحسابات"],["capture","الإدخال"],["ai","ذكاء وتقارير"],
-  ["plan","التخطيط"],["wealth","الثروة"],["settings","الإعدادات"]];
+ const map=w.FLOSY_SCREEN_MAP_V395;
+ if(!map)throw Error("Flosy consolidated screen map missing");
+ const items=map.primary,subItems=map.details,advancedItems=map.advanced;
+ const types=[["all","الكل"],["main","الأساسيات"],["capture","الإدخال"],
+  ["plan","الالتزامات والخطط"],["wealth","الثروة"],["ai","الذكاء والتقارير"],
+  ["settings","الإعدادات"]];
  let lastStatus=null;
  function quick(item){
   const [id,label,description,i,group,advanced]=item;
-  return '<button type="button" class="service-v392-item" data-sgroup="'+group+'" '+
+  const tier=advanced?"advanced":subItems.includes(item)?"detail":"primary";
+  return '<button type="button" class="service-v392-item" data-service-'+tier+'="true" data-sgroup="'+group+'" '+
    (advanced?'data-flosy-feature="'+id+'" data-label="'+esc(label)+'"':
     'data-flosy-screen="'+id+'"')+'>'+
    '<span class="service-v392-icon">'+icon(i)+'</span><span class="service-v392-copy"><strong>'+
@@ -71,8 +49,16 @@
    '<input id="servicesV392Search" type="search" placeholder="دوّر على خدمة، زي تقارير أو صوت..." aria-label="البحث في الخدمات"></div>'+
    '<div class="service-v392-tabs" role="group" aria-label="أقسام الخدمات">'+
     types.map(([id,label])=>'<button type="button" data-sfilter="'+id+'" aria-pressed="'+(id==="all")+'">'+label+'</button>').join("")+'</div>'+
-   '<p id="servicesV392Count" class="service-v392-count"></p>'+
+   '<p class="service-v392-count">8 أقسام أساسية بدل 20 شاشة منفصلة؛ الوظائف التفصيلية ما زالت متاحة.</p>'+
+   '<p id="servicesV392Count" class="service-v392-count" aria-live="polite"></p>'+
+   '<h3 class="service-v395-title">المساحات الرئيسية</h3>'+
    '<div id="servicesV392Grid" class="service-v392-grid">'+items.map(quick).join("")+'</div>'+
+   '<details class="service-v392-fold" id="flosyDetailedTools"><summary>'+icon("fa-layer-group")+
+    ' وظائف داخل المساحات <span>10 أدوات مستقلة، وليست 10 أقسام جديدة</span></summary>'+
+    '<div class="service-v392-grid service-v395-subgrid">'+subItems.map(quick).join("")+'</div></details>'+
+   '<details class="service-v392-fold" id="flosyAdvancedTools"><summary>'+icon("fa-toolbox")+
+    ' الأدوات المتقدمة <span>المزامنة والخصوصية وغيرها</span></summary>'+
+    '<div class="service-v392-grid service-v395-subgrid">'+advancedItems.map(quick).join("")+'</div></details>'+
    '<details class="service-v392-fold" open><summary>'+icon("fa-palette")+
      ' التصميم والثيمات الأربعة <span>ألوان موحدة لكل الصفحات</span></summary>'+
      '<div class="service-v392-themes">'+themeGrid()+'</div></details>'+
@@ -120,12 +106,19 @@
     count=el.querySelector("#servicesV392Count");
   const refresh=()=>{
    const q=String(input?.value||"").trim().toLocaleLowerCase("ar-EG");
-   let visible=0;for(const c of cards){
-    const hit=(group==="all"||c.dataset.sgroup===group)&&
+   let found=0;
+   for(const c of cards){
+    const match=(group==="all"||c.dataset.sgroup===group)&&
       (!q||c.innerText.toLocaleLowerCase("ar-EG").includes(q));
-    c.hidden=!hit;if(hit)visible++;
+    c.hidden=!match;if(match)found++;
    }
-   count.textContent=visible+" خدمة متاحة";
+   // If a user searches for a hidden tool, open its collapsed collection.
+   if(q)for(const id of ["flosyDetailedTools","flosyAdvancedTools"]){
+    const fold=el.querySelector("#"+id);
+    if(fold?.querySelector(".service-v392-item:not([hidden])"))fold.open=true;
+   }
+   count.textContent=(q||group!=="all")?found+" نتيجة":
+    items.length+" مساحات رئيسية · "+subItems.length+" وظائف داخلها";
   };
   input.oninput=refresh;
   el.querySelectorAll("[data-sfilter]").forEach(btn=>btn.onclick=()=>{
@@ -172,5 +165,5 @@
   }
  };
  w.FLOSY_NOTIFY_V392={nativeStatus};
- w.FLOSY_SERVICES_V392={servicesHtml,items,version:"3.9.2"};
+ w.FLOSY_SERVICES_V392={servicesHtml,items,subItems,advancedItems,version:"3.9.5"};
 })(window,document);
