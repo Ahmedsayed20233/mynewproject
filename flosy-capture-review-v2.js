@@ -43,8 +43,13 @@
     throw Error("التحويل يحتاج حسابين مختلفين مملوكين لك.");
    const category=String(p.category|| (p.intent==="income"?"دخل آخر":p.intent==="transfer"?"تحويل داخلي":"مشتريات"));
    let receiptDetails=p.receiptDetails;
-   if(p.intent==="expense"&&Array.isArray(receiptDetails?.items)&&receiptDetails.items.length){
-    const itemsEdited=receiptDetails.items.map((item,j)=>{
+   if(p.intent==="expense"&&receiptDetails){
+    const original=Array.isArray(receiptDetails.items)?receiptDetails.items:[];
+    const itemIndices=Object.keys(fields||{}).filter(k=>k.startsWith("receipt-name-"+i+"-"))
+     .map(k=>Number(k.slice(("receipt-name-"+i+"-").length)))
+     .filter(j=>Number.isInteger(j)&&j>=0&&j<60).sort((a,b)=>a-b);
+    const itemsEdited=itemIndices.map(j=>{
+     const item=original[j]||{};
      const name=String(fields["receipt-name-"+i+"-"+j]??item.name??"").trim().slice(0,80);
      const qty=Number(fields["receipt-qty-"+i+"-"+j]??item.quantity);
      const price=Number(fields["receipt-price-"+i+"-"+j]??item.unitPrice);
@@ -58,7 +63,7 @@
      throw Error("الضريبة والخصم لا يجوز أن يكونا سالبين");
     const itemsSum=Math.round(itemsEdited.reduce((v,x)=>v+x.total,0)*100)/100;
     const expected=Math.round((itemsSum+tax-discount)*100)/100;
-    if((receiptDetails.arithmeticConsistent||receiptDetails.arithmeticContradiction===true)&&Math.abs(expected-amount)>.05)
+    if(itemsEdited.length>0&&Math.abs(expected-amount)>.05)
      throw Error("مجموع الأصناف بعد الضريبة والخصم "+expected+" جنيه لا يساوي إجمالي الفاتورة "+amount+" جنيه");
     receiptDetails={...receiptDetails,items:itemsEdited,itemsSum,tax,discount,
      arithmeticConsistent:Math.abs(expected-amount)<=.05,arithmeticContradiction:Math.abs(expected-amount)>.05};
@@ -72,17 +77,25 @@
   pending=null;
  }
  function receiptEditor(p,i){
-  const list=Array.isArray(p.receiptDetails?.items)?p.receiptDetails.items:[];
-  if(!list.length)return "";
-  return '<details class="flosy-v2-items" open><summary>مراجعة أصناف الفاتورة ('+list.length+')</summary>'+
-   list.map((it,j)=>'<div class="flosy-v2-item-row">'+
-    '<label>الصنف<input name="receipt-name-'+i+'-'+j+'" maxlength="80" required value="'+escape(it.name||"")+'"></label>'+
-    '<label>الكمية<input type="number" min="0.001" step="0.001" required name="receipt-qty-'+i+'-'+j+'" value="'+escape(it.quantity??1)+'"></label>'+
-    '<label>سعر الوحدة<input type="number" min="0" step="0.01" required name="receipt-price-'+i+'-'+j+'" value="'+escape(it.unitPrice??0)+'"></label></div>').join("")+
-    '<div class="flosy-v2-item-row"><label>الضريبة<input type="number" min="0" step="0.01" name="receipt-tax-'+i+'" value="'+escape(p.receiptDetails.tax??0)+'"></label>'+
-    '<label>الخصم<input type="number" min="0" step="0.01" name="receipt-discount-'+i+'" value="'+escape(p.receiptDetails.discount??0)+'"></label></div>'+
-    '<p role="status" class="flosy-v2-item-sum" data-receipt-calc="'+i+'"></p>'+
-    '<p>لو بعض الأصناف ناقصة من الصورة، راجع إجمالي الفاتورة بنفسك قبل التأكيد.</p></details>';
+  const details=p?.receiptDetails||null;
+  if(!details)return "";
+  const list=Array.isArray(details.items)?details.items:[];
+  const warns=Array.isArray(details.extractionWarnings)?details.extractionWarnings:[];
+  const rows=list.map((it,j)=>'<div class="flosy-v2-item-row">'+
+   '<label>الصنف<input name="receipt-name-'+i+'-'+j+'" maxlength="80" required value="'+escape(it.name||"")+'"></label>'+
+   '<label>الكمية<input type="number" min="0.001" step="0.001" required name="receipt-qty-'+i+'-'+j+'" value="'+escape(it.quantity??1)+'"></label>'+
+   '<label>سعر الوحدة<input type="number" min="0" step="0.01" required name="receipt-price-'+i+'-'+j+'" value="'+escape(it.unitPrice??0)+'"></label></div>').join("");
+  return '<details class="flosy-v2-items" open><summary>راجع الفاتورة والصنف والمبلغ ('+list.length+' صنف)</summary>'+
+   (warns.length?'<div class="flosy-v398-warnings" role="status"><strong>محتاج مراجعتك:</strong>'+
+    warns.map(x=>'<p>• '+escape(x)+'</p>').join("")+'</div>':'')+
+   '<div class="flosy-v398-line-items">'+rows+'</div>'+
+   (!list.length?'<p>OCR ما حددش الأصناف بدقة. ممكن تضيف أصناف يدويًا أو تحفظ إجمالي الفاتورة بعد التأكد منه.</p>':'')+
+   '<button type="button" class="flosy-v398-add-item" data-add-receipt-item="'+i+'">+ إضافة صنف مفقود</button>'+
+   '<div class="flosy-v2-item-row"><label>الضريبة<input type="number" min="0" step="0.01" name="receipt-tax-'+i+'" value="'+escape(details.tax??0)+'"></label>'+
+   '<label>الخصم<input type="number" min="0" step="0.01" name="receipt-discount-'+i+'" value="'+escape(details.discount??0)+'"></label></div>'+
+   '<p role="status" class="flosy-v2-item-sum" data-receipt-calc="'+i+'"></p>'+
+   '<p class="flosy-v398-tips">اقرأ اسم المحل والإجمالي والتاريخ. لو الوصل باهت، صوره مستقيمًا بإضاءة ثابتة بدون انعكاس.</p>'+
+   '</details>';
  }
  function open({items,kind="voice",accounts=[],save,onSaved}){
   if(typeof document==="undefined"||typeof save!=="function")throw Error("واجهة المراجعة غير متاحة");
@@ -124,8 +137,9 @@
   const reconcile=()=>{
    node.querySelectorAll("[data-receipt-calc]").forEach(out=>{
     const i=out.dataset.receiptCalc,list=items[Number(i)]?.receiptDetails?.items||[];
+    const rowCount=node.querySelectorAll('.flosy-v2-items [name^="receipt-name-'+i+'-"]').length;
     let sum=0,invalid=false;
-    for(let j=0;j<list.length;j++){
+    for(let j=0;j<rowCount;j++){
      const q=Number(node.querySelector('[name="receipt-qty-'+i+'-'+j+'"]')?.value);
      const price=Number(node.querySelector('[name="receipt-price-'+i+'-'+j+'"]')?.value);
      if(!(q>0)||price<0||!Number.isFinite(q)||!Number.isFinite(price))invalid=true;
@@ -135,12 +149,27 @@
     const discount=Number(node.querySelector('[name="receipt-discount-'+i+'"]')?.value||0);
     const expected=Math.round((sum+tax-discount)*100)/100;
     const total=Number(node.querySelector('[name="amount-'+i+'"]')?.value||0);
-    const ok=!invalid&&Math.abs(expected-total)<=0.05;
-    out.textContent="مجموع الأصناف: "+expected.toFixed(2)+" ج.م | الإجمالي: "+total.toFixed(2)+" ج.م "+(ok?"✓ متطابق":"— راجع الفرق");
+    const ok=!invalid&&(rowCount===0||Math.abs(expected-total)<=0.05);
+    out.textContent=rowCount===0?
+     "لم تُستخرج أصناف؛ راجع إجمالي الفاتورة مباشرة قبل الحفظ.":
+     "مجموع الأصناف: "+expected.toFixed(2)+" ج.م | الإجمالي: "+total.toFixed(2)+" ج.م "+(ok?"✓ متطابق":"— راجع الفرق");
     out.dataset.valid=ok?"true":"false";
    });
   };
   node.addEventListener("input",reconcile);reconcile();
+  node.addEventListener("click",event=>{
+   const button=event.target.closest("[data-add-receipt-item]");if(!button)return;
+   const i=Number(button.dataset.addReceiptItem);
+   const container=button.parentElement.querySelector(".flosy-v398-line-items");
+   const count=container.querySelectorAll(".flosy-v2-item-row").length;
+   if(count>=60)return;
+   const doc=document.createElement("div");doc.className="flosy-v2-item-row";
+   doc.innerHTML='<label>الصنف<input required maxlength="80" name="receipt-name-'+i+'-'+count+'" placeholder="اكتب اسم الصنف"></label>'+
+    '<label>الكمية<input type="number" required min=".001" step=".001" name="receipt-qty-'+i+'-'+count+'" value="1"></label>'+
+    '<label>سعر الوحدة<input type="number" required min="0" step=".01" name="receipt-price-'+i+'-'+count+'" placeholder="0"></label>';
+   container.appendChild(doc);reconcile();doc.querySelector("input")?.focus();
+  });
+
   node.querySelectorAll(".flosy-v2-choose input").forEach(check=>{
    check.addEventListener("change",()=>{
     check.closest("fieldset").querySelectorAll("input,select").forEach(field=>{
