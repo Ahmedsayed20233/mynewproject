@@ -44,12 +44,6 @@ const {setTimeout:delay}=require("node:timers/promises"),base="http://127.0.0.1:
   assert.ok((await page.locator("#cx312QuickError").innerText()).includes("وصف"));
   assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length),0);
   await page.locator('[data-ux312-preset="قهوة"]').click();
-  console.log("DEBUG_V313_PREVIEW",JSON.stringify(await page.evaluate(()=>{
-   const f=document.getElementById("cx312QuickForm");
-   return {desc:f?.elements?.description?.value,amount:f?.elements?.amount?.value,
-    cat:f?.elements?.category?.value,preview:document.getElementById("cx313QuickPreview")?.textContent,
-    enhanced:f?.dataset.cx313Enhanced};
-  })));
   await page.waitForFunction(()=>document.querySelector("#cx313QuickPreview")?.textContent.includes("قهوة"),
    null,{timeout:7000});
   const preview=await page.locator("#cx313QuickPreview").innerText();
@@ -74,9 +68,9 @@ const {setTimeout:delay}=require("node:timers/promises"),base="http://127.0.0.1:
   await page.locator("#flosyUndoButton").click();
   assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length),1);
   await page.evaluate(()=>window.FLOSY_UNIFIED.go(7));
-  assert.ok(await page.locator(".cx313-capture-steps").isVisible());
+  assert.ok(await page.locator(".phone-frame.flosy-active .cx313-capture-steps").isVisible());
   await page.evaluate(()=>window.FLOSY_UNIFIED.go(6));
-  assert.ok(await page.locator(".cx313-capture-steps").isVisible());
+  assert.ok(await page.locator(".phone-frame.flosy-active .cx313-capture-steps").isVisible());
   await page.evaluate(()=>window.FLOSY_UNIFIED.go(8));
   await page.waitForSelector(".cx312-ai-prompts");
   const question=page.locator(".cx312-ai-prompts [data-ux312-ai-question]").first();
