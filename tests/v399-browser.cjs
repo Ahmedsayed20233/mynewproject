@@ -58,7 +58,7 @@ const BASE="http://127.0.0.1:8189";
   await page.evaluate(()=>window.FLOSY_UNIFIED.applyTheme("clean-light"));
   await page.evaluate(()=>window.FLOSY_UNIFIED.go(2));
   assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),"clean-light");
-  assert.ok(await page.locator(".flosy-v399-capture").isVisible());
+  assert.ok(await page.locator(".phone-frame.flosy-active .flosy-v399-home-capture .flosy-v399-capture").isVisible());
   assert.equal(errors.filter(x=>/TypeError|ReferenceError|SyntaxError/.test(x)).length,0,errors.join(" | "));
   console.log("PASS Flosy v3.9.9: shared navigation, theme persistence, opt-in voice, repair, grounded AI routes");
  }catch(e){console.error(e);process.exitCode=1}
