@@ -74,12 +74,18 @@
   }
   home.querySelector(".cx312-footer-links [data-flosy-screen='8']")?.remove();
   const daily=home.querySelector(".cx312-safe-amount");
-  if(daily&&daily.textContent.includes("لم يُحسب")){
+  // Legacy budget calculation may return zero even for a missing finance profile.
+  // Do not present that zero as a trustworthy daily allowance.
+  const ready=w.FLOSY_FINANCE_ENGINE?.plan?.(api()?.state?.())?.ready===true;
+  if(daily&&(!ready||daily.textContent.includes("لم يُحسب"))){
+   daily.textContent="لم يُحسب بعد";
    const safe=home.querySelector(".cx312-safe");
    safe?.classList.add("cx313-safe-setup");
    const p=safe?.querySelector("p");
    if(p)p.textContent="حدد دخلك والتزاماتك عشان نقدر نحسب المبلغ اليومي بشكل أوضح.";
-   const btn=safe?.querySelector(".cx312-setup");
+   let btn=safe?.querySelector(".cx312-setup");
+   if(!btn&&safe){btn=d.createElement("button");btn.type="button";
+    btn.className="cx312-setup";safe.appendChild(btn);}
    if(btn){btn.dataset.flosyScreen="17";btn.textContent="أكمل ملفك المالي";}
   }
   const balance=home.querySelector(".cx312-safe-bottom span");
