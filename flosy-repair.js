@@ -42,7 +42,7 @@ function render(){
  '<button type="button" class="f10-secondary" data-repair="native-ocr">اختيار صورة</button>':'')+
  '<label class="f10-file">اختار صورة إيصال <input id="v4-ocr-file" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" aria-label="صورة إيصال" /></label>'+
  '<button type="button" class="f10-secondary" data-v4-import="ocr">استخراج النص من الصورة</button></div>'+
- '<p class="f10-live" id="flosyOcrStatus" role="status" aria-live="polite">JPEG أو PNG أو WebP بحد أقصى 8 ميجابايت. الفاتورة الواضحة تُحفظ تلقائيًا عند تفعيل الخيار.</p>'+
+ '<p class="f10-live" id="flosyOcrStatus" role="status" aria-live="polite">JPEG أو PNG أو WebP بحد أقصى 8 ميجابايت. بيانات الإيصال هتظهر للمراجعة قبل تأكيد أي مصروف.</p>'+
  '<small class="f10-privacy">قراءة عربية/إنجليزية محلية على مرحلتين، مع نموذج تعلّم آلة لترجيح الإجمالي وتصحيح البنود. قد يتطلب تنزيل نموذج OCR اتصالًا بالإنترنت أول مرة. الحالات غير الواضحة للمراجعة.</small></section>'+
  '</div>'+
  '<section class="f10-extracted"><div class="f10-section-heading"><div><span class="f10-overline">EXTRACTED TEXT</span>'+
@@ -336,7 +336,7 @@ async function extractForUnified(imageDataUrl,latinText=""){
  let worker=null;
  const native=String(latinText||"").trim().slice(0,12000);
  const validData=typeof imageDataUrl==="string" &&
-  /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(imageDataUrl)&&imageDataUrl.length<=750000;
+  /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(imageDataUrl)&&imageDataUrl.length<=750000;
  // Blob/File from the unified parent window crosses a same-origin iframe realm:
  // instanceof iframe.Blob would be false. Accept the standard Blob API instead.
  const validFile=Boolean(imageDataUrl&&typeof imageDataUrl==="object"&&
@@ -358,6 +358,6 @@ async function extractForUnified(imageDataUrl,latinText=""){
   if(worker)try{await worker.terminate()}catch{}
  }
 }
-w.FLOSY_REPAIR={render,scanReceipt,startVoice,receiveNativeReceipt,receiveNativeReceiptImage,proposeReceipt,nativeVoiceError,nativeVoiceResult,nativeVoiceStatus,nativeAction,extractForUnified};
+w.FLOSY_REPAIR={render,scanReceipt,startVoice,receiveNativeReceipt,receiveNativeReceiptImage,proposeReceipt,nativeVoiceError,nativeVoiceResult,nativeVoiceStatus,nativeAction,extractForUnified,chooseBestReceiptText};
 render();
 })(window);
