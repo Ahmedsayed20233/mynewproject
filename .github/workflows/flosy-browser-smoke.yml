@@ -17,6 +17,8 @@ on:
       - 'flosy.html'
       - 'flosy-unified*'
       - 'flosy-ai-experience-v396.*'
+      - 'flosy-customer-v397.*'
+      - 'tests/customer-v397-browser.cjs'
       - 'tests/v396-ai-browser.cjs'
       - 'flosy-ux-v391.*'
       - 'flosy-categories-v391.js'
@@ -71,6 +73,8 @@ jobs:
         run: node tests/unified-browser.cjs
       - name: Verify v3.9.1 editable transactions, voice, OCR and four-theme settings
         run: node tests/v391-browser.cjs
+      - name: Test real new customer account wizard, repeat and selective OCR/voice review
+        run: node tests/customer-v397-browser.cjs
       - name: Test Flosy AI reference-image UI, voice, OCR, budget and crisis actions
         run: node tests/v396-ai-browser.cjs
       - name: Test PDF/Excel Save As, AI Roast Me, named daily insights and notification UX
@@ -90,6 +94,8 @@ jobs:
             tests/_artifacts/ultra-daylight-356.png
             tests/_artifacts/ultra-sapphire-356.png
             tests/_artifacts/flosy-ai-v396-chat.png
+            tests/_artifacts/flosy-v397-onboarding.png
+            tests/_artifacts/flosy-v397-home-safe.png
             tests/_artifacts/flosy-ai-v396-actions.png
             tests/_artifacts/flosy-ai-v396-insights.png
           retention-days: 7
