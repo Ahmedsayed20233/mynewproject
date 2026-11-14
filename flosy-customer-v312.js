@@ -168,7 +168,7 @@
  }
  function saveQuick(ev){
   ev.preventDefault();
-  const form=ev.currentTarget,err=form.querySelector("#cx312QuickError");
+  const form=ev.target,err=form.querySelector("#cx312QuickError");
   const state=Object.fromEntries(new FormData(form).entries()),a=api(),type=state.type;
   const amount=Number(state.amount),acc=String(state.accountId||""),target=String(state.targetAccountId||"");
   const owned=a?.accounts?.()||[];
