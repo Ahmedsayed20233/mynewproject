@@ -9,7 +9,7 @@
  if(root)root.FLOSY_NEEDS_V398=api;
 })(typeof window!=="undefined"?window:null,function(){"use strict";
  const values=["essential","flexible","optional"],titles={
-  essential:"ضروري",flexible:"مهم لكن قابل للتقليل",optional:"اختياري"
+  essential:"مهم / ضروري",flexible:"في المنتصف",optional:"غير مهم / اختياري"
  };
  const ruleSets=[
   ["essential",/إيجار|ايجار|rent|أقساط?|قسط|مستشفى|طبيب|دكتور|علاج|دواء|أدوية|صيدلية|pharmacy|hospital|medicine|كهرباء|مياه|فاتورة\s*(?:غاز|كهرباء|مياه)|دوام|مدرسة|كلية|جامعة|تعليم|school|tuition|insurance|تأمين|حضانة/i,"حاجة أساسية أو التزام ضروري"],
