@@ -1,0 +1,109 @@
+/* Flosy v3.13 customer usability layer — readability and simpler flows.
+ * Scoped. Reuses all four upstream theme variables and 3.12 components.
+ */
+.flosy-customer-v313 .cx312-home{gap:14px;padding:8px 5px 32px}
+.flosy-customer-v313 .cx312-greeting h1{font-size:clamp(21px,5.5vw,25px);line-height:1.45}
+.flosy-customer-v313 .cx312-greeting small{font-size:12px;line-height:1.5}
+.flosy-customer-v313 .cx312-safe{padding:18px;border-radius:21px}
+.flosy-customer-v313 .cx312-safe-amount{font-size:clamp(28px,8vw,35px);line-height:1.3}
+.flosy-customer-v313 .cx312-safe-top{font-size:13px;line-height:1.7}
+.flosy-customer-v313 .cx312-safe p{font-size:12px;line-height:1.8}
+.flosy-customer-v313 .cx312-safe-bottom span{font-size:12px}
+.flosy-customer-v313 .cx312-safe-bottom b{font-size:16px}
+.flosy-customer-v313 .cx312-safe.cx313-safe-setup{background:var(--bg-surface);color:var(--text-primary);border:1px solid var(--border);box-shadow:var(--card-shadow)}
+.flosy-customer-v313 .cx313-safe-setup .cx312-safe-top button{color:var(--primary);border-color:var(--border);background:var(--bg-elevated)}
+.flosy-customer-v313 .cx313-safe-setup .cx312-safe-amount{font-size:22px;color:var(--primary)}
+.flosy-customer-v313 .cx313-safe-setup p,.flosy-customer-v313 .cx313-safe-setup .cx312-safe-bottom span{color:var(--text-secondary)}
+.flosy-customer-v313 .cx313-safe-setup .cx312-safe-bottom{border-color:var(--border)}
+.flosy-customer-v313 .cx312-setup{min-height:48px;font-size:14px;color:var(--primary);background:var(--primary-soft);border:1px solid var(--border)}
+.flosy-customer-v313 .cx312-metrics{grid-template-columns:1fr 1fr;gap:10px}
+.flosy-customer-v313 .cx312-metrics>div{padding:15px 12px;min-height:84px}
+.flosy-customer-v313 .cx312-metrics>div:last-child{grid-column:span 2;min-height:70px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.flosy-customer-v313 .cx312-metrics small{font-size:12px}
+.flosy-customer-v313 .cx312-metrics strong{font-size:17px;line-height:1.5}
+.flosy-customer-v313 .cx312-card{padding:15px;border-radius:18px}
+.flosy-customer-v313 .cx312-card h2{font-size:16px;line-height:1.6}
+.flosy-customer-v313 .cx312-card header small{font-size:11px;line-height:1.6}
+.flosy-customer-v313 .cx313-home-rail{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.flosy-customer-v313 .cx313-home-rail button{min-height:82px;border-radius:14px}
+.flosy-customer-v313 .cx313-home-rail button i{font-size:23px}
+.flosy-customer-v313 .cx313-home-rail button b{font-size:14px}
+.flosy-customer-v313 .cx312-tx{padding:14px 0;gap:10px}
+.flosy-customer-v313 .cx312-tx>div strong{font-size:14px;line-height:1.5}
+.flosy-customer-v313 .cx312-tx>div small{font-size:11px;line-height:1.5}
+.flosy-customer-v313 .cx312-tx>b{font-size:13px;line-height:1.4}
+.flosy-customer-v313 .cx312-tx-icon{width:43px;height:43px}
+.flosy-customer-v313 .cx312-due span,.flosy-customer-v313 .cx312-empty{font-size:13px}
+.flosy-customer-v313 .cx312-card header button,.flosy-customer-v313 .cx312-due button{min-height:44px;font-size:13px}
+.flosy-customer-v313 .cx313-home-footer button{min-height:48px;font-size:13px}
+.flosy-customer-v313 .flosy-nav399{min-height:75px;padding:6px 5px calc(8px + env(safe-area-inset-bottom,0px))}
+.flosy-customer-v313 .flosy-nav399 button{font-size:12px;min-height:53px;gap:5px}
+.flosy-customer-v313 .flosy-nav399 button i{font-size:20px}
+.flosy-customer-v313 .flosy-nav399 button[data-ux312-quick]{flex:0 0 61px;border-radius:17px}
+.flosy-customer-v313 .flosy-nav399 button[data-ux312-quick] i{font-size:22px}
+.flosy-customer-v313 .cx312-sheet{padding:18px 16px max(18px,env(safe-area-inset-bottom,18px))}
+.flosy-customer-v313 .cx312-sheet>header h2{font-size:22px}
+.flosy-customer-v313 .cx312-sheet label{font-size:14px;line-height:1.6}
+.flosy-customer-v313 .cx312-sheet label small{font-size:12px}
+.flosy-customer-v313 .cx312-sheet input,.flosy-customer-v313 .cx312-sheet select{min-height:49px;font-size:15px}
+.flosy-customer-v313 .cx312-quick-types button{min-height:50px;font-size:14px}
+.flosy-customer-v313 .cx312-chips button{min-height:46px;font-size:12px;padding:10px 12px}
+.flosy-customer-v313 .cx312-amount-box input{font-size:32px;min-height:75px}
+.flosy-customer-v313 .cx312-optional>summary{font-size:13px;line-height:1.75;min-height:42px}
+.flosy-customer-v313 .cx312-save{min-height:56px;font-size:16px;position:sticky;bottom:0;z-index:2;box-shadow:0 -3px 10px rgba(0,0,0,.08)}
+.flosy-customer-v313 .cx312-sheet-other button{min-height:48px;font-size:13px}
+.flosy-customer-v313 .cx312-quick-foot{font-size:12px;line-height:1.8}
+.flosy-customer-v313 #cx312QuickError{font-size:13px;line-height:1.7}
+.cx313-category-hint{margin:0;font-size:12px;color:var(--text-secondary);line-height:1.7}
+.cx313-quick-preview{display:block;background:var(--bg-elevated);border:1px solid var(--border);
+ border-right:3px solid var(--primary);color:var(--text-primary);border-radius:12px;
+ padding:11px 12px;line-height:1.75;font-size:13px;overflow-wrap:anywhere}
+.cx313-quickstart{direction:rtl;display:grid;gap:11px;background:var(--bg-surface);border:1px solid var(--border);
+ padding:20px 16px;border-radius:22px;box-shadow:var(--card-shadow);color:var(--text-primary)}
+.cx313-quickstart-icon{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;
+ background:var(--primary-soft);color:var(--primary);font-size:26px;margin:0 auto 3px}
+.cx313-quickstart .cx313-eyebrow{font-size:12px;color:var(--primary);font-weight:900}
+.cx313-quickstart h2{font-size:23px;font-weight:900;line-height:1.45;margin:0}
+.cx313-quickstart>p{font-size:14px;line-height:1.8;color:var(--text-secondary);margin:0 0 3px}
+.cx313-quickstart form{display:grid;gap:12px}
+.cx313-quickstart label{display:grid;gap:6px;font-size:14px;font-weight:800;text-align:right}
+.cx313-quickstart input,.cx313-quickstart select{min-height:51px;border:1px solid var(--border);
+ border-radius:12px;background:var(--bg-elevated);color:var(--text-primary);font:500 15px inherit;padding:10px 12px;width:100%;box-sizing:border-box}
+.cx313-onboarding-privacy{display:flex;align-items:start;gap:8px;font-size:12px!important;line-height:1.8;color:var(--text-secondary)}
+.cx313-onboarding-privacy i{color:var(--primary);margin-top:3px}
+.cx313-primary-btn{min-height:55px;border:0;background:var(--primary);color:#fff;border-radius:14px;font:900 16px inherit}
+.cx313-primary-btn:disabled{opacity:.6}
+.cx313-skip{min-height:48px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--text-primary);
+ border-radius:12px;font:700 13px inherit}
+#cx313OnboardError{background:var(--bg-elevated);color:var(--expense);padding:10px 12px;border-radius:10px;font-size:13px}
+.cx313-onboard-advanced{margin:10px 0;direction:rtl;text-align:right;border:1px solid var(--border);
+ border-radius:13px;padding:12px;background:var(--bg-surface);color:var(--text-primary)}
+.cx313-onboard-advanced>summary{font-size:13px;font-weight:900;line-height:1.8;cursor:pointer;min-height:37px}
+.cx313-onboard-advanced>#flosyWelcomeV397{padding:10px 2px}
+.cx313-capture-steps,.cx313-review-hint>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;direction:rtl;margin:11px 0}
+.cx313-capture-steps span,.cx313-review-hint span{min-height:40px;display:grid;place-items:center;background:var(--bg-elevated);color:var(--text-primary);
+ font-size:12px;line-height:1.5;text-align:center;padding:7px 4px;border:1px solid var(--border);border-radius:10px}
+.cx313-review-hint{direction:rtl;margin:12px 0;padding:10px;background:var(--bg-elevated);border-radius:13px;color:var(--text-primary)}
+.cx313-review-hint b{font-size:14px}
+.cx313-report-intro{background:var(--bg-elevated);border:1px solid var(--border);border-radius:13px;padding:14px;margin:11px 0;direction:rtl}
+.cx313-report-intro strong{font-size:15px;color:var(--text-primary)}
+.cx313-report-intro p{font-size:13px;line-height:1.8;color:var(--text-secondary);margin:7px 0 0}
+.cx313-ai-feedback{padding:12px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:14px;
+ direction:rtl;margin:12px 0;display:grid;gap:10px;color:var(--text-primary)}
+.cx313-ai-feedback>small{font-size:12px;line-height:1.7;color:var(--text-secondary)}
+.cx313-ai-feedback>div{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.cx313-ai-feedback>div>span{font-size:13px;font-weight:900}
+.cx313-ai-feedback button{min-height:45px;padding:8px 12px;border-radius:11px;border:1px solid var(--border);background:var(--primary-soft);color:var(--primary);font:800 13px inherit}
+.cx313-ai-feedback button:disabled{opacity:.55}
+.cx313-rate-status{font-size:12px;color:var(--text-secondary);margin:0;line-height:1.7}
+.flosy-customer-v313 .fx-page-head p,.flosy-customer-v313 .fx-hero-capture p,.flosy-customer-v313 .cx312-tip{font-size:13px!important;line-height:1.8}
+.flosy-customer-v313 .fx-hero-capture button,.flosy-customer-v313 .cx313-capture-steps+section button{min-height:47px}
+.flosy-customer-v313 #flosyReceiptStatus,.flosy-customer-v313 #flosyCaptureStatus{font-size:13px;line-height:1.75}
+.flosy-customer-v313 .report311-files button{min-height:54px}
+.flosy-customer-v313 .report311-files button strong{font-size:15px}
+.flosy-customer-v313 .report311-files button small{font-size:11px}
+.flosy-customer-v313 .cx312-ai-prompts button{font-size:12px;min-height:45px}
+.flosy-customer-v313 .flosy-real button:focus-visible,.cx313-quickstart :focus-visible{outline:3px solid var(--primary);outline-offset:3px}
+@media(max-width:360px){.flosy-customer-v313 .flosy-nav399 button{font-size:11px}.flosy-customer-v313 .cx312-metrics strong{font-size:15px}
+ .flosy-customer-v313 .cx313-home-rail button{min-height:73px}.flosy-customer-v313 .cx313-home-rail button b{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.cx313-quickstart *,.cx313-capture-steps *{transition:none!important;animation:none!important}}
