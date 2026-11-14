@@ -79,3 +79,14 @@
 @media(max-width:345px){.fin393-grid,.fin393-bento{grid-template-columns:1fr}
  .fin393-icons{grid-template-columns:repeat(5,1fr)}}
 @media(prefers-reduced-motion:reduce){.fin393-panel,.fin393-metric{animation:none}}
+
+/* v3.9.5 grouped workspaces: distinct subfunctions share one compact tab bar. */
+.flosy-workspace-tabs{display:flex;gap:7px;overflow-x:auto;scrollbar-width:thin;
+ align-items:center;white-space:nowrap;padding:3px 0 12px;margin-bottom:10px;
+ border-bottom:1px solid var(--border);direction:rtl}
+.flosy-workspace-tabs button{flex:0 0 auto;border:1px solid var(--border);border-radius:99px;
+ background:var(--bg-surface);color:var(--text-secondary);
+ min-height:38px;padding:8px 13px;font:800 11px 'Cairo',sans-serif;cursor:pointer}
+.flosy-workspace-tabs button[aria-current="page"]{background:var(--primary);
+ border-color:var(--primary);color:white}
+.flosy-workspace-tabs button:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
