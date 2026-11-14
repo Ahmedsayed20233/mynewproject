@@ -336,7 +336,7 @@ async function extractForUnified(imageDataUrl,latinText=""){
  let worker=null;
  const native=String(latinText||"").trim().slice(0,12000);
  const validData=typeof imageDataUrl==="string" &&
-  /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(imageDataUrl)&&imageDataUrl.length<=750000;
+  /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(imageDataUrl)&&imageDataUrl.length<=11_000_000;
  // Blob/File from the unified parent window crosses a same-origin iframe realm:
  // instanceof iframe.Blob would be false. Accept the standard Blob API instead.
  const validFile=Boolean(imageDataUrl&&typeof imageDataUrl==="object"&&

@@ -129,10 +129,12 @@
  function capturePage(){
   return banner("تصوير الإيصال","كاميرا أو معرض صور، ثم مراجعة المبلغ والحساب قبل الحفظ")+
    '<section class="fx-hero-capture"><div class="fx-capture-art">'+icon("fa-receipt")+'</div>'+
-    '<h3>صوّر الوصل... وسيب الباقي لفلوسي</h3><p>قراءة عربي وإنجليزي. بنقترح الإجمالي والحساب، ومش بنحفظ أي عملية قبل موافقتك.</p>'+
+    '<h3>صوّر الإيصال أو اختاره من الصور</h3><p>OCR عربي وإنجليزي، ثم نموذج مدرّب على أسماء منتجات CORU المصرية. هنراجع الإجمالي والحساب قبل الحفظ.</p>'+
     '<div class="fx-capture-actions"><button type="button" class="flosy-btn" data-flosy-action="receipt" data-mode="camera">'+icon("fa-camera")+' افتح الكاميرا</button>'+
      '<button type="button" class="flosy-btn flosy-btn-secondary" data-flosy-action="receipt" data-mode="gallery">'+icon("fa-images")+' من المعرض</button></div>'+
     '<input id="flosyReceiptFile" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" aria-label="صورة إيصال" style="width:100%;margin-top:10px">'+
+    '<img id="flosyV310ReceiptPreview" alt="معاينة الصورة المختارة للإيصال قبل القراءة" class="flosy-v310-preview" hidden>'+
+
     '<p class="fx-capture-status" id="flosyReceiptStatus" role="status" aria-live="polite">جاهز. اختار صورة واضحة بإضاءة كويسة.</p></section>'+
    '<section class="flosy-panel">'+accountPicker("fxReceiptAccount")+
     '<p class="flosy-muted">الاختيار ده تفضيل فقط؛ لازم تأكد حساب الدفع في شاشة المراجعة.</p></section>'+
@@ -361,22 +363,27 @@
   };
   box.querySelector("#flosyReceiptFile").onchange=async e=>{
    const file=e.target.files?.[0];if(!file)return;
-   if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size>8*1024*1024)
-    return U().captureStatus("flosyReceiptStatus","اختار صورة JPEG/PNG/WebP أقل من 8MB",true);
-   U().captureStatus("flosyReceiptStatus","جارٍ قراءة صورة الإيصال... أول تشغيل ممكن يحتاج تحميل نموذج OCR");
+   if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size<=0||file.size>8*1024*1024)
+    return U().captureStatus("flosyReceiptStatus","اختار صورة JPEG/PNG/WebP بحجم لا يزيد عن 8MB",true);
+   const preview=box.querySelector("#flosyV310ReceiptPreview");
+   if(preview){
+    if(preview.dataset.objectUrl){URL.revokeObjectURL(preview.dataset.objectUrl);}
+    const url=URL.createObjectURL(file);preview.dataset.objectUrl=url;
+    preview.src=url;preview.hidden=false;
+   }
+   U().captureStatus("flosyReceiptStatus","جارٍ قراءة الصورة بالعربي والإنجليزي وتفسير الأصناف والإجمالي...");
    try{
-    const data=await new Promise((resolve,reject)=>{
-     const fr=new FileReader();fr.onerror=()=>reject(Error("تعذر قراءة الصورة"));
-     fr.onload=()=>resolve(fr.result);fr.readAsDataURL(file);
-    });
-    // For gallery PNG/WEBP, native model input accepts a Blob directly.
+    // Pass the actual File to the same-origin OCR core; avoid wasteful base64 FileReader.
     const engine=U().core()?.FLOSY_REPAIR?.extractForUnified;
     if(!engine)throw Error("مكتبة OCR غير جاهزة");
     const text=await engine(file,"");
     if(!text.trim())throw Error("لم يُستخرج نص من الفاتورة");
     box.querySelector("#flosyReceiptPaste").value=text;
     U().nativeReceipt(text);
-   }catch(err){U().captureStatus("flosyReceiptStatus","تعذر استخراج الإجمالي: "+err.message,true);}
+   }catch(err){
+    U().captureStatus("flosyReceiptStatus","لم نتمكن من استخراج المبلغ: "+err.message+
+      " — جرّب صورة أوضح أو صحّح النص في الأسفل.",true);
+   }
   };
  }
  function bindVoice(box){

@@ -84,9 +84,16 @@
   const warns=Array.isArray(details.extractionWarnings)?details.extractionWarnings:[];
   const rows=list.map((it,j)=>'<div class="flosy-v2-item-row">'+
    '<label>الصنف<input name="receipt-name-'+i+'-'+j+'" maxlength="80" required value="'+escape(it.name||"")+'"></label>'+
+   (it.coruSuggestedName && Number(it.coruMatchSimilarity)>=.82 &&
+    String(it.coruSuggestedName)!==String(it.name)?
+    '<div class="flosy-v310-coru-suggest"><span>اقتراح اسم من بيانات CORU: '+escape(it.coruSuggestedName)+
+    '</span><button type="button" data-coru-apply data-coru-target="receipt-name-'+i+'-'+j+
+    '" data-coru-value="'+escape(it.coruSuggestedName)+'">استخدم الاسم المقترح</button></div>':"")+
    '<label>الكمية<input type="number" min="0.001" step="0.001" required name="receipt-qty-'+i+'-'+j+'" value="'+escape(it.quantity??1)+'"></label>'+
    '<label>سعر الوحدة<input type="number" min="0" step="0.01" required name="receipt-price-'+i+'-'+j+'" value="'+escape(it.unitPrice??0)+'"></label></div>').join("");
   return '<details class="flosy-v2-items" open><summary>راجع الفاتورة والصنف والمبلغ ('+list.length+' صنف)</summary>'+
+   (details.coruModel?.source?
+    '<p class="flosy-v310-coru-provenance">مساعدة أسماء الأصناف من CORU-IE (بيانات مصرية). التصحيح مقترح فقط، مش دقة قراءة الصورة أو إثبات الإجمالي.</p>':"")+
    (warns.length?'<div class="flosy-v398-warnings" role="status"><strong>محتاج مراجعتك:</strong>'+
     warns.map(x=>'<p>• '+escape(x)+'</p>').join("")+'</div>':'')+
    '<div class="flosy-v398-line-items">'+rows+'</div>'+
@@ -141,6 +148,15 @@
    '<div id="flosyV2Error" role="alert"></div><footer><button type="button" data-v2-cancel>إلغاء بدون حفظ</button>'+
    '<button type="submit"'+(!eligibleCount?' disabled title="لا توجد عمليات صالحة"':'')+'>تأكيد وحفظ المحدد ('+eligibleCount+')</button></footer></form></section>';
   document.body.appendChild(node);
+  node.querySelectorAll("[data-coru-apply]").forEach(button=>{
+   button.addEventListener("click",()=>{
+    const target=node.querySelector('[name="'+button.dataset.coruTarget+'"]');
+    if(!target)return;
+    target.value=button.dataset.coruValue||target.value;
+    target.dispatchEvent(new Event("input",{bubbles:true}));
+    button.textContent="تم اختيار الاسم";button.disabled=true;
+   });
+  });
   node.querySelector("[data-v399-reanalyse]")?.addEventListener("click",()=>{
    const corrected=String(node.querySelector("#flosyV399CorrectedVoice")?.value||"").trim();
    const engine=root?.FLOSY_VOICE_SAFETY_V2;

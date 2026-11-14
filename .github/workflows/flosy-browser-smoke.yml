@@ -23,6 +23,9 @@ on:
       - 'flosy-voice-auto-v399.js'
       - 'flosy-experience-v399.*'
       - 'tests/v399-browser.cjs'
+      - 'tests/v310-browser.cjs'
+      - 'flosy-receipt-egypt-v310.js'
+      - 'flosy-receipt-coru-model-v310.js'
       - 'flosy-needs-ui-v398.*'
       - 'flosy-receipt-intelligence-v398.js'
       - 'flosy-receipt-trained-v398.js'
@@ -86,6 +89,8 @@ jobs:
         run: node tests/v398-browser.cjs
       - name: Test v399 unified navigation, theme continuity, voice repair and AI action routing
         run: node tests/v399-browser.cjs
+      - name: Test CORU-trained Egyptian receipt import, photo preview and owner review
+        run: node tests/v310-browser.cjs
       - name: Test real new customer account wizard, repeat and selective OCR/voice review
         run: node tests/customer-v397-browser.cjs
       - name: Test Flosy AI reference-image UI, voice, OCR, budget and crisis actions
@@ -109,6 +114,7 @@ jobs:
             tests/_artifacts/flosy-ai-v396-chat.png
             tests/_artifacts/flosy-v397-onboarding.png
             tests/_artifacts/flosy-v398-needs.png
+            tests/_artifacts/flosy-v310-receipt-review.png
             tests/_artifacts/flosy-v397-home-safe.png
             tests/_artifacts/flosy-ai-v396-actions.png
             tests/_artifacts/flosy-ai-v396-insights.png

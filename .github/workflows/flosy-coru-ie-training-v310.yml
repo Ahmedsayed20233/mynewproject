@@ -1,0 +1,53 @@
+name: Flosy v3.10 CORU Egyptian Receipt Model Training
+on:
+  push:
+    branches:
+      - feature/flosy-v310-egyptian-receipts-20261114
+    paths:
+      - scripts/train_flosy_coru_ie_v310.py
+      - .github/workflows/flosy-coru-ie-training-v310.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  train:
+    name: Train on real CORU IE and publish transparent evaluation
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Download CORU-IE train/val/test, train and report
+        run: python3 scripts/train_flosy_coru_ie_v310.py
+      - name: Validate generated portable model and split evidence
+        run: |
+          node --check flosy-receipt-coru-model-v310.js
+          test -s docs/FLOSY_V310_CORU_IE_TRAINING_RESULTS.md
+          grep -q 'Previously unseen names' docs/FLOSY_V310_CORU_IE_TRAINING_RESULTS.md
+          echo 'Model and metrics generated:'
+          ls -lh flosy-receipt-coru-model-v310.js docs/FLOSY_V310_CORU_IE_TRAINING_RESULTS.md
+          cat docs/FLOSY_V310_CORU_IE_TRAINING_RESULTS.md
+      - name: Publish actual trained model to experiment branch
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add flosy-receipt-coru-model-v310.js docs/FLOSY_V310_CORU_IE_TRAINING_RESULTS.md
+          if ! git diff --cached --quiet; then
+            git commit -m 'model: add evaluated trained CORU IE item model'
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: flosy-v310-coru-training-evidence
+          path: |
+            flosy-receipt-coru-model-v310.js
+            docs/FLOSY_V310_CORU_IE_TRAINING_RESULTS.md
+          if-no-files-found: warn
