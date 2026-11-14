@@ -113,6 +113,12 @@
    '<header><div><small>FLOSY • معاينة قبل الحفظ</small><h2 id="flosyV2Title">'+(kind==="receipt"?"مراجعة الفاتورة":"مراجعة الكلام المسموع")+'</h2>'+
    '<p>لسه ما اتحفظتش أي عملية. راجع الأرقام واختار الحساب بنفسك.</p></div>'+
    '<button type="button" data-v2-cancel aria-label="إغلاق">✕</button></header>'+
+   (kind==="voice"?'<section class="flosy-v399-repair" aria-label="تصحيح الكلام المسموع">'+
+    '<label for="flosyV399CorrectedVoice"><strong>فلوسي فهم كلامك كده — صححه لو فيه خطأ</strong></label>'+
+    '<textarea id="flosyV399CorrectedVoice" rows="3" spellcheck="false" class="flosy-input">'+escape(items.map(p=>p.text||"").join(" وبعدين "))+'</textarea>'+
+    '<div class="flosy-v399-repair-actions"><button type="button" data-v399-reanalyse>↻ إعادة فهم الكلام بعد التصحيح</button>'+
+    '<button type="button" data-v399-manual>+ إدخال يدوي بدل الصوت</button></div>'+
+    '<p>لو العملية مش مفهومة أو مبلغها غلط، صحّح النص واضغط إعادة التحليل؛ مش هنحفظ أي مبلغ من الكلام غير الواضح.</p></section>':"")+
    '<form id="flosyV2Form"><input type="hidden" name="review-selection" value="on">'+items.map((p,i)=>{
     const eligible=["income","expense","transfer"].includes(p.intent);
     return '<fieldset'+(eligible?"":' class="flosy-v2-blocked" disabled')+'><legend>عملية '+(i+1)+' • '+escape(labels[p.intent]||"غير معروفة")+'</legend>'+
@@ -131,10 +137,27 @@
       '<label class="flosy-v2-wide">الوصف<input type="text" name="description-'+i+'" maxlength="90" value="'+escape(p.description|| (kind==="receipt"?"فاتورة":labels[p.intent]||"عملية"))+'"'+(eligible?" required":" disabled")+'></label>'+
       '</div>'+ (kind==="receipt"?receiptEditor(p,i):"")+'</fieldset>';
    }).join("")+
-   '<p class="flosy-v2-note">تفسير اللهجة أو نتيجة OCR مش ضمان للدقة. لا نحتفظ هنا بالنص الخام أو صورة الإيصال. الحفظ بعد موافقتك فقط.</p>'+
+   '<p class="flosy-v2-note">يمكن تصحيح الكلام وإعادة تحليله أو الإدخال اليدوي. تفسير اللهجة أو OCR مش ضمان للدقة. لا نحتفظ هنا بالصوت أو الصورة. الحفظ بعد موافقتك فقط.</p>'+
    '<div id="flosyV2Error" role="alert"></div><footer><button type="button" data-v2-cancel>إلغاء بدون حفظ</button>'+
    '<button type="submit"'+(!eligibleCount?' disabled title="لا توجد عمليات صالحة"':'')+'>تأكيد وحفظ المحدد ('+eligibleCount+')</button></footer></form></section>';
   document.body.appendChild(node);
+  node.querySelector("[data-v399-reanalyse]")?.addEventListener("click",()=>{
+   const corrected=String(node.querySelector("#flosyV399CorrectedVoice")?.value||"").trim();
+   const engine=root?.FLOSY_VOICE_SAFETY_V2;
+   const error=node.querySelector("#flosyV2Error");
+   if(!corrected||corrected.length>600||!engine?.analyzeBatch){
+    if(error)error.textContent="اكتب جملة واضحة بطول مناسب وأعد المحاولة";return;
+   }
+   try{
+    const normalized=engine.analyzeBatch(corrected,pending.accounts,items[0]?.date||"");
+    if(!normalized.length)throw Error("مفيش جملة مالية واضحة للتحليل");
+    const oldPending=pending;
+    open({...oldPending,items:normalized,kind:"voice"});
+   }catch(err){if(error)error.textContent=String(err.message||"تعذّر إعادة التحليل")}
+  });
+  node.querySelector("[data-v399-manual]")?.addEventListener("click",()=>{
+   close();root?.FLOSY_UNIFIED?.go?.(5);
+  });
   node.querySelectorAll("[data-v2-cancel]").forEach(b=>b.addEventListener("click",close));
   const reconcile=()=>{
    node.querySelectorAll("[data-receipt-calc]").forEach(out=>{

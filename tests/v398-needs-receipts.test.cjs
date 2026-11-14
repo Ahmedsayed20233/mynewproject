@@ -53,7 +53,32 @@ test("priority tiers are suggestions with separate neutral income and transfer h
  assert.equal(N.suggest({type:"income",amount:2000,description:"مرتب"}).tier,"excluded");
  assert.equal(N.suggest({type:"transfer",amount:2000,description:"تحويل داخلي"}).tier,"excluded");
  assert.equal(N.suggest({type:"expense",amount:55,description:"مستلزمات"},
-    {necessityRules:{"":"essential"}}).tier,"essential");
+    {necessityRules:{"":"essential"}}).tier,"flexible");
+});
+test("Arabic normalization keeps medication, rent, hospital, tuition and installments essential",()=>{
+ for(const category of ["أدوية","صيدلية","مستشفى","أقساط","تأمين","مدرسة","إيجار"]){
+  assert.equal(N.suggest({type:"expense",amount:50,category}).tier,"essential",category);
+ }
+ for(const description of ["ألعاب","حفلة"]){
+  assert.equal(N.suggest({type:"expense",amount:50,description}).tier,"optional",description);
+ }
+ assert.equal(N.suggest({type:"expense",amount:50,category:"هدايا"}).tier,"flexible");
+});
+test("Unposted, void, failed and reversed expenses never enter the necessity summary",()=>{
+ const transactions=[
+  {id:"ok",type:"expense",amount:80,date:"2026-11-14",description:"دواء",status:"posted"},
+  ...["pending","failed","rejected","cancelled","canceled","void","draft","reversed"]
+    .map((status,i)=>({id:"blocked"+i,type:"expense",amount:1000,date:"2026-11-14",
+      category:"إيجار",status}))
+ ];
+ for(const t of transactions.slice(1)){
+  assert.equal(N.suggest(t).tier,"excluded",t.status);
+  assert.throws(()=>N.change(t.id,"essential",cb=>cb({transactions})),/ليست مصروف/);
+ }
+ const summary=N.summarize({transactions,settings:{}},"month",new Date("2026-11-14T12:00:00"));
+ assert.equal(summary.total,80);
+ assert.equal(summary.count,1);
+ assert.equal(summary.totals.essential,80);
 });
 test("owner correction is persisted, recalculates monthly tiers, and never changes money",()=>{
  const state={transactions:[

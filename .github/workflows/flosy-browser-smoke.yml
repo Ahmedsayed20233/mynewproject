@@ -1,7 +1,7 @@
 name: Flosy Real Browser Smoke
 on:
   push:
-    branches: [flosy-site, "test/**", "feature/**"]
+    branches: [flosy-site, "test/**", "feature/**", "fix/**"]
     paths:
       - 'tests/browser-smoke.cjs'
       - 'flosy-ai.js'
@@ -19,6 +19,10 @@ on:
       - 'flosy-ai-experience-v396.*'
       - 'flosy-customer-v397.*'
       - 'flosy-needs-v398.js'
+      - 'flosy-ai-brain-v399.js'
+      - 'flosy-voice-auto-v399.js'
+      - 'flosy-experience-v399.*'
+      - 'tests/v399-browser.cjs'
       - 'flosy-needs-ui-v398.*'
       - 'flosy-receipt-intelligence-v398.js'
       - 'flosy-receipt-trained-v398.js'
@@ -80,6 +84,8 @@ jobs:
         run: node tests/v391-browser.cjs
       - name: Test spending tiers and trained receipt parser with real review controls
         run: node tests/v398-browser.cjs
+      - name: Test v399 unified navigation, theme continuity, voice repair and AI action routing
+        run: node tests/v399-browser.cjs
       - name: Test real new customer account wizard, repeat and selective OCR/voice review
         run: node tests/customer-v397-browser.cjs
       - name: Test Flosy AI reference-image UI, voice, OCR, budget and crisis actions

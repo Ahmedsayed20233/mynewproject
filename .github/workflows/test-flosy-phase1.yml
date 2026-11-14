@@ -10,6 +10,10 @@ on:
       - 'flosy-ai-experience-v396.*'
       - 'flosy-customer-v397.*'
       - 'flosy-needs-v398.js'
+      - 'flosy-ai-brain-v399.js'
+      - 'flosy-voice-auto-v399.js'
+      - 'flosy-experience-v399.*'
+      - 'tests/v399-ai-voice-ux.test.cjs'
       - 'flosy-needs-ui-v398.*'
       - 'flosy-receipt-intelligence-v398.js'
       - 'flosy-receipt-trained-v398.js'
@@ -123,6 +127,9 @@ jobs:
           node --check flosy-unified-ai.js
           node --check flosy-ai-experience-v396.js
           node --check flosy-customer-v397.js
+          node --check flosy-ai-brain-v399.js
+          node --check flosy-voice-auto-v399.js
+          node --check flosy-experience-v399.js
           node --check flosy-needs-v398.js
           node --check flosy-needs-ui-v398.js
           node --check flosy-receipt-trained-v398.js
@@ -141,4 +148,4 @@ jobs:
           node --check flosy-assistant-bridge.js
           node --check service-worker.js
       - name: Run financial safety regression suite
-        run: node --test tests/v398-needs-receipts.test.cjs tests/customer-v397.test.cjs tests/more-menu-consolidation.test.cjs tests/screen-consolidation.test.cjs tests/trained-nlu-compact.test.cjs tests/voice-safety-v2.test.cjs tests/phase1.test.cjs tests/v4.test.cjs tests/offline-cache.test.cjs tests/direct-capture-ui.test.cjs tests/ai-analytics.test.cjs tests/report-kit.test.cjs tests/aurora.test.cjs tests/ultra.test.cjs tests/unified.test.cjs tests/v391.test.cjs tests/v392.test.cjs tests/v393.test.cjs tests/report-kit.test.cjs
+        run: node --test tests/v399-ai-voice-ux.test.cjs tests/v398-needs-receipts.test.cjs tests/customer-v397.test.cjs tests/more-menu-consolidation.test.cjs tests/screen-consolidation.test.cjs tests/trained-nlu-compact.test.cjs tests/voice-safety-v2.test.cjs tests/phase1.test.cjs tests/v4.test.cjs tests/offline-cache.test.cjs tests/direct-capture-ui.test.cjs tests/ai-analytics.test.cjs tests/report-kit.test.cjs tests/aurora.test.cjs tests/ultra.test.cjs tests/unified.test.cjs tests/v391.test.cjs tests/v392.test.cjs tests/v393.test.cjs tests/report-kit.test.cjs
