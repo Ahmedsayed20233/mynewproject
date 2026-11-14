@@ -8,10 +8,10 @@
  const icon=x=>'<i class="fa-solid '+x+'" aria-hidden="true"></i>';
  const map=w.FLOSY_SCREEN_MAP_V395;
  if(!map)throw Error("Flosy consolidated screen map missing");
- const items=map.primary,subItems=map.details,advancedItems=map.advanced;
- const types=[["all","الكل"],["main","الأساسيات"],["capture","الإدخال"],
-  ["plan","الالتزامات والخطط"],["wealth","الثروة"],["ai","الذكاء والتقارير"],
-  ["settings","الإعدادات"]];
+ // The More tab contains SETTINGS ONLY. All main money spaces are accessible
+ // from Home/navigation; detail routes use workflow tabs; advanced finance features
+ // appear on their matching finance pages (not twice here).
+ const items=map.more,subItems=map.details,advancedItems=map.advanced;
  let lastStatus=null;
  function quick(item){
   const [id,label,description,i,group,advanced]=item;
@@ -36,50 +36,37 @@
    '<span>'+esc(t.label)+'</span></button>').join("");
  }
  function servicesHtml(){
-  const {advice,n}=summary();
-  return '<div class="service-v392-root">'+
-   '<header class="service-v392-hero"><div><small>YOUR FLOSY · خدماتك</small><h2>'+
-   (n?"أهلاً يا "+esc(n):"كل فلوسي في مكان واحد")+'</h2>'+
-   '<p>كل أدوات إدارة أموالك بأيقونات واضحة وتنظيم أسهل.</p></div>'+
-   '<button type="button" data-flosy-screen="8" aria-label="فلوسي AI" class="service-v392-avatar"><img src="flosy-ultra-avatar.svg" alt="Flosy AI"/></button></header>'+
-   '<div class="service-v392-daily" data-flosy-screen="8" role="link" tabindex="0">'+
-    '<span>'+icon("fa-wand-magic-sparkles")+'</span><div><small>اقتراح شخصي اليوم</small><strong>'+
-    esc(advice.title)+'</strong><p>'+esc(advice.message)+'</p></div></div>'+
-   '<div class="service-v392-search">'+icon("fa-magnifying-glass")+
-   '<input id="servicesV392Search" type="search" placeholder="دوّر على خدمة، زي تقارير أو صوت..." aria-label="البحث في الخدمات"></div>'+
-   '<div class="service-v392-tabs" role="group" aria-label="أقسام الخدمات">'+
-    types.map(([id,label])=>'<button type="button" data-sfilter="'+id+'" aria-pressed="'+(id==="all")+'">'+label+'</button>').join("")+'</div>'+
-   '<p class="service-v392-count">8 أقسام أساسية بدل 20 شاشة منفصلة؛ الوظائف التفصيلية ما زالت متاحة.</p>'+
-   '<p id="servicesV392Count" class="service-v392-count" aria-live="polite"></p>'+
-   '<h3 class="service-v395-title">المساحات الرئيسية</h3>'+
-   '<div id="servicesV392Grid" class="service-v392-grid">'+items.map(quick).join("")+'</div>'+
-   '<details class="service-v392-fold" id="flosyDetailedTools"><summary>'+icon("fa-layer-group")+
-    ' وظائف داخل المساحات <span>10 أدوات مستقلة، وليست 10 أقسام جديدة</span></summary>'+
-    '<div class="service-v392-grid service-v395-subgrid">'+subItems.map(quick).join("")+'</div></details>'+
-   '<details class="service-v392-fold" id="flosyAdvancedTools"><summary>'+icon("fa-toolbox")+
-    ' الأدوات المتقدمة <span>المزامنة والخصوصية وغيرها</span></summary>'+
-    '<div class="service-v392-grid service-v395-subgrid">'+advancedItems.map(quick).join("")+'</div></details>'+
-   '<details class="service-v392-fold" open><summary>'+icon("fa-palette")+
-     ' التصميم والثيمات الأربعة <span>ألوان موحدة لكل الصفحات</span></summary>'+
-     '<div class="service-v392-themes">'+themeGrid()+'</div></details>'+
-   '<details class="service-v392-fold" open><summary>'+icon("fa-bell")+
-     ' الإشعارات الذكية <span>تحتاج إذن صريح منك</span></summary>'+
-     '<div class="service-v392-notify"><div id="flosyNotificationStatus" class="service-v392-status" role="status">لم تُطلب حالة الإشعارات بعد.</div>'+
-     '<button class="flosy-btn" type="button" data-notify-action="enable">'+icon("fa-bell")+' تفعيل إشعارات الأقساط</button>'+
-     '<button class="flosy-btn flosy-btn-secondary" type="button" data-notify-action="daily">'+icon("fa-sun")+' اقتراح يومي 9 صباحًا</button>'+
-     '<button class="flosy-btn flosy-btn-secondary" type="button" data-notify-action="test">إشعار تجريبي</button>'+
-     '<button class="flosy-btn flosy-btn-secondary" type="button" data-notify-action="stop">إيقاف الإشعارات</button>'+
-     '<small>إشعارات Android محلية، ولا تعرض مبالغ أو تفاصيل بنكية على شاشة القفل. قد يؤخر النظام موعد التسليم. إشعارات الويب اليومية في الخلفية غير مدعومة في هذه النسخة.</small></div></details>'+
-   '<details class="service-v392-fold"><summary>'+icon("fa-id-card")+
-     ' معلوماتي <span>علشان فلوسي يناديك باسمك</span></summary>'+
-     '<form id="flosyFirstNameForm" class="service-v392-name"><label>الاسم الأول'+
-     '<input class="flosy-input" name="firstName" maxlength="24" autocomplete="given-name" value="'+esc(n)+'" placeholder="مثال: أحمد" required></label>'+
-     '<button class="flosy-btn" type="submit">حفظ الاسم</button></form>'+
-     '<label class="flosy-field">الحساب الافتراضي للإدخال السريع<select class="flosy-input" id="flosyDefaultAccount">'+
-      '<option value="">اختر حسابًا</option>'+
-      (api()?.accounts()||[]).map(a=>'<option value="'+esc(a.id)+'"'+
+  const {n}=summary();
+  return '<div class="service-v392-root service-v395-more">'+
+   '<header class="service-v392-hero"><div><small>FLOSY · SETTINGS</small>'+
+    '<h2>المزيد والإعدادات</h2>'+
+    '<p>'+(n?'يا '+esc(n)+'، ':'')+
+    'هنا إدارة حسابك وبياناتك وتفضيلاتك فقط. العمليات والديون والتقارير في أقسامها الأصلية.</p></div></header>'+
+   '<h3 class="service-v395-title">إدارة التطبيق والبيانات</h3>'+
+   '<div id="servicesV392Grid" class="service-v392-grid" aria-label="إعدادات فلوسي">'+
+    items.map(quick).join("")+'</div>'+
+   '<p id="servicesV392Count" class="service-v392-count" role="status">'+
+    items.length+' إعدادات أساسية، بدون تكرار الشاشات المالية.</p>'+
+   '<details class="service-v392-fold" id="flosyMorePreferences"><summary>'+icon("fa-palette")+
+    ' المظهر والثيمات <span>اختيار شخصي</span></summary>'+
+    '<div class="service-v392-themes">'+themeGrid()+'</div></details>'+
+   '<details class="service-v392-fold" id="flosyMoreNotifications"><summary>'+icon("fa-bell")+
+    ' الإشعارات والتذكيرات <span>تحتاج إذنك</span></summary>'+
+    '<div class="service-v392-notify"><div id="flosyNotificationStatus" class="service-v392-status" role="status">لم تُطلب حالة الإشعارات بعد.</div>'+
+    '<button class="flosy-btn" type="button" data-notify-action="enable">'+icon("fa-bell")+' تفعيل إشعارات الأقساط</button>'+
+    '<button class="flosy-btn flosy-btn-secondary" type="button" data-notify-action="daily">'+icon("fa-sun")+' اقتراح يومي 9 صباحًا</button>'+
+    '<button class="flosy-btn flosy-btn-secondary" type="button" data-notify-action="stop">إيقاف الإشعارات</button>'+
+    '<small>إشعارات Android محلية ولا تعرض تفاصيل بنكية على شاشة القفل. نظام الهاتف قد يؤخرها؛ لا توجد إشعارات ويب مضمونة في الخلفية.</small></div></details>'+
+   '<details class="service-v392-fold" id="flosyMoreProfile"><summary>'+icon("fa-id-card")+
+    ' معلوماتي والتسجيل السريع <span>الاسم والحساب الافتراضي</span></summary>'+
+    '<form id="flosyFirstNameForm" class="service-v392-name"><label>الاسم الأول'+
+    '<input class="flosy-input" name="firstName" maxlength="24" autocomplete="given-name" value="'+esc(n)+'" placeholder="مثال: أحمد" required></label>'+
+    '<button class="flosy-btn" type="submit">حفظ الاسم</button></form>'+
+    '<label class="flosy-field">الحساب الافتراضي للإدخال السريع<select class="flosy-input" id="flosyDefaultAccount">'+
+     '<option value="">اختر حسابًا</option>'+
+     (api()?.accounts()||[]).map(a=>'<option value="'+esc(a.id)+'"'+
       (api().defaultAccount()===a.id?' selected':'')+'>'+esc(a.name)+'</option>').join("")+
-     '</select></label></details></div>';
+    '</select></label></details></div>';
  }
  function dailyHome(){
   const {advice}=summary();
@@ -101,30 +88,7 @@
   if(status)status.textContent="إشعارات الأقساط والنصيحة اليومية في الخلفية متاحة من نسخة Android.";
  }
  function bind(el){
-  let group="all";
-  const input=el.querySelector("#servicesV392Search"),cards=[...el.querySelectorAll(".service-v392-item")],
-    count=el.querySelector("#servicesV392Count");
-  const refresh=()=>{
-   const q=String(input?.value||"").trim().toLocaleLowerCase("ar-EG");
-   let found=0;
-   for(const c of cards){
-    const match=(group==="all"||c.dataset.sgroup===group)&&
-      (!q||c.textContent.toLocaleLowerCase("ar-EG").includes(q));
-    c.hidden=!match;if(match)found++;
-   }
-   // If a user searches for a hidden tool, open its collapsed collection.
-   if(q)for(const id of ["flosyDetailedTools","flosyAdvancedTools"]){
-    const fold=el.querySelector("#"+id);
-    if(fold?.querySelector(".service-v392-item:not([hidden])"))fold.open=true;
-   }
-   count.textContent=(q||group!=="all")?found+" نتيجة":
-    items.length+" مساحات رئيسية · "+subItems.length+" وظائف داخلها";
-  };
-  input.oninput=refresh;
-  el.querySelectorAll("[data-sfilter]").forEach(btn=>btn.onclick=()=>{
-   group=btn.dataset.sfilter;el.querySelectorAll("[data-sfilter]").forEach(b=>b.setAttribute("aria-pressed",String(b===btn)));
-   refresh();
-  });refresh();
+  // Four distinct settings, no duplicated dashboard/AI/receipt/plan search catalog.
   el.querySelectorAll("[data-notify-action]").forEach(btn=>btn.onclick=()=>{
    const action=btn.dataset.notifyAction;
    if(action==="enable")askPermission("notifications-enable");
@@ -147,9 +111,6 @@
   el.querySelector("#flosyDefaultAccount").onchange=e=>{
    if(api().setDefaultAccount(e.target.value))api().notify("اتحفظ الحساب الافتراضي");
   };
-  el.querySelector(".service-v392-daily").onkeydown=e=>{
-   if(e.key==="Enter"||e.key===" "){e.preventDefault();api().go(8)}
-  };
   api().bridge("notifications-daily-name",{name:CP()?.name?.(api().state())||""});
   if(lastStatus)nativeStatus(lastStatus);else api().bridge("notifications-status");
  }
@@ -165,5 +126,5 @@
   }
  };
  w.FLOSY_NOTIFY_V392={nativeStatus};
- w.FLOSY_SERVICES_V392={servicesHtml,items,subItems,advancedItems,version:"3.9.5"};
+ w.FLOSY_SERVICES_V392={servicesHtml,items,subItems,advancedItems,moreSettings:items,version:"3.9.5-more"};
 })(window,document);
