@@ -43,12 +43,12 @@ jobs:
       - name: Verify MVP excludes messaging features
         run: |
           set -eu
-          grep -Fq "versionName '3.9.7'" android/app/build.gradle
-          grep -Fq "applicationIdSuffix '.unified.v397'" android/app/build.gradle
+          grep -Fq "versionName '3.9.8'" android/app/build.gradle
+          grep -Fq "applicationIdSuffix '.unified.v398'" android/app/build.gradle
           grep -Fq 'tools:node="remove"' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'tools:node="replace"' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'FLOSY_MVP_NO_MESSAGE_IMPORT' android/app/src/main/java/com/flosy/finance/MainActivity.java
-          # v3.9.7 continues to host app JavaScript from GitHub Pages, not from APK assets.
+          # v3.9.8 continues to host app JavaScript from GitHub Pages, not from APK assets.
           grep -Fq 'ROOT + "flosy.html"' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'configureMvpWebUi()' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'if(isMvp()' android/app/src/main/java/com/flosy/finance/MainActivity.java
@@ -83,8 +83,8 @@ jobs:
           AAPT="$ANDROID_HOME/build-tools/35.0.0/aapt"
           SIGN="$ANDROID_HOME/build-tools/35.0.0/apksigner"
           "$AAPT" dump badging "$APK" | tee /tmp/flosy-mvp-badging.txt
-          grep -q "name='com.flosy.finance.unified.v397'" /tmp/flosy-mvp-badging.txt
-          grep -q "versionName='3.9.7'" /tmp/flosy-mvp-badging.txt
+          grep -q "name='com.flosy.finance.unified.v398'" /tmp/flosy-mvp-badging.txt
+          grep -q "versionName='3.9.8'" /tmp/flosy-mvp-badging.txt
           "$AAPT" dump permissions "$APK" | tee /tmp/flosy-mvp-permissions.txt
           if grep -E 'android.permission.(READ_SMS|RECEIVE_SMS|SEND_SMS|READ_CALL_LOG|BIND_NOTIFICATION_LISTENER_SERVICE|BIND_ACCESSIBILITY_SERVICE)' /tmp/flosy-mvp-permissions.txt; then
             echo "BLOCKED: MVP APK contains restricted messages/notification permission"; exit 1
@@ -99,13 +99,13 @@ jobs:
           "$SIGN" verify --verbose "$APK"
           unzip -t "$APK" >/dev/null
           mkdir -p dist
-          cp "$APK" dist/Flosy-Connected-Finance-v3.9.7.apk
+          cp "$APK" dist/Flosy-Connected-Finance-v3.9.8.apk
           ls -lh dist/*.apk
 
       - name: Upload MVP testing APK
         uses: actions/upload-artifact@v4
         with:
-          name: Flosy-Unified-v3.9.7-20-Screens
+          name: Flosy-Unified-v3.9.8-20-Screens
           path: dist/*.apk
           retention-days: 30
           if-no-files-found: error
@@ -115,13 +115,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="flosy-connected-finance-v3.9.7"
+          TAG="flosy-connected-finance-v3.9.8"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.apk --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$TAG" dist/*.apk \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --title "Flosy v3.9.7 — redesigned AI assistant, voice, receipts, actionable budgets" \
-              --notes "Flosy v3.9.7 experimental Android APK with real first-use four-step setup, professional account creation, fast expense shortcuts and repeat-with-confirmation, selective saving of valid voice requests even when an unsupported refund/debt phrase appears, itemized receipt editing with live arithmetic reconciliation, clearer Safe to Spend explanation, and preserved More settings panels. Previous v3.9.6 Flosy AI, real finance reports, personal budgets and notifications remain. All financial actions still require owner confirmation. No SMS or notification-inbox financial import permissions. Android WebView loads the deployed GitHub Pages UI and requires network on first launch. Debug-signed founder-test build, not Play Store release. Package com.flosy.finance.unified.v397 uses distinct local app storage from earlier builds; migration is not included because the founder is testing with disposable data. Physical device functionality and Play Protect acceptance not certified."
+              --title "Flosy v3.9.8 — redesigned AI assistant, voice, receipts, actionable budgets" \
+              --notes "Flosy v3.9.8 experimental Android APK. The hosted Flosy UI now distinguishes important essential spending, middle adjustable spending and optional spending, with owner correction per transaction and AI explanations. Receipts use a reproducible model trained on 100 genuine MIT-licensed AraReceipt images' human-reviewed OCR annotations to assist total-value ranking; held-out precision 46.03%, recall 87.88%, so it is NOT autonomous OCR and cannot safely post receipts without confirmation. Improved bilingual OCR pass selection prevents conflicting multiple totals from being concatenated, parser flags uncertainty, receipt editor supports missing items and total-only owner approval. Previous 3.9.7 voice, onboarding, AI, reports and screen consolidation remain. No SMS or financial notification inbox permissions. This WebView loads GitHub Pages; network needed on first launch. Debug-signed founder-test only, physical-phone OCR not certified. Distinct package com.flosy.finance.unified.v398 has independent local data from prior versions and no automatic migration. See docs/FLOSY_V398_SMART_SPENDING_RECEIPT_RESEARCH_AR.md on flosy-site for research evidence and limits."
           fi
