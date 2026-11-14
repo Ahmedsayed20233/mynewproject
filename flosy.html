@@ -1590,24 +1590,24 @@
           </div>
 
           <div class="grid grid-cols-3 gap-2 text-center">
-            <button data-flosy-action="report" data-kind="pdf" class="app-card rounded-2xl p-2.5">
+            <button onclick="goToScreen(15)" class="app-card rounded-2xl p-2.5">
               <i class="fa-solid fa-file-pdf expense-text text-base mb-1"></i>
               <div class="text-[10px] font-extrabold text-main">تحميل PDF</div>
             </button>
-            <button data-flosy-action="report" data-kind="excel" class="app-card rounded-2xl p-2.5">
+            <button onclick="goToScreen(15)" class="app-card rounded-2xl p-2.5">
               <i class="fa-solid fa-file-excel income-text text-base mb-1"></i>
               <div class="text-[10px] font-extrabold text-main">شيت Excel</div>
             </button>
-            <button onclick="showToast('تم إرسال الملخص المالي عبر واتساب 💬')" class="app-card rounded-2xl p-2.5">
+            <button onclick="goToScreen(15)" class="app-card rounded-2xl p-2.5">
               <i class="fa-brands fa-whatsapp brand-text text-base mb-1"></i>
               <div class="text-[10px] font-extrabold text-main">ملخص واتساب</div>
             </button>
           </div>
 
           <div class="app-card rounded-2xl p-3 space-y-1.5 text-xs tabular-nums">
-            <div class="flex justify-between"><span class="text-sub">إجمالي الدخل</span><span class="font-black income-text">15,000 ج.م</span></div>
-            <div class="flex justify-between"><span class="text-sub">إجمالي المصروفات</span><span class="font-black expense-text">6,750 ج.م</span></div>
-            <div class="flex justify-between"><span class="text-sub">معدل الادخار الشهري</span><span class="font-black brand-text">55% (ممتاز)</span></div>
+            <div class="flex justify-between"><span class="text-sub">إجمالي الدخل</span><span class="font-black income-text">يُحسب من المعاملات</span></div>
+            <div class="flex justify-between"><span class="text-sub">إجمالي المصروفات</span><span class="font-black expense-text">يُحسب من المعاملات</span></div>
+            <div class="flex justify-between"><span class="text-sub">معدل الادخار الشهري</span><span class="font-black brand-text">يُحسب حسب الدخل الفعلي</span></div>
           </div>
         </div>
 
