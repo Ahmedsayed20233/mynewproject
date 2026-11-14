@@ -69,6 +69,7 @@ const {setTimeout:wait}=require("node:timers/promises"),BASE="http://127.0.0.1:8
   await page.evaluate(()=>window.FLOSY_UNIFIED.applyTheme("serene-dark"));
   await page.evaluate(()=>window.FLOSY_UNIFIED.go(2));
   assert.equal(await page.locator("html").getAttribute("data-theme"),"serene-dark");
+  fs.mkdirSync("tests/_artifacts",{recursive:true});
   await page.locator(".cx312-home").screenshot({path:"tests/_artifacts/flosy-v312-home-390px.png"});
   assert.equal(errors.filter(x=>/SyntaxError|ReferenceError|TypeError/.test(x)).length,0,errors.join(" | "));
   console.log("PASS v3.12 home, five tabs, real quick expense, undo, CSV/XLSX/PDF, AI, OCR route and theme");
