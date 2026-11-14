@@ -141,6 +141,9 @@
   form.addEventListener("input",()=>queueMicrotask(update));
   form.addEventListener("change",()=>queueMicrotask(update));
   form.addEventListener("click",event=>{
+   // The v3.12 quick-chip handler fills the description programmatically,
+   // without emitting an input event. Refresh after its document click handler.
+   if(event.target.closest("[data-ux312-preset]")){queueMicrotask(update);return;}
    const repeat=event.target.closest("[data-cx313-repeat]");
    if(!repeat)return;
    const t=latestExpense();if(!t)return;
