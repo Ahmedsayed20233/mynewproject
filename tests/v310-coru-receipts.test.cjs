@@ -73,7 +73,7 @@ test("Flosy review offers optional corrections but no automatic posting",()=>{
  assert.ok(html.includes("flosy-v310-coru-provenance"));
  assert.ok(core.includes('src="flosy-receipt-coru-model-v310.js?v=3100"'));
  assert.ok(core.includes('src="flosy-receipt-egypt-v310.js?v=3100"'));
- assert.ok(site.includes("flosy-v310")||site.includes("v3100"));
+ assert.ok(site.includes("flosy-capture-review-v2.js?v=3100"));
  assert.ok(worker.includes("flosy-receipt-coru-model-v310.js"));
  assert.ok(ux.includes("flosyV310ReceiptPreview"));
  assert.ok(!ux.includes("fr.readAsDataURL(file)"));
