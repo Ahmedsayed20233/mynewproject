@@ -102,7 +102,7 @@ async function receiveNativeReceiptImage(imageDataUrl,latinText){
   const lib=await loadOCR();
   worker=await lib.createWorker(["ara","eng"]);
   const text=await readMultipleOCR(worker,imageDataUrl);
-  return proposeReceipt([text,latin].filter(Boolean).join("\n"),"ML Kit + Tesseract Arabic/English + ReceiptML");
+  return proposeReceipt(chooseBestReceiptText([text,latin]),"ML Kit + Tesseract Arabic/English + ReceiptML");
  }catch(e){
   status("flosyOcrStatus","تعذر تشغيل OCR العربي: "+String(e.message||e)+". جاري تحليل النص المتاح.");
   return latin?proposeReceipt(latin,"ML Kit Latin fallback"):false;
@@ -182,6 +182,25 @@ async function contrastReceiptImage(source){
   return canvas;
  }finally{if(url&&url.startsWith("blob:"))URL.revokeObjectURL(url)}
 }
+function chooseBestReceiptText(parts){
+ const unique=parts.map(x=>String(x||"").trim()).filter(Boolean)
+  .filter((x,i,a)=>a.indexOf(x)===i);
+ if(!unique.length)throw Error("OCR لم يستخرج نصاً واضحاً");
+ const parser=w.FLOSY_RECEIPT_ML;
+ const scored=unique.map((text,index)=>{
+  let info=null;try{info=parser?.extract?.(text)}catch{}
+  const count=text.split(/\r?\n/).filter(Boolean).length;
+  const labels=/الإجمالي|الاجمالي|صاف[ىي]|المطلوب|grand total|total due|total amount|net total/i.test(text);
+  const score=(Number(info?.amount)>0?5:0)+(labels?3:0)+
+   (info?.arithmeticConsistent?3:0)+(info?.merchant?1:0)+(info?.date?1:0)+
+   Math.min(4,(info?.items?.length||0)*.4)+Math.min(2,count/14)-
+   (info?.arithmeticContradiction?4:0)-
+   (info?.extractionWarnings?.length>3?2:0);
+  return {text,index,score};
+ });
+ scored.sort((a,b)=>b.score-a.score||a.index-b.index);
+ return scored[0].text;
+}
 async function readMultipleOCR(worker,source){
  const outputs=[];
  try{
@@ -196,7 +215,8 @@ async function readMultipleOCR(worker,source){
   }
  }catch{}
  if(!outputs.length)throw Error("OCR لم يتعرف على نص صالح");
- return outputs.join("\n");
+ // Each pass is parsed separately; never combine conflicting total labels.
+ return chooseBestReceiptText(outputs);
 }
 async function scanReceipt(){
  if(busyOCR)return;
@@ -330,7 +350,7 @@ async function extractForUnified(imageDataUrl,latinText=""){
   const bilingual=await readMultipleOCR(worker,imageDataUrl);
   const pieces=[bilingual,native].map(x=>String(x||"").trim()).filter(Boolean);
   // Bilingual OCR often contains useful item names absent from native Latin-only ML Kit.
-  return pieces.filter((x,i)=>pieces.indexOf(x)===i).join("\n").slice(0,12000);
+  return chooseBestReceiptText(pieces).slice(0,12000);
  }catch(err){
   if(native)return native;
   throw err;
