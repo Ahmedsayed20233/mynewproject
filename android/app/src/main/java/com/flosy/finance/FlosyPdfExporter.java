@@ -72,6 +72,17 @@ public final class FlosyPdfExporter {
             text(amount,227,y+9,181,11,index%2==0?TEAL:NAVY,true);
             line(30,y+55,565,y+55,LINE);y+=58;
         }
+        void bar(String label,long value,long max,long minor){
+            ensure(47);
+            text(label,554,y+1,185,10,NAVY,true);
+            text(money(value),562,y+20,180,9,MUTED,false);
+            rect(38,y+24,310,10,LIGHT);
+            if(max>0&&value>0){
+                float width=(float)Math.max(1,Math.min(310,310.0*value/max));
+                rect(38,y+24,width,10,TEAL);
+            }
+            y+=46;
+        }
         byte[] finish()throws IOException{
             if(page!=null)doc.finishPage(page);
             ByteArrayOutputStream out=new ByteArrayOutputStream();
@@ -117,6 +128,18 @@ public final class FlosyPdfExporter {
             int pct=expense>0?(int)Math.round(100.0*val/expense):0;
             w.row(label,pct+"% من المصروفات",money(val),i);
         }
+        if(cats.length()>0){
+            w.heading("01A  |  التوزيع البصري للمصروفات");
+            long maxCat=1;
+            for(int i=0;i<cats.length();i++){
+                JSONObject c=cats.optJSONObject(i);
+                if(c!=null)maxCat=Math.max(maxCat,c.optLong("value",0));
+            }
+            for(int i=0;i<Math.min(6,cats.length());i++){
+                JSONObject c=cats.optJSONObject(i);if(c==null)continue;
+                w.bar(safe(c,"name",42),c.optLong("value",0),maxCat,0);
+            }
+        }
         w.heading("02  |  حركة الحسابات");
         if(accounts.length()==0){w.text("لا توجد حسابات للفترة.",555,w.y,515,10,MUTED,false);w.y+=25;}
         for(int i=0;i<accounts.length();i++){
@@ -124,7 +147,35 @@ public final class FlosyPdfExporter {
             w.row(safe(c,"name",60),"دخل: "+money(c.optLong("income",0)),
                "مصروف: "+money(c.optLong("expense",0)),i);
         }
-        w.heading("03  |  سجل المعاملات");
+        JSONObject comparison=data.optJSONObject("comparison");
+        if(comparison!=null){
+            w.heading("03  |  مقارنة بالفترة السابقة");
+            w.row("الفترة السابقة",safe(comparison,"start",12)+" — "+safe(comparison,"end",12),
+                money(comparison.optLong("expense",0)),0);
+            w.row("التغير في المصروفات","موجب = زيادة، سالب = انخفاض",
+                money(comparison.optLong("expenseChange",0)),1);
+        }
+        JSONArray timeline=data.optJSONArray("timeline");
+        if(timeline!=null && timeline.length()>0){
+            w.heading("04  |  الاتجاهات الشهرية");
+            for(int i=0;i<Math.min(24,timeline.length());i++){
+                JSONObject t=timeline.optJSONObject(i);if(t==null)continue;
+                w.row(safe(t,"month",7),"دخل "+money(t.optLong("income",0))+
+                      " • مصروف "+money(t.optLong("expense",0)),
+                      "صافي "+money(t.optLong("net",0)),i);
+            }
+        }
+        JSONArray budgets=data.optJSONArray("budgets");
+        if(budgets!=null&&budgets.length()>0){
+            w.heading("05  |  الالتزام بالميزانيات");
+            for(int i=0;i<Math.min(40,budgets.length());i++){
+                JSONObject b=budgets.optJSONObject(i);if(b==null)continue;
+                w.row(safe(b,"name",55),"الحد "+money(b.optLong("limit",0))+
+                 " • المتبقي "+money(b.optLong("remaining",0)),
+                 "مصروف "+money(b.optLong("spent",0)),i);
+            }
+        }
+        w.heading("06  |  سجل المعاملات");
         w.text("عدد العمليات: "+rows.length(),555,w.y,515,10,MUTED,false);w.y+=24;
         for(int i=0;i<rows.length();i++){
             JSONObject c=rows.optJSONObject(i);
@@ -133,7 +184,7 @@ public final class FlosyPdfExporter {
               safe(c,"date",11)+"  ·  "+safe(c,"category",55)+"  ·  "+safe(c,"account",55),
               money(c.optLong("cents",0)),i);
         }
-        w.heading("04  |  اقتراحات مبنية على بياناتك");
+        w.heading("07  |  اقتراحات مبنية على بياناتك");
         for(int i=0;i<advice.length();i++){
             String msg=advice.optString(i,"");
             int lines=Math.min(4,1+msg.length()/58);
