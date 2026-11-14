@@ -240,7 +240,8 @@
     prompts.innerHTML='<strong>جرّب تسألني عن بياناتك</strong><div>'+
      ["ليه مصاريفي زادت الشهر ده؟","إيه أكبر 5 مصروفات الشهر ده؟","إزاي أوفر الشهر الجاي؟","أقدر أصرف كام النهارده؟"].map(q=>
       '<button type="button" data-ux312-ai-question="'+esc(q)+'">'+esc(q)+'</button>').join("")+'</div>';
-    stream.closest("form")?.before(prompts);
+    const visible=box.querySelector(".faix-chips")||box.querySelector(".faix-welcome")||stream.closest("form");
+    visible?.after(prompts);
    }
    box.querySelector(".flosy-v399-ai-capture")?.remove();
   }
