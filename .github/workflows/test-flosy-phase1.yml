@@ -43,6 +43,9 @@ on:
       - 'flosy-customer-v312.*'
       - 'flosy-ai-coach-v312.js'
       - 'tests/v312-customer.test.cjs'
+      - 'flosy-customer-v313.js'
+      - 'flosy-customer-v313.css'
+      - 'tests/v313-customer.test.cjs'
       - 'tests/v311-reports.test.cjs'
       - 'flosy-services-v392.*'
       - 'flosy-screen-map-v395.js'
@@ -150,6 +153,7 @@ jobs:
           node --check flosy-report-pro.js
           node --check flosy-report-plus-v311.js
           node --check flosy-customer-v312.js
+          node --check flosy-customer-v313.js
           node --check flosy-ai-coach-v312.js
           node --check flosy-services-v392.js
           node --check flosy-screen-map-v395.js
@@ -162,4 +166,4 @@ jobs:
           node --check flosy-assistant-bridge.js
           node --check service-worker.js
       - name: Run financial safety regression suite
-        run: node --test tests/v312-customer.test.cjs tests/v311-reports.test.cjs tests/v310-coru-receipts.test.cjs tests/v399-ai-voice-ux.test.cjs tests/v398-needs-receipts.test.cjs tests/customer-v397.test.cjs tests/more-menu-consolidation.test.cjs tests/screen-consolidation.test.cjs tests/trained-nlu-compact.test.cjs tests/voice-safety-v2.test.cjs tests/phase1.test.cjs tests/v4.test.cjs tests/offline-cache.test.cjs tests/direct-capture-ui.test.cjs tests/ai-analytics.test.cjs tests/report-kit.test.cjs tests/aurora.test.cjs tests/ultra.test.cjs tests/unified.test.cjs tests/v391.test.cjs tests/v392.test.cjs tests/v393.test.cjs tests/report-kit.test.cjs
+        run: node --test tests/v313-customer.test.cjs tests/v312-customer.test.cjs tests/v311-reports.test.cjs tests/v310-coru-receipts.test.cjs tests/v399-ai-voice-ux.test.cjs tests/v398-needs-receipts.test.cjs tests/customer-v397.test.cjs tests/more-menu-consolidation.test.cjs tests/screen-consolidation.test.cjs tests/trained-nlu-compact.test.cjs tests/voice-safety-v2.test.cjs tests/phase1.test.cjs tests/v4.test.cjs tests/offline-cache.test.cjs tests/direct-capture-ui.test.cjs tests/ai-analytics.test.cjs tests/report-kit.test.cjs tests/aurora.test.cjs tests/ultra.test.cjs tests/unified.test.cjs tests/v391.test.cjs tests/v392.test.cjs tests/v393.test.cjs tests/report-kit.test.cjs
