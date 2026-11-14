@@ -43,12 +43,12 @@ jobs:
       - name: Verify MVP excludes messaging features
         run: |
           set -eu
-          grep -Fq "versionName '3.12.0'" android/app/build.gradle
-          grep -Fq "applicationIdSuffix '.unified.v3120'" android/app/build.gradle
+          grep -Fq "versionName '3.13.0'" android/app/build.gradle
+          grep -Fq "applicationIdSuffix '.unified.v3130'" android/app/build.gradle
           grep -Fq 'tools:node="remove"' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'tools:node="replace"' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'FLOSY_MVP_NO_MESSAGE_IMPORT' android/app/src/main/java/com/flosy/finance/MainActivity.java
-          # v3.12.0 continues to host app JavaScript from GitHub Pages, not from APK assets.
+          # v3.13.0 continues to host app JavaScript from GitHub Pages, not from APK assets.
           grep -Fq 'ROOT + "flosy.html"' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'configureMvpWebUi()' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'if(isMvp()' android/app/src/main/java/com/flosy/finance/MainActivity.java
@@ -83,8 +83,8 @@ jobs:
           AAPT="$ANDROID_HOME/build-tools/35.0.0/aapt"
           SIGN="$ANDROID_HOME/build-tools/35.0.0/apksigner"
           "$AAPT" dump badging "$APK" | tee /tmp/flosy-mvp-badging.txt
-          grep -q "name='com.flosy.finance.unified.v3120'" /tmp/flosy-mvp-badging.txt
-          grep -q "versionName='3.12.0'" /tmp/flosy-mvp-badging.txt
+          grep -q "name='com.flosy.finance.unified.v3130'" /tmp/flosy-mvp-badging.txt
+          grep -q "versionName='3.13.0'" /tmp/flosy-mvp-badging.txt
           "$AAPT" dump permissions "$APK" | tee /tmp/flosy-mvp-permissions.txt
           if grep -E 'android.permission.(READ_SMS|RECEIVE_SMS|SEND_SMS|READ_CALL_LOG|BIND_NOTIFICATION_LISTENER_SERVICE|BIND_ACCESSIBILITY_SERVICE)' /tmp/flosy-mvp-permissions.txt; then
             echo "BLOCKED: MVP APK contains restricted messages/notification permission"; exit 1
@@ -99,13 +99,13 @@ jobs:
           "$SIGN" verify --verbose "$APK"
           unzip -t "$APK" >/dev/null
           mkdir -p dist
-          cp "$APK" dist/Flosy-Connected-Finance-v3.12.0.apk
+          cp "$APK" dist/Flosy-Connected-Finance-v3.13.0.apk
           ls -lh dist/*.apk
 
       - name: Upload MVP testing APK
         uses: actions/upload-artifact@v4
         with:
-          name: Flosy-Unified-v3.12.0-20-Screens
+          name: Flosy-Unified-v3.13.0-20-Screens
           path: dist/*.apk
           retention-days: 30
           if-no-files-found: error
@@ -115,13 +115,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="flosy-connected-finance-v3.12.0"
+          TAG="flosy-connected-finance-v3.13.0"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.apk --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$TAG" dist/*.apk \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --title "Flosy v3.12.0 — professional PDF, Excel and CSV reports" \
-              --notes "Flosy v3.12.0 founder-test APK. New customer-first mobile UX: redesigned Home with recorded account balance, actual current-month spending/income and Safe to Spend daily estimate (unavailable when profile missing), dedicated last three expenses and next upcoming due date only if truly recorded. Five-tab dock; the central Add button opens a real one-step Quick Add form for expense, income or account-to-account transfer, optional advanced fields, common Egyptian expense shortcuts, automatic category hints from description, one ledger write, error feedback and native 16-second Undo. Voice and receipts have clearer correction and review controls; receipt image preview from selected local photos. Flosy AI gains grounded Egyptian-language why-spending-increased comparison (same days of month), five biggest expenses, hypothetical savings scenarios, Safe to Spend explanations, follow-up shortcuts and quick prompt chips. PDF, Excel (8 sheets) and UTF-8 Arabic CSV remain real native on-device exports via Android SAF. Report filters are hidden until requested, with one-tap current-month export. Supports light and dark; no SMS/notification permissions enabled. This is a founder test debug package com.flosy.finance.unified.v3120 and will not automatically migrate data from older test package IDs. Preserves OCR and spoken Egyptian parsers from earlier releases; no new visual OCR or acoustic ASR model training in this version. Runs hosted Flosy web UI from GitHub Pages, so site must deploy first. CI smoke tests pass; real-device usability and file picker QA still needed. Not production signed or Play Store ready. See docs/FLOSY_V312_CUSTOMER_EXPERIENCE_RELEASE_AR.md."
+              --title "Flosy v3.13.0 — Usability Sprint and One-Minute Setup" \
+              --notes "Flosy v3.13.0 founder-test APK. Customer usability sprint: one-minute first-account setup (account name, type, opening balance), with optional full 4-step finance wizard; short Home with 3 capture actions (expense, voice, receipt) and clear path to income/transfer via main Add button; readable text and larger 48-56px touch targets across four light/dark themes; clearer Safe to Spend blank state until finance profile and liquidity are ready; expense Quick Add now requires a meaningful description or common category instead of silently saving an unknown expense, has a live money/account/category preview, and can prepare the last expense for explicit repeat confirmation using the existing safe ledger repeat pathway. Voice and receipt capture use simple 3-step journeys and editable owner review; no unsafe automatic recording of ambiguous OCR/ASR. Flosy AI adds opt-in helpful/not-helpful feedback kept only as aggregate counts on device (does not train a model) with existing grounded Egyptian finance analysis. Report monthly exports keep genuine PDF (Arabic RTL), OpenXML XLSX and Arabic CSV, with native SAF Save As. No restricted SMS or notification import is enabled. The new app ID com.flosy.finance.unified.v3130 is a separate founder-test build; no local data migration or production signing. App content loads from Flosy GitHub Pages; deploy web branch before merging this APK branch. Automated web/Android CI passed; full real-device native file-picker and camera QA still required. No new visual OCR or speech acoustic model training. See docs/FLOSY_V313_USABILITY_PLAN_AR.md."
           fi
