@@ -1,0 +1,159 @@
+/* Flosy AI v3.9.6 — reference-image-inspired Arabic mobile fintech UI.
+   Scoped to AI only; compatible with all four existing unified themes. */
+.faix-host{width:100%;margin:0;padding:0}
+.faix-host #flosyUnifiedAI{width:100%}
+.faix-root{color:var(--text-primary);font-family:'Cairo','Readex Pro',sans-serif;
+ display:grid;gap:14px;direction:rtl;background:var(--bg-app);padding:0 0 18px}
+.faix-root button{font-family:inherit;cursor:pointer}
+.faix-root button:focus-visible,.faix-root input:focus-visible,.faix-root summary:focus-visible{
+ outline:3px solid var(--primary);outline-offset:2px}
+.faix-topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;
+ background:var(--bg-app);padding:10px 7px 3px}
+.faix-topbar>div{text-align:center;flex:1;display:grid;gap:3px}
+.faix-topbar b{font-size:19px;font-weight:900;line-height:1.2}
+.faix-topbar small{font-size:9px;color:var(--text-secondary);font-weight:650}
+.faix-topbar>button{width:37px;height:37px;min-width:37px;border-radius:50%;
+ background:var(--primary-soft);border:1px solid var(--border);color:var(--primary);
+ display:grid;place-items:center;font-size:15px}
+.faix-tabs{display:flex;justify-content:stretch;background:var(--bg-elevated);
+ border-radius:99px;padding:4px;gap:4px;border:1px solid var(--border)}
+.faix-tab{border:0;flex:1;min-width:0;min-height:36px;padding:8px 5px;
+ border-radius:99px;color:var(--text-secondary);background:transparent;
+ font-size:10px;font-weight:900;white-space:nowrap}
+.faix-tab[aria-selected="true"]{background:var(--primary);color:white;
+ box-shadow:0 5px 12px rgba(0,0,0,.10)}
+.faix-pane{min-width:0;display:grid;gap:13px;animation:faixIn .22s ease-out}
+.faix-pane[hidden]{display:none!important}
+@keyframes faixIn{from{opacity:.2;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.faix-robot{height:145px;display:flex;justify-content:center;align-items:center;
+ border-radius:28px 28px 9px 9px;background:
+ radial-gradient(ellipse 75% 60% at 50% 90%,var(--primary-soft),transparent 90%),
+ linear-gradient(160deg,var(--bg-app),var(--bg-elevated));overflow:hidden}
+.faix-robot img{height:153px;width:153px;object-fit:contain;
+ filter:drop-shadow(0 12px 12px rgba(5,100,80,.13))}
+.faix-welcome{display:grid;text-align:center;gap:1px;position:relative;z-index:1;
+ background:var(--bg-surface);border:1px solid var(--border);border-radius:24px;
+ margin:-25px 6px 0;padding:13px 9px;box-shadow:var(--card-shadow)}
+.faix-welcome b{font-size:14px;font-weight:900}
+.faix-welcome strong{font-size:12px;font-weight:850}
+.faix-chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.faix-chips button{font-size:10px;min-height:44px;text-align:center;border-radius:14px;
+ background:var(--bg-surface);color:var(--text-primary);
+ border:1px solid var(--border);padding:7px 5px;font-weight:800;
+ display:flex;align-items:center;justify-content:center;gap:6px;
+ box-shadow:var(--card-shadow)}
+.faix-chips i{color:var(--primary)}
+.faix-voice-prompt{background:linear-gradient(125deg,var(--primary-soft),var(--bg-surface));
+ color:var(--text-primary);border:1px solid var(--border);display:flex;
+ align-items:center;justify-content:center;gap:9px;padding:11px 16px;
+ border-radius:24px;width:max-content;max-width:100%;margin:0 auto}
+.faix-voice-prompt>i{color:var(--primary);font-size:23px}
+.faix-voice-prompt>span{display:grid;text-align:right;gap:3px}
+.faix-voice-prompt b{font-size:11px}
+.faix-voice-prompt small{font-size:9px;color:var(--text-secondary)}
+.faix-chat-stream{min-width:0;max-height:45dvh;overflow-y:auto}
+.faix-chat-stream>.flosy-ai-stream{background:transparent;max-height:35dvh;min-height:0;
+ display:grid;gap:7px;padding:3px;overflow-y:auto}
+.faix-chat-stream:empty{display:none}
+.faix-composer{display:flex;align-items:center;gap:7px;padding:8px 9px;
+ background:var(--bg-surface);border-radius:18px;border:1px solid var(--border);
+ box-shadow:0 6px 19px rgba(0,0,0,.06);min-height:56px}
+.faix-composer>button{display:grid;place-items:center;width:33px;min-width:33px;
+ height:36px;background:transparent;border:0;color:var(--primary);font-size:16px}
+.faix-composer>button.faix-mic{border-radius:50%;background:var(--primary);
+ color:white;height:37px;width:37px}
+.faix-composer>input{flex:1;min-width:0;background:transparent;border:0;
+ color:var(--text-primary);font:700 11px 'Cairo',sans-serif;
+ outline:0!important;box-shadow:none}
+.faix-composer>input::placeholder{color:var(--text-secondary)}
+.faix-status{font-size:10px;color:var(--text-secondary);padding:0 6px;min-height:4px}
+.faix-status:empty{display:none}
+.faix-action-head{text-align:center;display:grid;gap:5px;margin:5px 3px}
+.faix-action-head b{font-size:16px;font-weight:900}
+.faix-action-head b i{color:var(--primary)}
+.faix-action-head small{font-size:10px;color:var(--text-secondary);line-height:1.8}
+.faix-actions-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.faix-actions-grid>button{min-height:155px;border:1px solid var(--border);
+ background:linear-gradient(140deg,var(--bg-surface),var(--primary-soft));
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+ border-radius:21px;padding:12px 9px;text-align:center;color:var(--text-primary);
+ box-shadow:var(--card-shadow)}
+.faix-actions-grid>button>i{font-size:30px;color:var(--primary);margin-bottom:1px}
+.faix-actions-grid>button b{font-weight:900;font-size:12px;line-height:1.5}
+.faix-actions-grid>button small{font-size:9px;color:var(--text-secondary);line-height:1.7}
+.faix-intent-panel{border-radius:24px;background:var(--bg-surface);border:1px solid var(--border);
+ box-shadow:var(--card-shadow);padding:18px 14px;display:grid;gap:12px}
+.faix-intent-panel>b{font-size:13px;text-align:center;font-weight:900}
+.faix-intent-panel>b i{color:var(--primary)}
+.faix-intent-panel>p{font-size:10px;line-height:1.9;color:var(--text-secondary);
+ text-align:center;margin:0}
+.faix-intent-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.faix-intent-actions button{min-height:64px;border:1px solid var(--border);
+ background:var(--bg-app);color:var(--text-primary);border-radius:14px;
+ font-weight:800;font-size:10px;display:flex;flex-direction:column;
+ align-items:center;justify-content:center;gap:5px}
+.faix-intent-actions button i{font-size:17px;color:var(--primary)}
+.faix-intent-actions button[data-ai-intent=expense]{border-color:var(--primary);
+ background:var(--primary-soft)}
+.faix-plan-result,.faix-insight-card{background:var(--bg-surface);
+ border:1px solid var(--border);border-radius:20px;padding:15px 13px;
+ box-shadow:var(--card-shadow);display:grid;gap:10px}
+.faix-plan-result h3,.faix-insight-card h3{font-size:12px;font-weight:900;margin:0}
+.faix-plan-result h3 i,.faix-insight-card h3 i{color:var(--primary);margin-left:6px}
+.faix-plan-result p,.faix-insight-card p{font-size:10px;line-height:1.9;margin:0}
+.faix-fin-row{display:flex;justify-content:space-between;align-items:center;
+ gap:8px;font-size:10px;border-bottom:1px solid var(--border);padding-bottom:8px}
+.faix-fin-row:last-of-type{border:0}
+.faix-fin-row>b{font-size:11px;white-space:nowrap}
+.faix-primary{background:var(--primary)!important;color:white!important;
+ border-color:var(--primary)!important}
+.faix-action-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.faix-action-row button{min-height:39px;border:1px solid var(--primary);
+ color:var(--primary);background:var(--bg-surface);border-radius:13px;
+ font-size:10px;font-weight:800;padding:8px}
+.faix-warning{background:var(--bg-elevated);border-right:3px solid var(--expense);
+ padding:8px 9px;border-radius:8px}
+.faix-safecard{min-height:155px;border-radius:24px;
+ background:linear-gradient(130deg,#009774,#005d50);color:white;
+ padding:20px;display:grid;gap:8px;position:relative;overflow:hidden}
+.faix-safecard:after{content:"";position:absolute;width:220px;height:90px;
+ background:rgba(190,255,220,.10);border-radius:50%;bottom:-55px;right:-25px;
+ transform:rotate(-8deg)}
+.faix-safe-top{display:flex;justify-content:space-between;font-weight:900;font-size:12px}
+.faix-safe-top i{margin-left:5px}
+.faix-safecard>small{font-size:9px;color:#f1fff9}
+.faix-safecard>strong{font-size:26px;font-weight:900;line-height:1.25}
+.faix-cat{display:grid;gap:6px}
+.faix-cat>div:first-child{display:flex;align-items:center;justify-content:space-between;
+ gap:6px;font-size:10px}
+.faix-cat b{font-size:10px}
+.faix-track{height:6px;background:var(--bg-elevated);border-radius:10px;overflow:hidden}
+.faix-track span{display:block;background:linear-gradient(90deg,var(--primary),var(--secondary));
+ height:100%;border-radius:10px}
+.faix-comparison{display:grid;grid-template-columns:1fr 1fr auto;align-items:center;gap:10px}
+.faix-comparison>div{display:grid;gap:6px}
+.faix-comparison small{color:var(--text-secondary);font-size:9px}
+.faix-comparison b{font-size:12px}
+.faix-delta{font-size:11px;font-weight:900;border-radius:9px;padding:6px;
+ background:var(--bg-elevated);color:var(--text-secondary)}
+.faix-delta[data-direction=down]{color:var(--income)}
+.faix-delta[data-direction=up]{color:var(--expense)}
+.faix-muted,.faix-footnote{font-size:9px;color:var(--text-secondary);line-height:1.8}
+.faix-preferences{border:1px solid var(--border);border-radius:16px;padding:10px;
+ background:var(--bg-surface)}
+.faix-preferences summary{font-size:10px;font-weight:800;cursor:pointer}
+.faix-preferences button{margin:10px 5px 0 0;min-height:34px;padding:6px 10px;
+ background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;
+ color:var(--text-primary);font-size:10px}
+.faix-preferences button[aria-pressed=true]{background:var(--primary-soft);color:var(--primary)}
+.faix-disclaimer{font-size:9px;line-height:1.9;color:var(--text-secondary);
+ text-align:center;padding:0 8px}
+.faix-legacy-controls[hidden]{display:none!important}
+@media(max-width:360px){
+ .faix-root{gap:10px}.faix-robot{height:125px}
+ .faix-actions-grid>button{min-height:138px}
+ .faix-actions-grid>button b{font-size:11px}
+ .faix-composer{gap:3px;padding:7px}
+ .faix-chips button{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){.faix-pane{animation:none}}
