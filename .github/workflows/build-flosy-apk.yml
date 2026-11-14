@@ -43,12 +43,12 @@ jobs:
       - name: Verify MVP excludes messaging features
         run: |
           set -eu
-          grep -Fq "versionName '3.10.0'" android/app/build.gradle
-          grep -Fq "applicationIdSuffix '.unified.v3100'" android/app/build.gradle
+          grep -Fq "versionName '3.11.0'" android/app/build.gradle
+          grep -Fq "applicationIdSuffix '.unified.v3110'" android/app/build.gradle
           grep -Fq 'tools:node="remove"' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'tools:node="replace"' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'FLOSY_MVP_NO_MESSAGE_IMPORT' android/app/src/main/java/com/flosy/finance/MainActivity.java
-          # v3.10.0 continues to host app JavaScript from GitHub Pages, not from APK assets.
+          # v3.11.0 continues to host app JavaScript from GitHub Pages, not from APK assets.
           grep -Fq 'ROOT + "flosy.html"' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'configureMvpWebUi()' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'if(isMvp()' android/app/src/main/java/com/flosy/finance/MainActivity.java
@@ -83,8 +83,8 @@ jobs:
           AAPT="$ANDROID_HOME/build-tools/35.0.0/aapt"
           SIGN="$ANDROID_HOME/build-tools/35.0.0/apksigner"
           "$AAPT" dump badging "$APK" | tee /tmp/flosy-mvp-badging.txt
-          grep -q "name='com.flosy.finance.unified.v3100'" /tmp/flosy-mvp-badging.txt
-          grep -q "versionName='3.10.0'" /tmp/flosy-mvp-badging.txt
+          grep -q "name='com.flosy.finance.unified.v3110'" /tmp/flosy-mvp-badging.txt
+          grep -q "versionName='3.11.0'" /tmp/flosy-mvp-badging.txt
           "$AAPT" dump permissions "$APK" | tee /tmp/flosy-mvp-permissions.txt
           if grep -E 'android.permission.(READ_SMS|RECEIVE_SMS|SEND_SMS|READ_CALL_LOG|BIND_NOTIFICATION_LISTENER_SERVICE|BIND_ACCESSIBILITY_SERVICE)' /tmp/flosy-mvp-permissions.txt; then
             echo "BLOCKED: MVP APK contains restricted messages/notification permission"; exit 1
@@ -99,13 +99,13 @@ jobs:
           "$SIGN" verify --verbose "$APK"
           unzip -t "$APK" >/dev/null
           mkdir -p dist
-          cp "$APK" dist/Flosy-Connected-Finance-v3.10.0.apk
+          cp "$APK" dist/Flosy-Connected-Finance-v3.11.0.apk
           ls -lh dist/*.apk
 
       - name: Upload MVP testing APK
         uses: actions/upload-artifact@v4
         with:
-          name: Flosy-Unified-v3.10.0-20-Screens
+          name: Flosy-Unified-v3.11.0-20-Screens
           path: dist/*.apk
           retention-days: 30
           if-no-files-found: error
@@ -115,13 +115,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="flosy-connected-finance-v3.10.0"
+          TAG="flosy-connected-finance-v3.11.0"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.apk --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$TAG" dist/*.apk \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --title "Flosy v3.10.0 — Egyptian receipt intelligence trained on CORU IE" \
-              --notes "Flosy v3.10.0 experimental/founder-test Android APK. The hosted Flosy web app integrates a reproducibly trained CORU-IE item-name character trigram model (6,947 training rows; 21 classes; 2,600 item lexicon entries), separate validation and test data; held-out test item classification accuracy 83.38%, unseen normalized product names 82.77%. These are NOT image OCR accuracy metrics. New Egyptian receipt parser handles OCR Arabic-Indic and European decimal formats and reconciles item quantity x price, subtotal, taxes, discounts, tendered cash and change, using the existing AraReceipt total selector. Review UI provides merchant/item suggestions by one-tap optional owner approval, image gallery preview and fixes a low image-data cutoff. OCR reading still relies on existing native ML Kit and Tesseract Arabic/English; visual OCR has not been fine-tuned on CORU images and no all-invoice accuracy is claimed. Receipts NEVER auto-post; only owner-confirmed total/account saves to the canonical ledger. Source CORU HF MIT metadata; preserve attribution and verify exact dataset licensing before commercialization. Android WebView opens https://ahmedsayed20233.github.io/mynewproject/flosy.html, so matching website must be deployed first. No new SMS, notification listener or bank account permissions; no real phone QA, production signing or Play Store certification. Separate package com.flosy.finance.unified.v3100 does not automatically migrate local data from earlier debug variants. See docs/FLOSY_V310_EGYPT_RECEIPTS_RELEASE_AR.md."
+              --title "Flosy v3.11.0 — professional PDF, Excel and CSV reports" \
+              --notes "Flosy v3.11.0 founder-test Android APK. Restored interactive professional Financial Reports center: date presets (7 days, month, quarter, 6 months, year, last year, all), custom date/account/category/type filters, live ledger-grounded KPIs, monthly trends, comparable prior periods, spending categories and category-budget status. Download real multi-sheet Excel OpenXML XLSX (includes transactions, spending categories, accounts, trends, comparison, budgets and recommendations), UTF-8 BOM Arabic CSV with formula-injection neutralization, and Arabic RTL multi-page PDF rendered locally on Android with category bar charts, trends and insights. Android Storage Access Framework picker saves all three types; no storage permission or data upload required. Prior fake PDF/Excel toast buttons replaced with actual export actions. Exclude failed/pending/reversed financial entries and do not classify transfers as expenses. PDF browser fallback uses Print -> Save as PDF, rather than inventing a file download. Retains v3.10 CORU Egyptian receipt post-OCR item model and v3.9.9 voice/AI features; no model re-training in this version. Distinct debug package com.flosy.finance.unified.v3110 isolates local data, with no automatic migration. WebView opens updated GitHub Pages so deploy website branch first. The APK passed CI build and static financial tests but requires real-device file picker/print QA; not a Play Store or production release. See docs/FLOSY_V311_PRO_REPORTS_RELEASE_AR.md."
           fi

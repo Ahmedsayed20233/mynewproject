@@ -245,7 +245,9 @@ public class MainActivity extends Activity {
                             }
                             else if(("xlsx-start".equals(action)||"xlsx-chunk".equals(action)
                                 ||"xlsx-finish".equals(action)||"pdf-start".equals(action)
-                                ||"pdf-chunk".equals(action)||"pdf-finish".equals(action))&&isMvp())
+                                ||"pdf-chunk".equals(action)||"pdf-finish".equals(action)
+                                ||"csv-start".equals(action)||"csv-chunk".equals(action)
+                                ||"csv-finish".equals(action))&&isMvp())
                                 reportBridge.onMessage(action,msg);
                             else if("xlsx-start".equals(action)||"xlsx-chunk".equals(action)
                                 ||"xlsx-finish".equals(action))receiveWorkbookPart(action,msg);
