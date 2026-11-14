@@ -295,6 +295,7 @@
   }
   box.querySelectorAll("[data-fx-entry-type]").forEach(b=>b.onclick=()=>setType(b.dataset.fxEntryType));
   const quickPick=label=>{
+   form.dataset.repeatMode="false";
    setType("expense");
    const input=box.querySelector("#fxDescription");
    input.value=label;input.dispatchEvent(new Event("input",{bubbles:true}));
@@ -308,6 +309,7 @@
       String(b.createdAt||b.date||"").localeCompare(String(a.createdAt||a.date||"")))[0];
    if(!latest){U().notify("لسه ما فيش مصروف سابق للتكرار");return}
    quickPick(latest.description||latest.category||"مصروف");
+   form.dataset.repeatMode="true";
    get("amount").value=String(latest.amount);
    if(accounts().some(a=>a.id===latest.accountId))get("accountId").value=latest.accountId;
    const c=K.resolve(latest.category,latest.description,"expense");
@@ -340,7 +342,7 @@
    try{
     U().postBatch([{type,amount,category:c.label,description:desc,date,accountId:acc,
      targetAccountId:type==="transfer"?target:null,
-     time:String(m.get("time")||""),note:String(m.get("note")||"")}],"flosy391_manual");
+     time:String(m.get("time")||""),note:String(m.get("note")||"")}],form.dataset.repeatMode==="true"?"flosy391_manual_repeat":"flosy391_manual");
     U().go(4);
    }catch(err){U().notify(err.message);}
   };
