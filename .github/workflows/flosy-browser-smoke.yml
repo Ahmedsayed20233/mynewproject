@@ -18,6 +18,11 @@ on:
       - 'flosy-unified*'
       - 'flosy-ai-experience-v396.*'
       - 'flosy-customer-v397.*'
+      - 'flosy-needs-v398.js'
+      - 'flosy-needs-ui-v398.*'
+      - 'flosy-receipt-intelligence-v398.js'
+      - 'flosy-receipt-trained-v398.js'
+      - 'tests/v398-browser.cjs'
       - 'tests/customer-v397-browser.cjs'
       - 'tests/v396-ai-browser.cjs'
       - 'flosy-ux-v391.*'
@@ -73,6 +78,8 @@ jobs:
         run: node tests/unified-browser.cjs
       - name: Verify v3.9.1 editable transactions, voice, OCR and four-theme settings
         run: node tests/v391-browser.cjs
+      - name: Test spending tiers and trained receipt parser with real review controls
+        run: node tests/v398-browser.cjs
       - name: Test real new customer account wizard, repeat and selective OCR/voice review
         run: node tests/customer-v397-browser.cjs
       - name: Test Flosy AI reference-image UI, voice, OCR, budget and crisis actions
@@ -95,6 +102,7 @@ jobs:
             tests/_artifacts/ultra-sapphire-356.png
             tests/_artifacts/flosy-ai-v396-chat.png
             tests/_artifacts/flosy-v397-onboarding.png
+            tests/_artifacts/flosy-v398-needs.png
             tests/_artifacts/flosy-v397-home-safe.png
             tests/_artifacts/flosy-ai-v396-actions.png
             tests/_artifacts/flosy-ai-v396-insights.png
