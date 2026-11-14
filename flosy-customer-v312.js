@@ -179,8 +179,10 @@
   if(type==="transfer"&&(!owned.some(x=>String(x.id)===target)||acc===target))
    return failure("التحويل يحتاج حسابين مختلفين.");
   const date=String(state.date||iso());
-  const description=String(state.description||"").trim().slice(0,90)||
-   (type==="income"?"دخل":type==="transfer"?"تحويل بين حساباتي":"مصروف");
+  const enteredDescription=String(state.description||"").trim().slice(0,90);
+  if(type==="expense"&&!enteredDescription)
+   return failure("اختار مصروف شائع (زي قهوة) أو اكتب وصفًا بسيطًا قبل الحفظ علشان ما تضيعش تفاصيل العملية.");
+  const description=enteredDescription||(type==="income"?"دخل":"تحويل بين حساباتي");
   const cat=w.FLOSY_CATEGORIES?.resolve?.(String(state.category||""),description,type);
   const category=cat?.label||String(state.category|| (type==="income"?"دخل آخر":type==="transfer"?"تحويل داخلي":"مشتريات"));
   form.querySelector("#cx312QuickSave").disabled=true;
