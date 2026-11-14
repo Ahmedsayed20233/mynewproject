@@ -76,3 +76,11 @@
 .service-v395-subgrid .service-v392-item{min-height:70px}
 .service-v392-fold>summary span{font-size:9px;font-weight:500;color:var(--text-secondary)}
 @media(max-width:350px){.service-v395-subgrid{grid-template-columns:1fr}}
+
+/* v3.9.5 More consolidation: no repeated financial tool tiles. */
+.service-v395-more{gap:11px}
+.service-v395-more .service-v392-hero{padding:15px}
+.service-v395-more .service-v392-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.service-v395-more .service-v392-item{min-height:78px}
+.service-v395-more .service-v392-fold:not([open]){box-shadow:none}
+@media(max-width:345px){.service-v395-more .service-v392-grid{grid-template-columns:1fr}}
