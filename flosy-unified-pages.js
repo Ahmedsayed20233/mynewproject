@@ -75,7 +75,7 @@
     '</div><div class="flosy-buttonbar"><button class="flosy-btn flosy-btn-secondary" data-flosy-screen="4">كل المعاملات</button></div>')+
    panel("اكتشف فلوسي",'<div class="flosy-list">'+nav(8,"Flosy AI","fa-robot","محادثة صوتية وتحليلات ورسومات")+
     nav(15,"تقاريري","fa-chart-column","فترات متعددة وتصدير PDF وExcel")+
-    nav(18,"تقويم السيولة","fa-calendar-days","الأقساط والجمعيات القادمة")+'</div>');
+    nav(9,"التزاماتي وديوني","fa-calendar-check","الأقساط والجمعيات وتقويم السيولة")+'</div>');
  }
  function wallets(){
   const s=safeSum(),a=s.accounts||[],liabilities=full().liabilities||[],assets=full().assets||[];
