@@ -114,11 +114,20 @@
   api().bridge("notifications-daily-name",{name:CP()?.name?.(api().state())||""});
   if(lastStatus)nativeStatus(lastStatus);else api().bridge("notifications-status");
  }
+ let openMoreFolders=[];
  Pages.render=function(id){
+  if(id===16){
+   const prior=d.querySelector('.phone-frame[data-screen="16"] .service-v392-root');
+   if(prior)openMoreFolders=[...prior.querySelectorAll("details[open]")].map(x=>x.id).filter(Boolean);
+  }
   original(id);
   const host=d.querySelector('.phone-frame[data-screen="'+id+'"] .flosy-real');
   if(!host)return;
-  if(id===16){host.innerHTML=servicesHtml();bind(host);}
+  if(id===16){
+   host.innerHTML=servicesHtml();
+   for(const id of openMoreFolders){const details=host.querySelector("#"+id);if(details)details.open=true}
+   bind(host);
+  }
   if(id===2){
    host.querySelector(".service-v392-home-tip")?.remove();
    const root=host.querySelector(".hero-card");
