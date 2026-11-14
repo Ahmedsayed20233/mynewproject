@@ -86,6 +86,24 @@ test("AI addresses colloquial categories and doesn't hallucinate missing data",(
  assert.equal(empty.intent,"v399-spending");
  assert.ok(empty.text.includes("مش لاقي"));
 });
+test("AI respects last week, last 7 days, 3 months and income in Arabic",()=>{
+ assert.equal(brain.range(brain.normalize("آخر 3 شهور"),at).from,"2026-09-01");
+ assert.equal(brain.range(brain.normalize("الأسبوع اللي فات"),at).from,"2026-10-31");
+ assert.equal(brain.range(brain.normalize("آخر 7 أيام"),at).from,"2026-11-08");
+ const income=brain.answer("دخلي كام الشهر ده",finance,{},at);
+ assert.equal(income.intent,"v399-income");
+ assert.ok(income.text.includes("4000")||income.text.includes("٤٬٠٠٠"));
+ const recent=brain.answer("اخر عملياتي",finance,{},at);
+ assert.equal(recent.intent,"v399-recent");
+ assert.ok(recent.actions.some(x=>x.screen===4));
+});
+test("category comparison isolates only matching expense records",()=>{
+ const c=brain.answer("قارن مصاريف المواصلات الشهر ده بالشهر اللي فات",finance,{},at);
+ assert.equal(c.intent,"v399-compare");
+ assert.ok(c.text.includes("مواصلات"));
+ assert.equal(c.chart.data[0].value_minor,12000);
+ assert.equal(c.chart.data[1].value_minor,8000);
+});
 test("unified capture and theme boot are present in website and cache",()=>{
  const html=fs.readFileSync("flosy.html","utf8");
  const worker=fs.readFileSync("service-worker.js","utf8");
