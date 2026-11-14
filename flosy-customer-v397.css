@@ -1,0 +1,57 @@
+/* Flosy v3.9.7 — readable quick entry, account dialog, onboarding and OCR review. */
+.fx-quickbox{border:1px solid var(--border);background:var(--bg-surface);border-radius:17px;padding:12px;display:grid;gap:9px}
+.fx-quick-title{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.fx-quick-title strong{font-size:12px;font-weight:900;color:var(--text-primary)}
+.fx-quick-title small{font-size:10px;color:var(--text-secondary)}
+.fx-quickchips{display:flex;flex-wrap:wrap;gap:7px}
+.fx-quickchips button{border:1px solid var(--border);border-radius:999px;min-height:42px;padding:8px 12px;
+ background:var(--bg-elevated);color:var(--text-primary);font:800 11px 'Cairo',sans-serif}
+.fx-quickchips button:focus-visible{outline:3px solid var(--primary)}
+.fx-category-details{border:1px solid var(--border);border-radius:14px;padding:9px 12px;background:var(--bg-surface)}
+.fx-category-details summary{font-size:12px;font-weight:900;color:var(--primary);cursor:pointer;min-height:38px;display:flex;align-items:center}
+.fx-category-details .fx-form-section-head{padding-top:12px}
+.flosy-v397-account-dialog{direction:rtl;color:var(--text-primary);background:var(--bg-surface);border:1px solid var(--border);
+ border-radius:23px;width:min(94vw,440px);max-height:90dvh;overflow:auto;box-shadow:0 22px 60px #0004;padding:0}
+.flosy-v397-account-dialog::backdrop{background:rgba(7,20,28,.67)}
+.flosy-v397-account-dialog form{display:grid;gap:14px;padding:20px}
+.flosy-v397-account-dialog header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.flosy-v397-account-dialog header h2{font-size:18px;margin:0;color:var(--text-primary)}
+.flosy-v397-account-dialog header small{font-size:10px;color:var(--primary)}
+.flosy-v397-account-dialog header button{width:40px;height:40px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--text-primary);border-radius:11px}
+.flosy-v397-account-dialog p{font-size:11px;line-height:1.8;color:var(--text-secondary);margin:0}
+.flosy-v397-account-dialog label{display:grid;gap:5px;font-size:12px;font-weight:800}
+.flosy-v397-account-dialog input,.flosy-v397-account-dialog select{width:100%;min-height:45px;font-size:14px}
+.flosy-v397-account-dialog footer{display:flex;justify-content:flex-end;gap:10px}
+.flosy-v397-account-dialog footer button{padding:8px 14px;min-height:43px;border-radius:12px;cursor:pointer}
+.flosy-v397-account-dialog footer button:first-child{background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-primary)}
+#flosyAccountErrorV397,#flosyWizardErrorV397{color:var(--expense);font-size:11px;font-weight:850}
+.flosy-v397-wizard{display:grid;gap:12px;background:var(--bg-surface);border:1px solid var(--border);border-radius:23px;padding:15px;text-align:right}
+.flosy-v397-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.flosy-v397-steps span{font-size:9px;color:var(--text-secondary);background:var(--bg-elevated);padding:7px 3px;border-radius:9px;text-align:center;line-height:1.4}
+.flosy-v397-steps span[data-current=true]{background:var(--primary-soft);color:var(--primary);font-weight:900;border:1px solid var(--primary)}
+.flosy-v397-wizard form{display:grid;gap:12px}
+.flosy-v397-wizard [data-onboard-step]{display:grid;gap:11px}
+.flosy-v397-wizard [data-onboard-step][hidden]{display:none}
+.flosy-v397-wizard h3{font-size:15px;font-weight:900;color:var(--text-primary)}
+.flosy-v397-wizard p{font-size:11px;color:var(--text-secondary);line-height:1.8}
+.flosy-v397-wizard label{font-size:11px;font-weight:850;color:var(--text-primary);display:grid;gap:4px}
+.flosy-v397-wizard input,.flosy-v397-wizard select{font-size:14px;min-height:44px}
+.flosy-v397-wizard-nav{display:flex;gap:8px;justify-content:space-between}
+.flosy-v397-wizard-nav button{min-height:43px;border-radius:12px;padding:7px 18px;font-size:12px;font-weight:850}
+.flosy-v397-wizard-nav button:first-child{background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-primary)}
+.flosy-v397-safe{margin:0 0 12px;background:var(--bg-surface);border:1px solid var(--border);border-radius:15px;padding:10px 14px}
+.flosy-v397-safe summary{font-size:12px;font-weight:900;color:var(--primary);cursor:pointer;min-height:32px;display:flex;align-items:center}
+.flosy-v397-safe p{font-size:11px;line-height:1.8;color:var(--text-secondary)}
+.flosy-v397-safe button{border:1px solid var(--primary);border-radius:11px;background:var(--primary-soft);color:var(--primary);padding:8px 12px;min-height:41px;font-weight:900;font-size:11px}
+.flosy-v2-choose{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:900;color:var(--text-primary);padding:9px 4px}
+.flosy-v2-choose input{width:22px;height:22px;accent-color:var(--primary)}
+.flosy-v2-items{margin:10px 0;border:1px solid #8baea766;border-radius:13px;padding:10px}
+.flosy-v2-items summary{cursor:pointer;font-size:13px;font-weight:900;padding:6px 0;color:var(--primary)}
+.flosy-v2-item-row{display:grid;grid-template-columns:2fr 1fr 1fr;gap:7px;margin:8px 0}
+.flosy-v2-item-row label{font-size:10px;font-weight:850;display:grid;gap:4px}
+.flosy-v2-item-row input{font:inherit;min-width:0;width:100%;border:1px solid #9baea6;border-radius:9px;min-height:40px;padding:6px;box-sizing:border-box;color:var(--text-primary);background:var(--bg-surface)}
+.flosy-v2-item-sum{padding:10px;font-size:11px;font-weight:850;border-radius:10px;background:var(--bg-elevated)}
+.flosy-v2-item-sum[data-valid=true]{color:var(--primary)}
+.flosy-v2-item-sum[data-valid=false]{color:var(--expense)}
+@media(max-width:390px){.flosy-v2-item-row{grid-template-columns:1fr 1fr}.flosy-v2-item-row label:first-child{grid-column:1/-1}.flosy-v397-steps span{font-size:8px}}
+@media(prefers-reduced-motion:reduce){.fx-quickchips button{transition:none}}
