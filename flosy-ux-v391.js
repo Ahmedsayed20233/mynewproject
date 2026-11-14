@@ -102,7 +102,8 @@
     '</div></div>'+
    '<div class="fx-amount-card"><span>المبلغ بالجنيه المصري</span><div><input class="fx-amount-input" type="number" name="amount" min=".01" max="999999999" step=".01" inputmode="decimal" required placeholder="0.00"><b>ج.م</b></div></div>'+
    '<label class="fx-form-field">الوصف<input class="flosy-input" name="description" id="fxDescription" placeholder="مثال: بنزين العربية، قهوة، مرتب..." maxlength="90" required></label>'+
-   '<details class="fx-category-details" id="fxCategoryDetails"><summary>الفئة والتصنيف (اختياري — بنقترحها تلقائيًا)</summary>'+   '<div class="fx-form-section-head"><strong>الفئة المناسبة <span id="fxCategoryCount"></span></strong>'+
+   '<details class="fx-category-details" id="fxCategoryDetails"><summary>تعديل الفئة (اختياري — بنقترحها تلقائيًا)</summary>'+
+   '<div class="fx-form-section-head"><strong>الفئة المناسبة <span id="fxCategoryCount"></span></strong>'+
     '<label class="fx-inline-search">'+icon("fa-magnifying-glass")+'<input type="search" id="fxCategorySearch" aria-label="بحث في الفئات" placeholder="بحث..."></label></div>'+
    '<div id="fxSelectedCategory" class="fx-selected-category" aria-live="polite"></div>'+
    '<input type="hidden" name="category" value="مطاعم ووجبات">'+
