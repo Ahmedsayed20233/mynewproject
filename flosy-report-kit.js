@@ -74,7 +74,9 @@ const xml=s=>esc(s);
 const utf8=s=>new TextEncoder().encode(s);
 function xmlSheet(grid,kind){
  const widths=kind==="المعاملات"?[16,15,29,46,28,22]:kind==="الفئات"?[12,39,23]:
-  kind==="الحسابات"?[40,22,22,22]:kind==="النصائح"?[105]:[43,25];
+  kind==="الحسابات"?[40,22,22,22]:kind==="الاتجاه الشهري"?[20,20,20,20,18]:
+  kind==="مقارنة الفترات"?[30,28,28,28]:kind==="الميزانيات"?[34,25,25,25,19]:
+  kind==="النصائح"?[105]:[43,25];
  let out='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
  '<sheetPr><tabColor rgb="'+(kind==="المعاملات"?"FF0E7490":kind==="النصائح"?"FF7C3AED":"FF0D9488")+'"/></sheetPr>'+
  '<sheetViews><sheetView rightToLeft="1" workbookViewId="0">'+
@@ -125,11 +127,21 @@ function stylesXml(){
 
 function workbookFiles(r){
  const sheets=[
-  ["الملخص",[["فلوسي — التقرير المالي"],["من",r.range.start],["إلى",r.range.end],["الدخل",r.income/100],["المصروفات",r.expense/100],["التحويلات",r.transfers/100],["الصافي (بدون التحويلات)",r.net/100],["العمليات المكتملة",r.rows.length],["المستبعدة",r.rejected]]],
+  ["الملخص",[["فلوسي — التقرير المالي"],["من",r.range.start],["إلى",r.range.end],["الدخل",r.income/100],["المصروفات",r.expense/100],["التحويلات",r.transfers/100],["الصافي (بدون التحويلات)",r.net/100],["العمليات المكتملة",r.rows.length],["المستبعدة",r.rejected],
+    ["معدل الادخار (%)",r.savingsRatioPrecise===null?"غير متاح":r.savingsRatioPrecise],
+    ["متوسط المصروف اليومي",Number(r.dailyAverage||0)/100],
+    ["حساب التقرير",r.filters?.accountId||"all"],["الفئة",r.filters?.category||"all"],["النوع",r.filters?.type||"all"]]],
   ["المعاملات",[["التاريخ","النوع","الفئة","الوصف","الحساب","المبلغ بالجنيه"],...r.rows.map(t=>[t.date,t.type,t.category,t.description,t.account,t.cents/100])]],
   ["الفئات",[["الأيقونة","الفئة","المبلغ بالجنيه"],...r.categories.map(t=>[t.icon,t.name,t.value/100])]],
   ["الحسابات",[["الحساب","دخل","مصروف","تحويل"],...r.accounts.map(t=>[t.name,t.income/100,t.expense/100,t.transfer/100])]],
-  ["النصائح",[["اقتراحات توضيحية (ليست نصيحة استثمارية)"],...r.advice.map(t=>[t])]]
+  ["الاتجاه الشهري",[["الشهر","الدخل EGP","المصروف EGP","الصافي EGP","عدد العمليات"],...(r.timeline||[]).map(t=>[
+    t.month,t.income/100,t.expense/100,t.net/100,t.count])]],
+  ["مقارنة الفترات",[["الفترة","الدخل EGP","المصروف EGP","الصافي EGP"],
+    ["الحالية",r.income/100,r.expense/100,r.net/100],
+    ["المقابلة",Number(r.comparison?.income||0)/100,Number(r.comparison?.expense||0)/100,Number(r.comparison?.net||0)/100]]],
+  ["الميزانيات",[["الفئة","الحد EGP","المصروف EGP","المتبقي EGP","نسبة الاستخدام %"],
+    ...(r.budgets||[]).map(b=>[b.name,b.limit/100,b.spent/100,b.remaining/100,b.percent])]],
+  ["النصائح",[["اقتراحات توضيحية (ليست نصيحة استثمارية)"],...(r.insights||r.advice).map(t=>[t])]]
  ];
  const root='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
  const files=[

@@ -10,16 +10,16 @@
   if(error)api()?.notify?.(msg);
  }
  function period(){
-  const from=d.getElementById("flosyReportFrom")?.value,
-        to=d.getElementById("flosyReportTo")?.value;
-  if(!/^20\d{2}-\d{2}-\d{2}$/.test(from||"")||!/^20\d{2}-\d{2}-\d{2}$/.test(to||"")||from>to)
-   throw Error("اختار تاريخ بداية ونهاية صحيحين");
-  return {start:from,end:to};
+  return w.FLOSY_REPORT_PLUS_V311?.currentFilters?.()||(()=>{
+   const from=d.getElementById("flosyReportFrom")?.value,to=d.getElementById("flosyReportTo")?.value;
+   if(!from||!to||from>to)throw Error("اختار تاريخ بداية ونهاية صحيحين");
+   return {start:from,end:to};
+  })();
  }
- function build(range){
-  const kit=api()?.core()?.FLOSY_REPORT_KIT;
+ function build(filters){
+  const kit=api()?.core()?.FLOSY_REPORT_KIT,plus=w.FLOSY_REPORT_PLUS_V311;
   if(!kit?.build)throw Error("محرك التقارير لسه بيتحمّل. افتح التقارير تاني.");
-  return kit.build(api().state(),range);
+  return plus?.build?plus.build(api().state(),filters,kit):kit.build(api().state(),filters);
  }
  function transfer(kind,bytes,filename){
   if(transferring)throw Error("في ملف بيتجهز حاليًا؛ احفظه أولًا.");
@@ -35,7 +35,7 @@
     send({action:kind+"-chunk",data:btoa(binary)});
    }
    send({action:kind+"-finish"});
-   status("📁 اختار مكان حفظ "+(kind==="pdf"?"PDF":"Excel")+" من نافذة ملفات Android.");
+   status("📁 اختر مكان حفظ ملف "+kind.toUpperCase()+" من نافذة ملفات Android؛ لن يُحفظ قبل اختيار المكان.");
    return true;
   }finally{transferring=false}
  }
@@ -62,7 +62,20 @@
     '</td><td>'+esc(money(x.expense))+'</td></tr>').join("")+'</tbody></table>'+
    '<h2>03 / تفاصيل المعاملات ('+r.rows.length+')</h2><table class="rp-table"><thead><tr>'+
     '<th>التاريخ</th><th>المعاملة</th><th>الحساب</th><th>المبلغ</th></tr></thead><tbody>'+detail+'</tbody></table>'+
-   '<h2>04 / رؤى مالية</h2><ol class="rp-advice">'+r.advice.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ol>'+
+   (Array.isArray(r.timeline)&&r.timeline.length?
+    '<h2>04 / اتجاهات التدفق النقدي الشهرية</h2><table class="rp-table"><thead><tr><th>الشهر</th><th>الدخل</th><th>المصروف</th><th>الصافي</th></tr></thead><tbody>'+
+    r.timeline.slice(-24).map(t=>'<tr><td>'+esc(t.month)+'</td><td>'+esc(money(t.income))+
+    '</td><td>'+esc(money(t.expense))+'</td><td>'+esc(money(t.net))+'</td></tr>').join("")+
+    '</tbody></table>':"")+
+   (r.comparison?'<h2>05 / مقارنة بالفترة السابقة</h2><p class="rp-note">الفترة المقابلة: '+
+    esc(r.comparison.start)+' — '+esc(r.comparison.end)+'، مصروفاتها '+
+    esc(money(r.comparison.expense))+'، والتغير '+esc(money(r.comparison.expenseChange))+
+    (r.comparison.expenseChangePercent===null?"":" ("+esc(r.comparison.expenseChangePercent)+"%)")+'</p>':"")+
+   (Array.isArray(r.budgets)&&r.budgets.length?
+     '<h2>06 / الالتزام بالميزانيات</h2><table class="rp-table"><thead><tr><th>الفئة</th><th>الحد</th><th>المصروف</th><th>المتبقي</th></tr></thead><tbody>'+
+     r.budgets.map(b=>'<tr><td>'+esc(b.name)+'</td><td>'+esc(money(b.limit))+
+      '</td><td>'+esc(money(b.spent))+'</td><td>'+esc(money(b.remaining))+'</td></tr>').join("")+'</tbody></table>':"")+
+   '<h2>07 / رؤى مالية</h2><ol class="rp-advice">'+(r.insights||r.advice).map(x=>'<li>'+esc(x)+'</li>').join("")+'</ol>'+
    '<footer>FLOSY · PRIVATE FINANCIAL REPORT · ليس توصية استثمارية</footer></article>';
  }
  function preparePrint(r){
@@ -70,26 +83,40 @@
   if(!host){host=d.createElement("section");host.id="flosyUnifiedPrint";d.body.appendChild(host)}
   host.innerHTML=reportHtml(r);
  }
+ function browserSave(bytes,filename,mime){
+  const blob=new Blob([bytes],{type:mime}),url=URL.createObjectURL(blob);
+  const a=d.createElement("a");a.href=url;a.download=filename;d.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+ }
  function download(kind){
   try{
-   const range=period(),r=build(range);
+   const filters=period(),r=build(filters);
    if(kind==="excel")kind="xlsx";
-   const filename="Flosy-"+range.start+"-"+range.end+"."+kind;
+   if(!["xlsx","pdf","csv"].includes(kind))throw Error("امتداد ملف غير مدعوم");
+   const filename="Flosy-"+filters.start+"-"+filters.end+"."+kind;
+   if(kind==="csv"){
+    const bytes=w.FLOSY_REPORT_PLUS_V311?.csvBytes?.(r);
+    if(!bytes)throw Error("محرك CSV غير جاهز");
+    if(!transfer("csv",bytes,filename)){
+     browserSave(bytes,filename,"text/csv;charset=utf-8");
+     status("✓ تم تنزيل CSV بتشفير UTF-8 مناسب للعربية.");
+    }
+    return;
+   }
    if(kind==="xlsx"){
     const bytes=api()?.core()?.FLOSY_REPORT_KIT?.xlsxBytes(r);
     if(!bytes)throw Error("ملف Excel لم يجهز");
     if(!transfer("xlsx",bytes,filename)){
-     const blob=new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
-     const url=URL.createObjectURL(blob),a=d.createElement("a");
-     a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),4500);
-     status("✓ Excel جاهز في التنزيلات.");
+     browserSave(bytes,filename,"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+     status("✓ تم تنزيل Excel الحقيقي بجداول قابلة للتحليل.");
     }
     return;
    }
-   if(kind!=="pdf")throw Error("امتداد ملف غير مدعوم");
    preparePrint(r);
    const payload={range:r.range,income:r.income,expense:r.expense,net:r.net,transfers:r.transfers,
-    rows:r.rows,categories:r.categories,accounts:r.accounts,advice:r.advice};
+    rows:r.rows,categories:r.categories,accounts:r.accounts,advice:r.insights||r.advice,
+    timeline:(r.timeline||[]).slice(-24),comparison:r.comparison||null,budgets:r.budgets||[],
+    savingsRatio:r.savingsRatioPrecise??null,dailyAverage:r.dailyAverage||0,filters:r.filters||{}};
    const bytes=new TextEncoder().encode(JSON.stringify(payload));
    if(bytes.length>3*1024*1024)throw Error("PDF كبير جدًا، اختار فترة أقصر أو نزّل Excel.");
    if(!transfer("pdf",bytes,filename)){
@@ -99,5 +126,5 @@
   }catch(err){status("تعذر التصدير: "+String(err.message||err),true)}
  }
  function nativeResult(kind,ok,message){status((ok?"✓ ":"⚠️ ")+String(message||kind||""),!ok);}
- w.FLOSY_REPORT_PRO={download,period,build,reportHtml,preparePrint,nativeResult,version:"3.9.2"};
+ w.FLOSY_REPORT_PRO={download,period,build,reportHtml,preparePrint,nativeResult,version:"3.11.0"};
 })(window,document);

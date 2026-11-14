@@ -237,18 +237,10 @@
     feature("reports","التقرير المالي المتقدم"));
  }
  function reports(){
-  const s=safeSum(),period=w.FLOSY_ULTRA_DATA?.periodRange?.("month")||{start:api().date(),end:api().date()};
-  return h("التقارير المالية", "PDF وExcel وفترات زمنية مرنة",2)+
-   panel("ملخص هذا الشهر",'<div class="flosy-grid-2">'+metric("الدخل",s.income)+metric("المصروف",s.expense)+
-    metric("الفرق",s.net)+metric("أرصدة الحسابات",s.total)+'</div>')+
-   panel("التقرير حسب المدة",'<label class="flosy-field">من<input type="date" class="flosy-input" id="flosyReportFrom" value="'+period.start+'"></label>'+
-    '<label class="flosy-field">إلى<input type="date" class="flosy-input" id="flosyReportTo" value="'+api().date()+'"></label>'+
-    '<div class="flosy-buttonbar">'+
-     '<button class="flosy-btn" data-flosy-action="report" data-kind="pdf">تنزيل PDF احترافي</button>'+
-     '<button class="flosy-btn flosy-btn-secondary" data-flosy-action="report" data-kind="excel">تنزيل Excel منسق</button></div>'+
-     '<p id="flosyReportStatus" role="status" aria-live="polite">هيظهر اختيار مكان الحفظ داخل Android، أو التنزيل في المتصفح.</p>')+
-   panel("تحليلات وتفاصيل إضافية",feature("reports","التقرير التفصيلي ورسومات الستة أشهر"));
+  return h("التقارير الاحترافية", "PDF · Excel · CSV — كل بياناتك المالية في مكان واحد",2)+
+   '<div id="flosyReportsPlusV311" class="flosy-reports-v311" aria-label="تقارير Flosy المالية"></div>';
  }
+
  const services=[
   {title:"الأساسيات",data:[["2","الرئيسية","fa-house"],["3","حساباتي","fa-wallet"],["4","المعاملات","fa-right-left"],
    ["8","فلوسي AI","fa-robot"],["14","التحليلات","fa-chart-pie"],["15","التقارير","fa-file-lines"]]},
@@ -399,6 +391,10 @@
      ". التقسيط النظري على "+months+" شهر "+money(price/months)+
      " شهريًا قبل أي فائدة أو رسوم. القرار يعتمد على الالتزامات الأخرى.";
    };
+  }
+  if(id===15){
+   const host=box.querySelector("#flosyReportsPlusV311");
+   w.FLOSY_REPORT_PLUS_V311?.mount?.(host);
   }
   if(id===10){
    box.querySelector("#flosySplitForm").onsubmit=e=>{

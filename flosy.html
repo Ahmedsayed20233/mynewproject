@@ -379,7 +379,8 @@
  <link rel="stylesheet" href="flosy-ai-experience-v396.css?v=3961">
  <link rel="stylesheet" href="flosy-customer-v397.css?v=3970">
  <link rel="stylesheet" href="flosy-needs-ui-v398.css?v=3980">
-<link rel="stylesheet" href="flosy-report-pro.css?v=3920">
+<link rel="stylesheet" href="flosy-report-pro.css?v=3110">
+<link rel="stylesheet" href="flosy-report-plus-v311.css?v=3110">
 <link rel="stylesheet" href="flosy-services-v392.css?v=3950">
 <link rel="stylesheet" href="flosy-finance-ui-v393.css?v=3950">
 <link rel="icon" href="flosy-ultra-icon.svg" type="image/svg+xml">
@@ -1589,24 +1590,24 @@
           </div>
 
           <div class="grid grid-cols-3 gap-2 text-center">
-            <button onclick="showToast('تم تصدير التقرير الرسمي بصيغة PDF 📄')" class="app-card rounded-2xl p-2.5">
+            <button onclick="goToScreen(15)" class="app-card rounded-2xl p-2.5">
               <i class="fa-solid fa-file-pdf expense-text text-base mb-1"></i>
               <div class="text-[10px] font-extrabold text-main">تحميل PDF</div>
             </button>
-            <button onclick="showToast('تم تحميل شيت Excel بجميع المعاملات 📊')" class="app-card rounded-2xl p-2.5">
+            <button onclick="goToScreen(15)" class="app-card rounded-2xl p-2.5">
               <i class="fa-solid fa-file-excel income-text text-base mb-1"></i>
               <div class="text-[10px] font-extrabold text-main">شيت Excel</div>
             </button>
-            <button onclick="showToast('تم إرسال الملخص المالي عبر واتساب 💬')" class="app-card rounded-2xl p-2.5">
+            <button onclick="goToScreen(15)" class="app-card rounded-2xl p-2.5">
               <i class="fa-brands fa-whatsapp brand-text text-base mb-1"></i>
               <div class="text-[10px] font-extrabold text-main">ملخص واتساب</div>
             </button>
           </div>
 
           <div class="app-card rounded-2xl p-3 space-y-1.5 text-xs tabular-nums">
-            <div class="flex justify-between"><span class="text-sub">إجمالي الدخل</span><span class="font-black income-text">15,000 ج.م</span></div>
-            <div class="flex justify-between"><span class="text-sub">إجمالي المصروفات</span><span class="font-black expense-text">6,750 ج.م</span></div>
-            <div class="flex justify-between"><span class="text-sub">معدل الادخار الشهري</span><span class="font-black brand-text">55% (ممتاز)</span></div>
+            <div class="flex justify-between"><span class="text-sub">إجمالي الدخل</span><span class="font-black income-text">يُحسب من المعاملات</span></div>
+            <div class="flex justify-between"><span class="text-sub">إجمالي المصروفات</span><span class="font-black expense-text">يُحسب من المعاملات</span></div>
+            <div class="flex justify-between"><span class="text-sub">معدل الادخار الشهري</span><span class="font-black brand-text">يُحسب حسب الدخل الفعلي</span></div>
           </div>
         </div>
 
@@ -2571,14 +2572,15 @@
     window.addEventListener('DOMContentLoaded', initApp);
   </script>
 <script src="flosy-ultra-data.js?v=3801"></script>
-<script src="flosy-report-kit.js?v=3601"></script>
+<script src="flosy-report-kit.js?v=3110"></script>
+<script src="flosy-report-plus-v311.js?v=3110"></script>
 <script src="flosy-categories-v391.js?v=3910"></script>
 <script src="flosy-copilot-v392.js?v=3920"></script>
 <script src="flosy-ai-brain-v399.js?v=3990"></script>
 <script src="flosy-unified-ai.js?v=3990"></script>
  <script src="flosy-ai-experience-v396.js?v=3960"></script>
-<script src="flosy-unified-pages.js?v=3901"></script>
-<script src="flosy-report-pro.js?v=3920"></script>
+<script src="flosy-unified-pages.js?v=3110"></script>
+<script src="flosy-report-pro.js?v=3110"></script>
 <script src="flosy-nlu-compact-vocab.js?v=20261114"></script>
 <script src="flosy-nlu-compact-weights.js?v=20261114"></script>
 <script src="flosy-egyptian-nlu-compact-v2.js?v=20261114"></script>
