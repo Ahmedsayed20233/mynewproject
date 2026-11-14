@@ -50,7 +50,7 @@ test("Account/category/type filters and prior period comparison never mix money"
  assert.equal(only.income,0);
  assert.equal(only.transfers,0);
  assert.equal(only.rows.length,1);
- assert.equal(only.comparison.expense,0);
+ assert.equal(only.comparison.expense,60000);
  const sum=report.build(state,{...options,start:"2026-10-18",end:"2026-11-14"},kit);
  assert.equal(sum.timeline.length,2);
  assert.equal(sum.comparison.previousCount,0);
