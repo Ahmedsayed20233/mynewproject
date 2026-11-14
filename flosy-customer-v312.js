@@ -6,7 +6,10 @@
  const original=P.render,api=()=>w.FLOSY_UNIFIED;
  const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;',"'" :"&#39;"}[c]));
  const money=x=>api()?.money?.(Number(x)||0)||new Intl.NumberFormat("ar-EG").format(Number(x)||0)+" ج.م";
- const clean=s=>w.FLOSY_ULTRA_DATA?.cleanTx?.(s)||[];
+ const clean=s=>{
+  const excluded=new Set((s?.deletedIds||[]).map(x=>String(x).split("/").pop()));
+  return (w.FLOSY_ULTRA_DATA?.cleanTx?.(s)||[]).filter(t=>!t.deleted&&!t.isDeleted&&!excluded.has(String(t.id)));
+ };
  const iso=()=>api()?.date?.()||new Date().toISOString().slice(0,10);
  const types=[["expense","مصروف","fa-arrow-trend-down"],["income","دخل","fa-arrow-trend-up"],["transfer","تحويل","fa-right-left"]];
  const presets=[["قهوة","fa-mug-hot"],["فطار","fa-bread-slice"],["مواصلات","fa-car"],["سوبرماركت","fa-basket-shopping"]];
@@ -33,7 +36,7 @@
   return '<main class="cx312-home" aria-label="الرئيسية المبسطة">'+
    '<header class="cx312-greeting"><div><small>فلوسي • كل شيء في مكان واحد</small>'+
     '<h1>فلوسك أوضح كل يوم <span aria-hidden="true">✦</span></h1></div>'+
-    '<button type="button" data-flosy-screen="16" aria-label="فتح الخدمات" title="الخدمات"><i class="fa-solid fa-grid-2"></i></button></header>'+
+    '<button type="button" data-flosy-screen="16" aria-label="فتح الخدمات" title="الخدمات"><i class="fa-solid fa-grip"></i></button></header>'+
    '<section class="cx312-safe" aria-label="الحد الآمن اليومي"><div class="cx312-safe-top"><span><i class="fa-solid fa-shield-heart"></i> المتاح الآمن للصرف اليوم</span>'+
     '<button type="button" data-ux312-help="safe" aria-label="كيف يُحسب المتاح الآمن للصرف؟">؟</button></div>'+
     '<strong class="cx312-safe-amount">'+esc(daily)+'</strong>'+
@@ -63,9 +66,11 @@
  }
  const cats=(type,selected="")=>{
   const specs=w.FLOSY_CATEGORIES?.forType?.(type)||[];
-  const fallback=type==="income"?"دخل آخر":type==="transfer"?"تحويل داخلي":"مشتريات";
+  const fallback=type==="income"?"دخل آخر":type==="transfer"?"تحويل داخلي":"غير مصنف";
   const rows=specs.length?specs:[{label:fallback}];
-  return rows.map(x=>'<option value="'+esc(x.label)+'"'+(x.label===selected?' selected':'')+'>'+esc(x.label)+'</option>').join("");
+  if(!rows.some(x=>x.label===fallback))rows.unshift({label:fallback});
+  const picked=selected||fallback;
+  return rows.map(x=>'<option value="'+esc(x.label)+'"'+(x.label===picked?' selected':'')+'>'+esc(x.label)+'</option>').join("");
  };
  const accountsHtml=(items,selected)=>items.map(x=>
   '<option value="'+esc(x.id)+'"'+(String(x.id)===String(selected)?' selected':'')+'>'+esc(x.name||"حساب")+'</option>').join("");
@@ -281,6 +286,7 @@
  }
  function init(){
   decorateReview();
+  w.FLOSY_CUSTOMER_COACH_V312?.install?.(w);
   if(hotkeysAttached)return;hotkeysAttached=true;
   d.addEventListener("click",event=>{
    if(sheet&&handleSheetClick(event.target))return;
@@ -300,7 +306,15 @@
    if(e.target?.id==="cx312Description")classify();
   });
   d.addEventListener("keydown",e=>{
-   if(e.key==="Escape"&&sheet){e.preventDefault();clearSheet();}
+   if(e.key==="Escape"&&sheet){e.preventDefault();clearSheet();return;}
+   if(e.key==="Tab"&&sheet){
+    const items=[...sheet.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),summary')]
+      .filter(x=>!x.closest('[hidden]')&&x.getClientRects().length>0);
+    if(!items.length)return;
+    const start=items[0],end=items[items.length-1];
+    if(e.shiftKey&&d.activeElement===start){e.preventDefault();end.focus();}
+    else if(!e.shiftKey&&d.activeElement===end){e.preventDefault();start.focus();}
+   }
   });
  }
  function render(id){original(id);init();bindPage(id);d.body.classList.add("flosy-customer-v312");}
