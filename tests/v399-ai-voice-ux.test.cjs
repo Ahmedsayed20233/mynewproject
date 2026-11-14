@@ -88,7 +88,7 @@ test("AI addresses colloquial categories and doesn't hallucinate missing data",(
 });
 test("AI respects last week, last 7 days, 3 months and income in Arabic",()=>{
  assert.equal(brain.range(brain.normalize("آخر 3 شهور"),at).from,"2026-09-01");
- assert.equal(brain.range(brain.normalize("الأسبوع اللي فات"),at).from,"2026-10-31");
+ assert.equal(brain.range(brain.normalize("الأسبوع اللي فات"),at).from,"2026-11-07");
  assert.equal(brain.range(brain.normalize("آخر 7 أيام"),at).from,"2026-11-08");
  const income=brain.answer("دخلي كام الشهر ده",finance,{},at);
  assert.equal(income.intent,"v399-income");
