@@ -51,7 +51,7 @@ test("UX source keeps one ledger and five main tabs; voice, receipt and reports 
  assert.ok(code.includes('data-ux312-quick="transfer"'));
  assert.ok(code.includes("data-ux312-open-screen"));
  assert.ok(code.includes("flosyReportStatus")||code.includes(".report311-presets"));
- for(const u of ["flosy-customer-v312.js?v=3120","flosy-customer-v312.css?v=3120","flosy-ai-coach-v312.js?v=3120"]){
+ for(const u of ["flosy-customer-v312.js?v=3130","flosy-customer-v312.css?v=3120","flosy-ai-coach-v312.js?v=3120"]){
   assert.ok(html.includes(u));assert.ok(sw.includes("./"+u));
  }
 });
