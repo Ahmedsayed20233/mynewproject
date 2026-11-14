@@ -178,14 +178,31 @@
   ];
   return patterns.find(([re])=>re.test(v))?.[1]||row.description||"عملية صوتية";
  }
+ function voiceAutoEnabled(){return state()?.settings?.voiceAutoPostV399===true;}
+ function setVoiceAutoEnabled(value){
+  const enabled=value===true;
+  live(s=>{s.settings=s.settings||{};s.settings.voiceAutoPostV399=enabled;});
+  notify(enabled?"تفعيل التسجيل الصوتي المباشر للعمليات الواضحة فقط؛ تقدر تتراجع عن آخر عملية.":"تم إيقاف التسجيل الصوتي المباشر؛ كل عملية تحتاج مراجعة.");
+  renderAll();return enabled;
+ }
  function fromVoiceText(text){
   const gate=w.FLOSY_VOICE_SAFETY_V2,review=w.FLOSY_CAPTURE_REVIEW_V2;
   if(!gate?.analyzeBatch||!review?.open)throw Error("واجهة مراجعة الصوت لم تُحمّل؛ لم يتم حفظ شيء");
   const items=gate.analyzeBatch(text,accounts(),date()).map(p=>({...p,
    category:w.FLOSY_CATEGORIES?.classify?.(p.text,p.intent)?.label||
      (p.intent==="income"?"دخل آخر":p.intent==="transfer"?"تحويل داخلي":"مشتريات")}));
+  if(!items.length)throw Error("ما وصلش كلام كفاية لتحليله؛ تقدر تعدّل الجملة أو تسجّل يدويًا.");
+  const result=w.FLOSY_VOICE_AUTO_V399?.decide?.(items,{
+   enabled:voiceAutoEnabled(),accounts:accounts(),today:date(),maxAmount:5000
+  });
+  if(result?.accepted){
+   const saved=postBatch(result.rows,"flosy39_voice_auto");
+   notify("✓ تم تسجيل "+saved.length+" عملية صوتية واضحة؛ استخدم زر تراجع لو التعرف أخطأ.");
+   go(4);items.autoSaved=saved;return items;
+  }
   review.open({items,kind:"voice",accounts:accounts(),save:rows=>postBatch(rows,"flosy39_voice_confirmed"),
     onSaved:saved=>{notify("تم تسجيل "+saved.length+" عملية بعد موافقتك");go(4)}});
+  items.needsReview=true;items.reason=result?.reason||"needs_owner_review";
   return items;
  }
  function fromReceiptText(text){
@@ -249,11 +266,12 @@
   const spoken=String(text||"").trim();
   if(!spoken){captureStatus("flosyCaptureStatus","مش سامع كلام واضح؛ حاول مرة تانية.",true);return}
   if(voiceForAI){voiceForAI=false;w.FLOSY_UNIFIED_AI?.onVoice?.(spoken);return}
-  captureStatus("flosyCaptureStatus","سمعت: «"+spoken.slice(0,130)+"»؛ جاري تجهيز اقتراحات للمراجعة...");
+  captureStatus("flosyCaptureStatus","سمعت: «"+spoken.slice(0,130)+"»؛ جاري تحليل الجملة...");
   try{
    const rows=fromVoiceText(spoken);
-   captureStatus("flosyCaptureStatus","✓ تم تجهيز "+rows.length+" اقتراح للمراجعة. لم يتم الحفظ.");
-   // Do not navigate until the user confirms every account and amount.
+   captureStatus("flosyCaptureStatus",rows.autoSaved?.length?
+    "✓ تم الحفظ المباشر للعملية الواضحة؛ تقدر تتراجع من شريط التأكيد.":
+    "✓ جهزت "+rows.length+" اقتراح للتصحيح والمراجعة؛ لم يتم الحفظ بعد.");
   }catch(err){captureStatus("flosyCaptureStatus",err.message,true);notify(err.message);}
  }
  function startVoice(forAI=false){
@@ -503,6 +521,7 @@
   w.FLOSY_UNIFIED={
    core:()=>ledger,state,summary,accounts,balances,safe,money,date,esc,inferIcon,
    defaultAccount,setDefaultAccount,createAccount,openAccountDialog:addAccountModal,postBatch,fromVoiceText,fromReceiptText,
+   voiceAutoEnabled,setVoiceAutoEnabled,
    go,back,applyTheme,openFeature,closeFeature,renderAll,startVoice,startReceipt,
    bridge,sendReport,notify,THEMES,getCurrentScreen:()=>current,
    nativeVoice,nativeReceipt,nativeReceiptImage,captureStatus,
