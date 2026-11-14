@@ -44,7 +44,8 @@ const {setTimeout:delay}=require("node:timers/promises"),base="http://127.0.0.1:
   assert.ok((await page.locator("#cx312QuickError").innerText()).includes("وصف"));
   assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length),0);
   await page.locator('[data-ux312-preset="قهوة"]').click();
-  await page.locator("#cx313QuickPreview").waitFor();
+  await page.waitForFunction(()=>document.querySelector("#cx313QuickPreview")?.textContent.includes("قهوة"),
+   null,{timeout:7000});
   const preview=await page.locator("#cx313QuickPreview").innerText();
   assert.ok(preview.includes("65")||preview.includes("٦٥"));
   assert.ok(preview.includes("قهوة"));
