@@ -43,12 +43,12 @@ jobs:
       - name: Verify MVP excludes messaging features
         run: |
           set -eu
-          grep -Fq "versionName '3.9.9'" android/app/build.gradle
-          grep -Fq "applicationIdSuffix '.unified.v399'" android/app/build.gradle
+          grep -Fq "versionName '3.10.0'" android/app/build.gradle
+          grep -Fq "applicationIdSuffix '.unified.v3100'" android/app/build.gradle
           grep -Fq 'tools:node="remove"' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'tools:node="replace"' android/app/src/mvp/AndroidManifest.xml
           grep -Fq 'FLOSY_MVP_NO_MESSAGE_IMPORT' android/app/src/main/java/com/flosy/finance/MainActivity.java
-          # v3.9.9 continues to host app JavaScript from GitHub Pages, not from APK assets.
+          # v3.10.0 continues to host app JavaScript from GitHub Pages, not from APK assets.
           grep -Fq 'ROOT + "flosy.html"' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'configureMvpWebUi()' android/app/src/main/java/com/flosy/finance/MainActivity.java
           grep -Fq 'if(isMvp()' android/app/src/main/java/com/flosy/finance/MainActivity.java
@@ -83,8 +83,8 @@ jobs:
           AAPT="$ANDROID_HOME/build-tools/35.0.0/aapt"
           SIGN="$ANDROID_HOME/build-tools/35.0.0/apksigner"
           "$AAPT" dump badging "$APK" | tee /tmp/flosy-mvp-badging.txt
-          grep -q "name='com.flosy.finance.unified.v399'" /tmp/flosy-mvp-badging.txt
-          grep -q "versionName='3.9.9'" /tmp/flosy-mvp-badging.txt
+          grep -q "name='com.flosy.finance.unified.v3100'" /tmp/flosy-mvp-badging.txt
+          grep -q "versionName='3.10.0'" /tmp/flosy-mvp-badging.txt
           "$AAPT" dump permissions "$APK" | tee /tmp/flosy-mvp-permissions.txt
           if grep -E 'android.permission.(READ_SMS|RECEIVE_SMS|SEND_SMS|READ_CALL_LOG|BIND_NOTIFICATION_LISTENER_SERVICE|BIND_ACCESSIBILITY_SERVICE)' /tmp/flosy-mvp-permissions.txt; then
             echo "BLOCKED: MVP APK contains restricted messages/notification permission"; exit 1
@@ -99,13 +99,13 @@ jobs:
           "$SIGN" verify --verbose "$APK"
           unzip -t "$APK" >/dev/null
           mkdir -p dist
-          cp "$APK" dist/Flosy-Connected-Finance-v3.9.9.apk
+          cp "$APK" dist/Flosy-Connected-Finance-v3.10.0.apk
           ls -lh dist/*.apk
 
       - name: Upload MVP testing APK
         uses: actions/upload-artifact@v4
         with:
-          name: Flosy-Unified-v3.9.9-20-Screens
+          name: Flosy-Unified-v3.10.0-20-Screens
           path: dist/*.apk
           retention-days: 30
           if-no-files-found: error
@@ -115,13 +115,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="flosy-connected-finance-v3.9.9"
+          TAG="flosy-connected-finance-v3.10.0"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.apk --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$TAG" dist/*.apk \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --title "Flosy v3.9.9 — connected Egyptian AI, unified UX, safe opt-in voice and receipt capture" \
-              --notes "Flosy v3.9.9 founder-test Android APK. Five-tab consistent navigation and unified theme tokens across screens. One route for manual, voice and receipt capture. Grounded Egyptian-dialect local Flosy AI now handles period-specific spending/category analysis, month comparisons, follow-up questions and links to relevant screens (not a general LLM). Voice can post a single fully explicit EGP expense or income directly only after the user enables the opt-in toggle; amount <=5000 EGP, unique spoken owner account, clear past action and model agreement are required. Duplicates are blocked and Undo is available. Unclear or unsupported speech opens an editable transcript and re-analysis/manual entry; transfer and receipts remain owner-reviewed. No SMS inbox or bank notification reader. OCR visual model was not retrained; AraReceipt text ranker held-out precision remains 46.03%. Hosted GitHub Pages must deploy the matching Flosy web branch before testing. No production signing or real-phone certification. Separate package com.flosy.finance.unified.v399 does not migrate local data from earlier debug variants automatically. See docs/FLOSY_V399_CUSTOMER_AI_EXECUTION_PLAN_AR.md."
+              --title "Flosy v3.10.0 — Egyptian receipt intelligence trained on CORU IE" \
+              --notes "Flosy v3.10.0 experimental/founder-test Android APK. The hosted Flosy web app integrates a reproducibly trained CORU-IE item-name character trigram model (6,947 training rows; 21 classes; 2,600 item lexicon entries), separate validation and test data; held-out test item classification accuracy 83.38%, unseen normalized product names 82.77%. These are NOT image OCR accuracy metrics. New Egyptian receipt parser handles OCR Arabic-Indic and European decimal formats and reconciles item quantity x price, subtotal, taxes, discounts, tendered cash and change, using the existing AraReceipt total selector. Review UI provides merchant/item suggestions by one-tap optional owner approval, image gallery preview and fixes a low image-data cutoff. OCR reading still relies on existing native ML Kit and Tesseract Arabic/English; visual OCR has not been fine-tuned on CORU images and no all-invoice accuracy is claimed. Receipts NEVER auto-post; only owner-confirmed total/account saves to the canonical ledger. Source CORU HF MIT metadata; preserve attribution and verify exact dataset licensing before commercialization. Android WebView opens https://ahmedsayed20233.github.io/mynewproject/flosy.html, so matching website must be deployed first. No new SMS, notification listener or bank account permissions; no real phone QA, production signing or Play Store certification. Separate package com.flosy.finance.unified.v3100 does not automatically migrate local data from earlier debug variants. See docs/FLOSY_V310_EGYPT_RECEIPTS_RELEASE_AR.md."
           fi
