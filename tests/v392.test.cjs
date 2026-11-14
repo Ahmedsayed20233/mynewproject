@@ -72,6 +72,9 @@ test("new PDF and Excel links are bound to native file-chunk workflow",()=>{
   assert.ok(js.includes(token)||shell.includes(token)||services.includes(token),token);
  assert.match(css,/@page\{size:A4/);
  assert.match(services,/notifications-daily-enable/);
- assert.match(services,/data-sfilter/);
+ assert.match(services,/FLOSY_SCREEN_MAP_V395/);
+ assert.match(services,/flosyMoreNotifications/);
+ assert.doesNotMatch(services,/id="servicesV392Search"/);
+ assert.doesNotMatch(services,/data-notify-action="test"/);
  assert.match(services,/flosyFirstNameForm/);
 });
