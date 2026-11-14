@@ -195,7 +195,7 @@
   if(!parser)throw Error("محرك قراءة الفواتير غير متاح");
   const p=parser(src);
   if(!p||!(p.amount>0))throw Error("لا يوجد إجمالي صحيح واضح؛ لم تُحفظ الفاتورة");
-   // An arithmetic contradiction is resolved in the editable review form before confirmation.
+  // receiptDetails.arithmeticContradiction is reconciled in the editable review form before confirmation.
   const review=w.FLOSY_CAPTURE_REVIEW_V2;
   if(!review?.open)throw Error("واجهة مراجعة الفواتير لم تُحمّل");
   const item={...p,intent:"expense",text:String(p.description||"فاتورة").slice(0,100),
