@@ -90,3 +90,12 @@
 .flosy-workspace-tabs button[aria-current="page"]{background:var(--primary);
  border-color:var(--primary);color:white}
 .flosy-workspace-tabs button:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+
+/* v3.9.5 More consolidation: no repeated financial tool tiles. */
+.flosy-workspace-related{margin-top:16px;border:1px solid var(--border);border-radius:16px;background:var(--bg-surface)}
+.flosy-workspace-related>summary{cursor:pointer;padding:12px 14px;font-weight:800;font-size:11px;color:var(--text-primary)}
+.flosy-workspace-related-items{display:grid;gap:8px;padding:0 12px 12px}
+.flosy-workspace-related-items button{display:flex;align-items:center;gap:10px;width:100%;padding:11px;border-radius:12px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--text-primary);text-align:right;font-size:11px;cursor:pointer}
+.flosy-workspace-related-items button>span{display:grid;flex:1;gap:3px}
+.flosy-workspace-related-items button small{color:var(--text-secondary);font-size:9px}
+.flosy-workspace-related-items button:focus-visible{outline:3px solid var(--primary)}
