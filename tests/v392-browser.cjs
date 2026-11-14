@@ -63,12 +63,23 @@ const BASE="http://127.0.0.1:8152";
   assert.equal(roast.intent,"roast");
   assert.ok(roast.text.includes("قهوة"));
   await page.evaluate(()=>window.FLOSY_UNIFIED.go(16));
-  assert.ok((await page.locator(".service-v392-item").count())>=25);
-  await page.locator("#servicesV392Search").fill("تقارير");
+  assert.deepEqual(await page.evaluate(()=>window.FLOSY_SCREEN_MAP_V395.audit()),
+    {screens:20,primary:8,details:10,advanced:9});
+  assert.equal(await page.locator(".service-v392-item[data-service-primary]").count(),8);
+  assert.equal(await page.locator(".service-v392-item[data-service-detail]").count(),10);
+  assert.equal(await page.locator(".service-v392-item[data-service-advanced]").count(),9);
+  assert.equal(await page.locator(".service-v392-item:visible").count(),8);
+  await page.locator("#servicesV392Search").fill("تقاريري");
   assert.equal(await page.locator(".service-v392-item:visible").count(),1);
+  await page.locator("#servicesV392Search").fill("تقويم السيولة");
+  assert.ok(await page.locator('[data-service-detail][data-flosy-screen="18"]').isVisible(),
+    "Search should show internal calendar");
+  await page.locator('[data-service-detail][data-flosy-screen="18"]').click();
+  assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.getCurrentScreen()),18);
+  await page.evaluate(()=>window.FLOSY_UNIFIED.go(16));
   await page.locator("#servicesV392Search").fill("");
   await page.locator('[data-sfilter="ai"]').click();
-  assert.ok((await page.locator(".service-v392-item:visible").count())>=3);
+  assert.ok((await page.locator(".service-v392-item[data-service-primary]:visible").count())>=2);
   await page.locator('[data-sfilter="all"]').click();
   await page.locator('[data-notify-action="daily"]').click();
   assert.ok(await page.evaluate(()=>window.__msgs.some(m=>m.action==="notifications-daily-enable")));
@@ -83,7 +94,7 @@ const BASE="http://127.0.0.1:8152";
    assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),theme);
   }
   assert.equal(errors.filter(x=>/SyntaxError|ReferenceError|TypeError/.test(x)).length,0,errors.join(" | "));
-  console.log("PASS: PDF/Excel native chunks, real ledger, named AI/Roast Me, grouped services, notifications & 4 themes");
+  console.log("PASS: PDF/Excel native chunks, real ledger, named AI/Roast Me, eight workspaces with nested tools, notifications & 4 themes");
  }catch(err){console.error(err);process.exitCode=1}
  finally{if(browser)await browser.close();server.kill()}
 })();
