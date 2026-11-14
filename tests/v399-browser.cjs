@@ -38,6 +38,12 @@ const BASE="http://127.0.0.1:8189";
    return {count,after:a.state().transactions.length,blocked:parsed[0].intent};
   });
   assert.equal(state.after,state.count);
+  assert.ok(await page.locator("#flosyV399CorrectedVoice").isVisible());
+  await page.locator("#flosyV399CorrectedVoice").fill("دفعت 75 جنيه قهوة من الكاش");
+  await page.locator("[data-v399-reanalyse]").click();
+  assert.ok(await page.locator("#flosyV2Form").isVisible());
+  assert.ok(await page.locator("#flosyV399CorrectedVoice").isVisible());
+  await page.locator("[data-v2-cancel]").first().click();
   const direct=await page.evaluate(()=>{
    const a=window.FLOSY_UNIFIED,script="دفعت 75 جنيه قهوة من الكاش";
    const before=a.state().transactions.length;
@@ -46,7 +52,6 @@ const BASE="http://127.0.0.1:8189";
    return {gate,analysis:analyses[0],before};
   });
   assert.equal(direct.gate.accepted,true,JSON.stringify(direct));
-  await page.locator("[data-v2-cancel]").first().click();
   const persisted=await page.evaluate(()=>{
    const a=window.FLOSY_UNIFIED;
    const sample="دفعت 75 جنيه قهوة من الكاش";
@@ -67,12 +72,6 @@ const BASE="http://127.0.0.1:8189";
   });
   assert.equal(dup,true,"same speech callback in 5m should not deduct a second time");
 
-  assert.ok(await page.locator("#flosyV399CorrectedVoice").isVisible());
-  await page.locator("#flosyV399CorrectedVoice").fill("دفعت 75 جنيه قهوة من الكاش");
-  await page.locator("[data-v399-reanalyse]").click();
-  assert.ok(await page.locator("#flosyV2Form").isVisible());
-  assert.ok(await page.locator("#flosyV399CorrectedVoice").isVisible());
-  await page.locator("[data-v2-cancel]").first().click();
   const q=await page.evaluate(()=>{
    const a=window.FLOSY_UNIFIED;
    a.go(8);
