@@ -5,6 +5,7 @@ const css=fs.readFileSync("flosy-unified.css","utf8");
 const js=fs.readFileSync("flosy-unified.js","utf8");
 const pages=fs.readFileSync("flosy-unified-pages.js","utf8");
 const ai=fs.readFileSync("flosy-unified-ai.js","utf8");
+const reports=fs.readFileSync("flosy-report-plus-v311.js","utf8");
 test("entire original 20-screen designer source imported; 4 live themes retained",()=>{
  const ids=[...html.matchAll(/class="phone-frame" data-screen="(\d+)"/g)].map(x=>+x[1]);
  assert.deepEqual(ids,Array.from({length:20},(_,i)=>i+1));
@@ -60,7 +61,7 @@ test("business pages have 4-theme settings, real Excel & PDF, integrated AI",()=
   "flosyAiUnifiedInput","flosyReceiptPaste","flosyVoiceTypedForm","flosyThemeGrid",
   "flosyReportFrom","flosyReportTo"]){
   if(name==="flosyThemeGrid")continue;
-  assert.ok(pages.includes(name)||ai.includes(name),name);
+  assert.ok(pages.includes(name)||ai.includes(name)||reports.includes(name),name);
  }
  assert.match(pages,/FLOSY_UNIFIED_AI/);
  assert.match(js,/xlsxBytes/);
