@@ -134,7 +134,13 @@
  .more-grid button>span{font-size:23px;color:var(--teal);line-height:1.2;margin-bottom:4px}
  .more-grid button strong{font-size:12px}
  .more-grid button small{font-size:10px;color:var(--muted)}
- .more-sync{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid #218170;background:#0d483a30;border-radius:14px;padding:11px;margin-top:14px}
+ .more-extra{margin:13px 0 0;border:1px solid var(--outline);border-radius:15px;background:var(--panel2);overflow:hidden}
+.more-extra>summary{padding:13px;cursor:pointer;font-size:12px;font-weight:900;color:var(--text)}
+.more-extra>summary small{display:block;font-size:9px;font-weight:500;color:var(--muted);margin-top:3px}
+.more-extra .more-grid{padding:0 10px 11px}
+.more-extra .more-grid button{min-height:82px;background:var(--panel)}
+.more-extra summary:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+  .more-sync{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid #218170;background:#0d483a30;border-radius:14px;padding:11px;margin-top:14px}
  .more-sync b{display:block;font-size:12px}
  .more-sync small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
  .more-sync button{border:0;border-radius:10px;background:var(--teal);color:#05282a;padding:9px 10px;font-weight:900;font-size:11px;white-space:nowrap}
@@ -249,30 +255,22 @@
 <section id="mobileMorePanel" class="mobile-more-panel" role="dialog" aria-modal="true" aria-label="قائمة المزيد">
 <div class="more-grip"></div>
 <div class="more-head"><div><b>المزيد في فلوسي</b><small>كل أدواتك المالية في مكان واحد</small></div><button type="button" id="closeMore" aria-label="إغلاق القائمة">✕</button></div>
-<div class="more-grid">
-<button data-go="budget" type="button"><span>◉</span><strong>الميزانية</strong><small>خطة الإنفاق</small></button>
-<button data-go="goals" type="button"><span>◎</span><strong>أهداف الادخار</strong><small>الطوارئ والاستثمار</small></button>
-<button data-go="settings" type="button"><span>⚙</span><strong>الإعدادات</strong><small>النسخ والمزامنة</small></button>
-<button data-go="reports" type="button"><span>▥</span><strong>التقارير</strong><small>PDF للفترات المختلفة</small></button>
-<button data-go="wealth" type="button"><span>▣</span><strong>كل أموالي</strong><small>الحسابات والثروة</small></button>
-<button data-go="portfolio" type="button"><span>↗</span><strong>محفظة ثاندر</strong><small>صفقات وأسعار</small></button>
-<button data-go="plan" type="button"><span>◈</span><strong>الخطة المالية</strong><small>تخصيصات 24 شهرًا</small></button>
-<button data-go="risk" type="button"><span>♧</span><strong>الأزمات</strong><small>الطوارئ والتنبيهات</small></button>
-<button data-go="phase1" type="button"><span>◉</span><strong>آمن للصرف</strong><small>فواتير وأقساط وتوقعات</small></button>
-<button data-go="v4-capture" type="button"><span>🎙</span><strong>صوت وإيصالات</strong><small>إدخال سريع</small></button>
-<button data-go="v4-bank" type="button"><span>⇵</span><strong>كشف البنك</strong><small>استيراد CSV</small></button>
-<button data-go="v4-wealth" type="button"><span>◈</span><strong>ثروتي</strong><small>ذهب ودولار وجمعية</small></button>
-<button data-go="v4-crisis" type="button"><span>♢</span><strong>سيناريو أزمة</strong><small>البطالة والتضخم</small></button>
-<button data-go="v4-family" type="button"><span>♡</span><strong>ميزانية العيلة</strong><small>حسابات مشتركة</small></button>
-<button data-go="v4-privacy" type="button"><span>▢</span><strong>الخصوصية</strong><small>الأجهزة وإخفاء الأرصدة</small></button>
-<button data-go="smart" type="button"><span>✦</span><strong>الرؤى</strong><small>ميزانية مرنة</small></button>
-<button data-go="recurring" type="button"><span>◷</span><strong>الفواتير</strong><small>المواعيد الدورية</small></button>
-<button data-go="import" type="button"><span>↧</span><strong>رسائل البنك</strong><small>استيراد ومراجعة</small></button>
-<button data-go="ai" type="button"><span>✳</span><strong>Flosy AI</strong><small>مساعد مالي ذكي</small></button>
-<button data-go="recovery" type="button"><span>♢</span><strong>النسخ الآمنة</strong><small>استرجاع البيانات</small></button>
-</div>
+<div class="more-grid" aria-label="الخدمات الأساسية"><button data-go="budget" type="button"><span>◉</span><strong>الميزانية</strong><small>خطة الإنفاق</small></button>
+<button data-go="wealth" type="button"><span>▣</span><strong>حساباتي وثروتي</strong><small>الأرصدة والأصول</small></button>
+<button data-go="ai" type="button"><span>✳</span><strong>فلوسي AI</strong><small>مساعد مالي</small></button>
+<button data-go="settings" type="button"><span>⚙</span><strong>الإعدادات والمزامنة</strong><small>حسابك وبياناتك</small></button>
+<button data-go="recovery" type="button"><span>♢</span><strong>النسخ الاحتياطية</strong><small>حماية واسترجاع</small></button></div>
+<details id="mobileMoreExtra" class="more-extra"><summary>أدوات إضافية <small>9 وظائف مختلفة عند الحاجة</small></summary><div class="more-grid"><button data-go="goals" type="button"><span>◎</span><strong>أهداف الادخار</strong><small>خططك المالية</small></button>
+<button data-go="portfolio" type="button"><span>↗</span><strong>محفظة ثاندر</strong><small>الاستثمارات</small></button>
+<button data-go="plan" type="button"><span>◈</span><strong>الخطة المالية</strong><small>خطتك طويلة المدى</small></button>
+<button data-go="v4-capture" type="button"><span>🎙</span><strong>الصوت والإيصالات</strong><small>المراجعة والإدخال</small></button>
+<button data-go="v4-bank" type="button"><span>⇵</span><strong>استيراد CSV</strong><small>كشف بنك تختاره</small></button>
+<button data-go="v4-crisis" type="button"><span>♢</span><strong>محاكي الأزمات</strong><small>تضخم وفقدان دخل</small></button>
+<button data-go="v4-family" type="button"><span>♡</span><strong>ميزانية العيلة</strong><small>أفراد الأسرة</small></button>
+<button data-go="v4-privacy" type="button"><span>▢</span><strong>الخصوصية والأجهزة</strong><small>حماية الأرصدة</small></button>
+<button data-go="recurring" type="button"><span>◷</span><strong>الفواتير المتكررة</strong><small>مواعيد الاستحقاق</small></button></div></details>
 <div class="more-sync"><div><b id="moreSyncTitle">💾 حفظ محلي</b><small id="moreSyncHint">سجّل دخولك من الإعدادات للمزامنة السحابية</small></div><button type="button" id="moreSyncBtn">مزامنة</button></div>
-<div class="more-actions"><button type="button" data-go="settings">↗ إدارة بياناتي</button><button type="button" id="moreRefresh">⟳ تحديث الموقع</button></div>
+
 </section></div>
 <div id="netBanner" class="network-banner" role="status" aria-live="polite" hidden>أنت غير متصل بالإنترنت. المعاملات المحلية محفوظة على الجهاز، والمزامنة تتطلب اتصالًا.</div>
 <div id="flosyStudioLauncherHost"></div>
@@ -437,7 +435,6 @@ $('moreSyncBtn').onclick=()=>{
  if(!session){setMobileMore(false);goto('settings');toast('سجل الدخول أولاً ثم اضغط مزامنة الآن');return;}
  setMobileMore(false);sync();
 };
-$('moreRefresh').onclick=()=>{setMobileMore(false);if(confirm('تحديث الواجهة؟ بياناتك المحلية المحفوظة لن تُحذف.'))location.reload()};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('modalback').classList.contains('open'))closeModal();else setMobileMore(false)}});
 document.addEventListener('focusin',e=>{if(e.target.matches('input:not([type=checkbox]):not([type=radio]),textarea,select'))document.body.classList.add('keyboard-open')});
 document.addEventListener('focusout',e=>{if(e.target.matches('input,textarea,select'))setTimeout(()=>{if(!document.activeElement.matches('input,textarea,select'))document.body.classList.remove('keyboard-open')},120)});
