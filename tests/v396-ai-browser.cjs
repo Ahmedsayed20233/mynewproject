@@ -56,7 +56,8 @@ const BASE="http://127.0.0.1:8176";
   assert.ok((await page.locator("#faixActionResult").innerText()).includes("صندوق الطوارئ"));
   await page.locator('[data-ai-intent="transfer"]').click();
   assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.getCurrentScreen()),5);
-  assert.equal(await page.locator('.phone-frame[data-screen="5"] select[name="type"]').inputValue(),"transfer");
+  assert.equal(await page.locator('.phone-frame[data-screen="5"] input[name="type"]').inputValue(),"transfer");
+  assert.equal(await page.locator('.phone-frame[data-screen="5"] [data-fx-entry-type="transfer"]').getAttribute("aria-pressed"),"true");
   assert.equal(await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length),count,
     "Category selection must not post money");
   await page.evaluate(()=>window.FLOSY_UNIFIED.go(8));
