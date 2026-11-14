@@ -25,10 +25,10 @@ test("consolidated navigation maps to valid primary workflows without losing dee
  assert.equal(map.canonicalFor(99),null);
 });
 test("every detail stays a clickable screen, every advanced tool stays a feature",()=>{
- for(const item of map.details)assert.match(item[0],/^\\d+$/);
+ for(const item of map.details)assert.match(item[0],/^\d+$/);
  for(const item of map.advanced){
   assert.equal(item[5],true);
-  assert.doesNotMatch(item[0],/^\\d+$/);
+  assert.doesNotMatch(item[0],/^\d+$/);
  }
  assert.deepEqual(map.primary.map(x=>+x[0]),[2,3,4,5,8,9,11,15]);
 });
