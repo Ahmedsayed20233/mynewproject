@@ -33,7 +33,7 @@
   if(!chosen.length)throw Error("اختار عملية واحدة على الأقل قبل الحفظ");
   return chosen.map(({p,i})=>{
    if(!["expense","income","transfer"].includes(p.intent))
-    throw Error("العمليات غير المكتملة والديون والاستردادات لها مسار خاص؛ لم يُحفظ شيء.");
+    throw Error("العمليات غير المكتملة والديون والاستردادات تحتاج مساراً خاصاً؛ لم يُحفظ شيء.");
    const amount=Number(fields["amount-"+i]),date=String(fields["date-"+i]||"");
    const accountId=String(fields["account-"+i]||""),targetAccountId=p.intent==="transfer"?String(fields["target-"+i]||""):"";
    const description=String(fields["description-"+i]||"").trim().slice(0,90).replace(/[<>]/g,"");
@@ -58,7 +58,7 @@
      throw Error("الضريبة والخصم لا يجوز أن يكونا سالبين");
     const itemsSum=Math.round(itemsEdited.reduce((v,x)=>v+x.total,0)*100)/100;
     const expected=Math.round((itemsSum+tax-discount)*100)/100;
-    if(receiptDetails.arithmeticConsistent&&Math.abs(expected-amount)>.05)
+    if((receiptDetails.arithmeticConsistent||receiptDetails.arithmeticContradiction===true)&&Math.abs(expected-amount)>.05)
      throw Error("مجموع الأصناف بعد الضريبة والخصم "+expected+" جنيه لا يساوي إجمالي الفاتورة "+amount+" جنيه");
     receiptDetails={...receiptDetails,items:itemsEdited,itemsSum,tax,discount,
      arithmeticConsistent:Math.abs(expected-amount)<=.05,arithmeticContradiction:Math.abs(expected-amount)>.05};
