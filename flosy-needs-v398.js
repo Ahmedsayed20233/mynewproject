@@ -12,22 +12,23 @@
   essential:"مهم / ضروري",flexible:"في المنتصف",optional:"غير مهم / اختياري"
  };
  const ruleSets=[
-  ["essential",/إيجار|ايجار|rent|أقساط?|قسط|مستشفى|طبيب|دكتور|علاج|دواء|أدوية|صيدلية|pharmacy|hospital|medicine|كهرباء|مياه|فاتورة\s*(?:غاز|كهرباء|مياه)|دوام|مدرسة|كلية|جامعة|تعليم|school|tuition|insurance|تأمين|حضانة/i,"حاجة أساسية أو التزام ضروري"],
-  ["optional",/سينما|نتفليكس|netflix|تسلية|ترفيه|gaming|ألعاب|game|بلايستيشن|playstation|سينما|كوافير|صالون|ملاهي|concert|حفلة|اشتراك\s*ترفيه|مشروب\s*ترفيهي/i,"إنفاق ترفيهي يمكن الاستغناء عنه"],
-  ["flexible",/قهوة|قهوه|كافيه|كوفي|coffee|cafe|مطعم|restaurant|طلبات|delivery|فاست\s*فود|توصيل|بيتزا|سوبرماركت|بقالة|ماركت|مواصلات|أوبر|اوبر|uber|بنزين|fuel|هدية|هدايا|ملابس|shopping|تسوق|أكل|طعام|فطار|غدا|عشا|وجبات/i,"الضرورة تختلف حسب احتياجك"]
+  ["essential",/ايجار|rent|اقساط|قسط|مستشف[ىي]|طبيب|دكتور|علاج|دواء|ادوي[هة]|صيدلي[هة]|pharmacy|hospital|medicine|كهرباء|مياه|فاتور[هة]\s*(?:غاز|كهرباء|مياه)|دوام|مدرس[هة]|كلي[هة]|جامع[هة]|تعليم|school|tuition|insurance|تامين|حضان[هة]/i,"حاجة أساسية أو التزام ضروري"],
+  ["optional",/سينما|نتفليكس|netflix|تسلي[هة]|ترفيه|gaming|العاب|game|بلايستيشن|playstation|كوافير|صالون|ملاهي|concert|حفل[هة]|اشتراك\s*ترفيه|مشروب\s*ترفيهي/i,"إنفاق ترفيهي يمكن الاستغناء عنه"],
+  ["flexible",/قهو[هة]|كافيه|كوفي|coffee|cafe|مطعم|restaurant|طلبات|delivery|فاست\s*فود|توصيل|بيتزا|سوبرماركت|بقال[هة]|ماركت|مواصلات|اوبر|uber|بنزين|fuel|هدي[هة]|هدايا|ملابس|shopping|تسوق|اكل|طعام|فطار|غدا|عشا|وجبات/i,"الضرورة تختلف حسب احتياجك"]
  ];
  const clean=x=>String(x||"").toLocaleLowerCase("ar-EG").normalize("NFKC")
   .replace(/[ً-ْـ]/g,"").replace(/[إأآ]/g,"ا").replace(/ى/g,"ي").replace(/\s+/g," ").trim();
  const amount=x=>{const n=Number(x);return Number.isFinite(n)&&n>0?n:0};
+ const nonPosted=x=>new Set(["pending","failed","rejected","cancelled","canceled","void","draft","reversed"]).has(String(x?.status||"").toLowerCase().trim());
  function suggest(tx,config={}){
-  if(!tx||tx.type!=="expense"||!amount(tx.amount)||tx.deleted||tx.status==="reversed")
+  if(!tx||tx.type!=="expense"||!amount(tx.amount)||tx.deleted||nonPosted(tx))
    return {tier:"excluded",label:"خارج التصنيف",confidence:1,reason:"ليس مصروفًا فعليًا"};
   if(values.includes(tx.necessity))return {tier:tx.necessity,label:titles[tx.necessity],
    confidence:1,reason:"التصنيف عدّلته بنفسك",source:"owner"};
   const key=clean([tx.category,tx.description,tx.subcategory].filter(Boolean).join(" "));
   const learned=(config?.necessityRules&&typeof config.necessityRules==="object")?config.necessityRules:{};
   const learnedKey=clean(tx.category||"");
-  if(values.includes(learned[learnedKey]))return {tier:learned[learnedKey],
+  if(learnedKey&&values.includes(learned[learnedKey]))return {tier:learned[learnedKey],
    label:titles[learned[learnedKey]],confidence:0.93,reason:"قاعدة فئة اخترتها سابقًا",source:"rule"};
   for(const [tier,pattern,reason] of ruleSets)if(pattern.test(key))
    return {tier,label:titles[tier],confidence:tier==="flexible"?.65:.79,reason,source:"rule"};
@@ -37,7 +38,7 @@
  function summarize(state,period="month",at=new Date()){
   const d=at instanceof Date?at:new Date(at),year=d.getFullYear(),m=d.getMonth();
   const rows=(Array.isArray(state?.transactions)?state.transactions:[]).filter(t=>{
-   if(t?.type!=="expense"||!amount(t.amount)||t.deleted||t.status==="reversed")return false;
+   if(t?.type!=="expense"||!amount(t.amount)||t.deleted||nonPosted(t))return false;
    const date=String(t.date||"");
    if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return false;
    const tYear=+date.slice(0,4),tMonth=+date.slice(5,7)-1;
@@ -59,7 +60,7 @@
   let changed=false;
   bridge(state=>{
    const row=(state.transactions||[]).find(t=>String(t.id)===String(txId));
-   if(!row||row.type!=="expense")throw Error("لا يمكن تصنيف عملية ليست مصروفًا");
+   if(!row||row.type!=="expense"||!amount(row.amount)||row.deleted||nonPosted(row))throw Error("لا يمكن تصنيف عملية ليست مصروفًا");
    row.necessity=tier;row.necessitySource="owner";row.necessityUpdatedAt=new Date().toISOString();
    changed=true;
   });
