@@ -38,6 +38,35 @@ const BASE="http://127.0.0.1:8189";
    return {count,after:a.state().transactions.length,blocked:parsed[0].intent};
   });
   assert.equal(state.after,state.count);
+  const direct=await page.evaluate(()=>{
+   const a=window.FLOSY_UNIFIED,script="دفعت 75 جنيه قهوة من الكاش";
+   const before=a.state().transactions.length;
+   const analyses=window.FLOSY_VOICE_SAFETY_V2.analyzeBatch(script,a.accounts(),a.date());
+   const gate=window.FLOSY_VOICE_AUTO_V399.decide(analyses,{enabled:true,accounts:a.accounts(),today:a.date()});
+   return {gate,analysis:analyses[0],before};
+  });
+  assert.equal(direct.gate.accepted,true,JSON.stringify(direct));
+  await page.locator("[data-v2-cancel]").first().click();
+  const persisted=await page.evaluate(()=>{
+   const a=window.FLOSY_UNIFIED;
+   const sample="دفعت 75 جنيه قهوة من الكاش";
+   const booked=a.fromVoiceText(sample);
+   return {newCount:a.state().transactions.length,direct:booked.autoSaved?.length||0,
+    added:a.state().transactions.at(-1)};
+  });
+  assert.equal(persisted.direct,1,"Clear owner-opted speech should save to canonical ledger");
+  assert.equal(persisted.newCount,direct.before+1);
+  assert.equal(persisted.added.amount,75);
+  assert.ok(persisted.added.source.includes("voice_auto"));
+  await page.evaluate(()=>window.FLOSY_UNIFIED.go(7));
+  const savedNow=await page.evaluate(()=>window.FLOSY_UNIFIED.state().transactions.length);
+  assert.equal(savedNow,direct.before+1);
+  const dup=await page.evaluate(()=>{
+   try{window.FLOSY_UNIFIED.fromVoiceText("دفعت 75 جنيه قهوة من الكاش");return false}
+   catch{return true}
+  });
+  assert.equal(dup,true,"same speech callback in 5m should not deduct a second time");
+
   assert.ok(await page.locator("#flosyV399CorrectedVoice").isVisible());
   await page.locator("#flosyV399CorrectedVoice").fill("دفعت 75 جنيه قهوة من الكاش");
   await page.locator("[data-v399-reanalyse]").click();
