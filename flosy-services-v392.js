@@ -109,7 +109,7 @@
    let found=0;
    for(const c of cards){
     const match=(group==="all"||c.dataset.sgroup===group)&&
-      (!q||c.innerText.toLocaleLowerCase("ar-EG").includes(q));
+      (!q||c.textContent.toLocaleLowerCase("ar-EG").includes(q));
     c.hidden=!match;if(match)found++;
    }
    // If a user searches for a hidden tool, open its collapsed collection.
