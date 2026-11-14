@@ -550,7 +550,8 @@
    const host=root(5);
    if(host&&!host.querySelector("#fin393NewCategory")){
     const head=host.querySelector(".fx-form-section-head");
-    if(head)head.insertAdjacentHTML("afterend",
+    const target=host.querySelector("#fxCategoryDetails")||head;
+    if(target)target.insertAdjacentHTML(target===head?"afterend":"beforebegin",
      '<button type="button" id="fin393NewCategory" class="flosy-btn flosy-btn-secondary">+ إضافة فئة بأيقونة ولون</button>');
     host.querySelector("#fin393NewCategory")?.addEventListener("click",()=>openCategory(
      host.querySelector('[name="type"]')?.value||"expense"));
