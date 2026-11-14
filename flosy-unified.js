@@ -230,7 +230,7 @@
   let text=String(latinText||"").slice(0,12000),ocrError="";
   try{
    const extractor=ledger?.FLOSY_REPAIR?.extractForUnified;
-   if(typeof extractor==="function" && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(String(imageDataUrl||""))){
+   if(typeof extractor==="function" && /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(String(imageDataUrl||""))){
     try{
      const combined=await extractor(imageDataUrl,text);
      if(combined?.trim())text=combined.slice(0,12000);
