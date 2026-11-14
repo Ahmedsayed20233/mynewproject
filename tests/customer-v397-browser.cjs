@@ -18,6 +18,7 @@ const BASE="http://127.0.0.1:8177";
    window.FLOSY_CUSTOMER_UX_V397 && !document.getElementById("flosyLoading"),null,{timeout:50000});
   const baseline=await page.evaluate(()=>({accounts:window.FLOSY_UNIFIED.state().accounts.length,transactions:window.FLOSY_UNIFIED.state().transactions.length}));
   await page.evaluate(()=>window.FLOSY_UNIFIED.go(1));
+  if(await page.locator("#cx313AdvancedSetup").count())await page.locator("#cx313AdvancedSetup summary").click();
   assert.ok(await page.locator("#flosyWelcomeV397").isVisible());
   assert.equal(await page.locator("#flosyWelcomeV397 [data-onboard-step]").count(),4);
   await page.locator('#flosyWizardFormV397 [name="accountName"]').fill("الكاش");
