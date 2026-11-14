@@ -188,7 +188,8 @@
   form.querySelector("#cx312QuickSave").disabled=true;
   try{
    const saved=a.postBatch([{type,amount,accountId:acc,targetAccountId:type==="transfer"?target:null,
-    description,category,date}],"flosy312_quick_add");
+    description,category,date}],form.dataset.cx313RepeatPrepared==="yes"?
+     "flosy391_manual_repeat":"flosy312_quick_add");
    a.setDefaultAccount?.(acc);
    clearSheet();a.notify?.("✓ تم حفظ "+saved.length+" معاملة في دفتر فلوسي. زر التراجع متاح الآن.");
    if(a.getCurrentScreen?.()!==2)a.go?.(2);
