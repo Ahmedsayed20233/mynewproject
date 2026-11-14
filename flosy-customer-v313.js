@@ -138,6 +138,7 @@
     cat&&cat!=="غير مصنف"?"الفئة المقترحة: "+cat:"اختار نوع المصروف من الاختصارات أو اكتب وصفًا علشان نحدد الفئة.";
    preview.textContent=formatPreview(form);
   };
+  form.__cx313Update=update;
   form.addEventListener("input",()=>queueMicrotask(update));
   form.addEventListener("change",()=>queueMicrotask(update));
   form.addEventListener("click",event=>{
@@ -244,6 +245,11 @@
   review();coach();
   d.addEventListener("click",event=>{
    if(feedback(event.target))return;
+   // This listener runs after the v3.12 document handler updates quick-chip
+   // fields. Re-render the preview here, not in an earlier form listener.
+   if(event.target.closest("[data-ux312-preset]")){
+    d.querySelector("#cx312QuickForm")?.__cx313Update?.();return;
+   }
    const quick=event.target.closest("[data-ux312-quick]");
    if(quick)enhanceSheet();
   });
