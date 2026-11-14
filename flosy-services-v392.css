@@ -69,3 +69,10 @@
 .service-v392-name label{font-size:10px;color:var(--text-secondary);font-weight:900;display:grid;gap:6px}
 .service-v392-fold>.flosy-field{padding:0 12px 12px}
 @media(max-width:345px){.service-v392-grid{grid-template-columns:1fr}}
+
+/* v3.9.5: visually distinguish one main workflow from its internal tools. */
+.service-v395-title{font-size:12px;font-weight:900;margin:3px 0 0;color:var(--text-primary)}
+.service-v395-subgrid{padding:2px 11px 14px}
+.service-v395-subgrid .service-v392-item{min-height:70px}
+.service-v392-fold>summary span{font-size:9px;font-weight:500;color:var(--text-secondary)}
+@media(max-width:350px){.service-v395-subgrid{grid-template-columns:1fr}}
