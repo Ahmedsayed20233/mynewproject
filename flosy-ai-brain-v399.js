@@ -93,7 +93,7 @@
   const earned=money(income.reduce((a,x)=>a+Number(x.amount),0));
   const parts=aggregate(exp),largest=parts.slice(0,3);
   const periodText=period.label;
-  const comparison=/قارن|مقارنه|الفرق|زادت|قلت|تحسن|اللي فات.*الشهر|الشهر.*اللي فات/.test(q)&&
+  const comparison=/قارن|مقارنه|الفرق|زادت|قلت|تحسن|الشهر ده.*الشهر اللي فات|الشهر الحالي.*الشهر السابق/.test(q)&&
    /شهر|مصاريف|صرف|انفاق|المقارنه|قارن/.test(q);
   if(comparison){
    const curr=monthRange(at),last=monthRange(at,-1);
