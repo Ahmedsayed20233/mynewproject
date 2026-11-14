@@ -91,13 +91,22 @@
     [["expense","مصروف","fa-arrow-trend-down"],["income","دخل","fa-arrow-trend-up"],["transfer","تحويل","fa-right-left"]].map(([t,l,i])=>
      '<button type="button" data-fx-entry-type="'+t+'" aria-pressed="'+(t==="expense")+'">'+icon(i)+" "+l+'</button>').join("")+'</div>'+
    '<input type="hidden" name="type" value="expense">'+
+   '<div class="fx-quickbox" aria-label="اختصارات المعاملات">'+
+    '<div class="fx-quick-title"><strong>تسجيل أسرع</strong><small>اختار المصروف واكتب المبلغ فقط</small></div>'+
+    '<div class="fx-quickchips">'+
+     '<button type="button" data-fx-quick="قهوة">☕ قهوة</button>'+
+     '<button type="button" data-fx-quick="مواصلات">🚕 مواصلات</button>'+
+     '<button type="button" data-fx-quick="فطار">🥪 فطار</button>'+
+     '<button type="button" data-fx-quick="سوبرماركت">🛒 سوبرماركت</button>'+
+     '<button type="button" data-fx-repeat="latest">↺ كرر آخر مصروف</button>'+
+    '</div></div>'+
    '<div class="fx-amount-card"><span>المبلغ بالجنيه المصري</span><div><input class="fx-amount-input" type="number" name="amount" min=".01" max="999999999" step=".01" inputmode="decimal" required placeholder="0.00"><b>ج.م</b></div></div>'+
    '<label class="fx-form-field">الوصف<input class="flosy-input" name="description" id="fxDescription" placeholder="مثال: بنزين العربية، قهوة، مرتب..." maxlength="90" required></label>'+
-   '<div class="fx-form-section-head"><strong>الفئة المناسبة <span id="fxCategoryCount"></span></strong>'+
+   '<details class="fx-category-details" id="fxCategoryDetails"><summary>الفئة والتصنيف (اختياري — بنقترحها تلقائيًا)</summary>'+   '<div class="fx-form-section-head"><strong>الفئة المناسبة <span id="fxCategoryCount"></span></strong>'+
     '<label class="fx-inline-search">'+icon("fa-magnifying-glass")+'<input type="search" id="fxCategorySearch" aria-label="بحث في الفئات" placeholder="بحث..."></label></div>'+
    '<div id="fxSelectedCategory" class="fx-selected-category" aria-live="polite"></div>'+
    '<input type="hidden" name="category" value="مطاعم ووجبات">'+
-   '<div id="fxCategoryGrid">'+categoriesMarkup("expense","مطاعم ووجبات")+'</div>'+
+   '<div id="fxCategoryGrid">'+categoriesMarkup("expense","مطاعم ووجبات")+'</div></details>'+
    '<div class="fx-two-col">'+
     '<label class="fx-form-field">من حساب<select class="flosy-input" name="accountId" required>'+accountOptions(account)+'</select></label>'+
     '<label class="fx-form-field" id="flosyTargetWrap" hidden>إلى حساب<select class="flosy-input" name="targetAccountId">'+accountOptions()+'</select></label>'+
@@ -284,6 +293,26 @@
    refreshCats();
   }
   box.querySelectorAll("[data-fx-entry-type]").forEach(b=>b.onclick=()=>setType(b.dataset.fxEntryType));
+  const quickPick=label=>{
+   setType("expense");
+   const input=box.querySelector("#fxDescription");
+   input.value=label;input.dispatchEvent(new Event("input",{bubbles:true}));
+   get("amount").focus();
+  };
+  box.querySelectorAll("[data-fx-quick]").forEach(b=>b.onclick=()=>quickPick(b.dataset.fxQuick));
+  const repeat=box.querySelector("[data-fx-repeat]");
+  if(repeat)repeat.onclick=()=>{
+   const latest=(U()?.state()?.transactions||[]).filter(t=>
+    t.type==="expense"&&Number(t.amount)>0&&!t.deleted).slice().sort((a,b)=>
+      String(b.createdAt||b.date||"").localeCompare(String(a.createdAt||a.date||"")))[0];
+   if(!latest){U().notify("لسه ما فيش مصروف سابق للتكرار");return}
+   quickPick(latest.description||latest.category||"مصروف");
+   get("amount").value=String(latest.amount);
+   if(accounts().some(a=>a.id===latest.accountId))get("accountId").value=latest.accountId;
+   const c=K.resolve(latest.category,latest.description,"expense");
+   if(c?.label){get("category").value=c.label;refreshCats()}
+   U().notify("جاهز للمراجعة، اضغط حفظ لتسجيل مصروف جديد");
+  };
   search.oninput=refreshCats;
   catBox.addEventListener("click",e=>{
    const b=e.target.closest("[data-fx-cat]");if(!b)return;
