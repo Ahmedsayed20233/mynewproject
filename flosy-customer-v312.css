@@ -1,0 +1,105 @@
+/* Flosy 3.12 - customer-first RTL interface. Scoped to avoid breaking legacy forms. */
+body.flosy-customer-v312{--cx-green:#087762;--cx-green-2:#0b6154}
+body.flosy-customer-v312 .phone-frame.flosy-active .flosy-real{padding-bottom:112px!important}
+.cx312-home{display:grid;gap:12px;padding:8px 4px 24px;direction:rtl;color:var(--text-primary)}
+.cx312-home *,.cx312-sheet *{box-sizing:border-box}
+.cx312-greeting{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 3px}
+.cx312-greeting small{font-size:10px;color:var(--text-secondary)}
+.cx312-greeting h1{font-size:19px;font-weight:900;margin:5px 0 0;line-height:1.55;color:var(--text-primary)}
+.cx312-greeting h1 span{color:var(--primary)}
+.cx312-greeting button{height:44px;width:44px;flex:none;border-radius:15px;border:1px solid var(--border);background:var(--bg-surface);color:var(--primary);font-size:18px}
+.cx312-safe{background:linear-gradient(125deg,#0b7864,#10534c);color:#fff;border-radius:22px;padding:18px 16px;box-shadow:0 8px 22px rgba(10,92,76,.14)}
+.cx312-safe-top{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:800;gap:10px}
+.cx312-safe-top button{height:31px;width:31px;border:1px solid #ffffff80;background:#ffffff17;color:#fff;border-radius:50%;font-weight:900}
+.cx312-safe-amount{display:block;font-size:29px;font-weight:900;letter-spacing:-.4px;margin:13px 0 7px;font-variant-numeric:tabular-nums}
+.cx312-safe p{font-size:10px;color:#e3f6ee;line-height:1.85;margin:0 0 12px}
+.cx312-safe-bottom{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid #ffffff40;padding-top:12px}
+.cx312-safe-bottom span{font-size:11px;color:#e0f6eb}
+.cx312-safe-bottom b{font-size:15px;font-variant-numeric:tabular-nums}
+.cx312-setup{background:#fff;border:0;color:#0b6655;border-radius:12px;padding:10px 13px;margin-top:12px;min-height:44px;font-weight:900;font-family:inherit}
+.cx312-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.cx312-metrics>div{background:var(--bg-surface);border:1px solid var(--border);border-radius:16px;min-width:0;padding:12px 8px;display:grid;gap:7px}
+.cx312-metrics small{font-size:10px;color:var(--text-secondary);line-height:1.5}
+.cx312-metrics strong{font-size:13px;color:var(--text-primary);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.cx312-card{border-radius:18px;background:var(--bg-surface);border:1px solid var(--border);padding:13px;box-shadow:var(--card-shadow)}
+.cx312-card header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.cx312-card h2{font-size:14px;font-weight:900;margin:0;color:var(--text-primary)}
+.cx312-card header small{font-size:10px;color:var(--text-secondary)}
+.cx312-add-rail{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.cx312-add-rail button{display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;background:var(--bg-elevated);
+ border:1px solid var(--border);border-radius:13px;min-width:0;min-height:69px;color:var(--text-primary);font-family:inherit}
+.cx312-add-rail button i{font-size:17px;color:var(--primary)}
+.cx312-add-rail button b{font-size:10px;white-space:nowrap}
+.cx312-due{display:flex;align-items:center;gap:10px;border:1px solid var(--border);background:var(--bg-elevated);border-radius:13px;padding:11px;color:var(--text-primary)}
+.cx312-due i{color:var(--primary)}
+.cx312-due span{flex:1;font-size:11px;line-height:1.65}
+.cx312-due button,.cx312-card header button{border:0;background:var(--primary-soft);color:var(--primary);border-radius:10px;font-family:inherit;font-weight:800;padding:8px 10px;min-height:37px;font-size:11px}
+.cx312-tx{display:flex;align-items:center;gap:9px;padding:11px 0;border-bottom:1px solid var(--border);min-width:0}
+.cx312-tx:last-child{border-bottom:0}
+.cx312-tx-icon{background:var(--bg-elevated);color:var(--primary);border-radius:12px;width:37px;height:37px;display:grid;place-items:center;flex:none}
+.cx312-tx>div{flex:1;min-width:0;display:grid;gap:4px}
+.cx312-tx>div strong{font-size:12px;overflow-wrap:anywhere}
+.cx312-tx>div small{color:var(--text-secondary);font-size:9px}
+.cx312-tx>b{font-size:11px;flex:none;max-width:40%;overflow-wrap:anywhere;text-align:left;font-variant-numeric:tabular-nums}
+.cx312-tx>b[data-type="expense"]{color:var(--expense)}
+.cx312-tx>b[data-type="income"]{color:var(--income)}
+.cx312-empty{font-size:11px;color:var(--text-secondary);line-height:1.9}
+.cx312-footer-links{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.cx312-footer-links button{min-height:50px;padding:10px;border-radius:13px;border:1px solid var(--border);background:var(--bg-surface);color:var(--primary);font:800 11px inherit}
+.cx312-footer-links button i{margin-left:7px}
+body.cx312-modal-open{overflow:hidden}
+.cx312-overlay{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:flex-end;justify-content:center;direction:rtl;font-family:'Readex Pro','Cairo',Tahoma,sans-serif}
+.cx312-backdrop{position:absolute;inset:0;background:rgba(8,20,32,.68)}
+.cx312-sheet{position:relative;display:grid;gap:12px;width:min(100%,500px);max-height:min(94dvh,850px);overflow-y:auto;overscroll-behavior:contain;
+ background:var(--bg-app,#f8fafc);color:var(--text-primary,#172333);border:1px solid var(--border,#dbe3e8);
+ border-radius:24px 24px 0 0;padding:16px 16px max(18px,env(safe-area-inset-bottom,18px));box-shadow:0 -15px 40px #0003}
+.cx312-sheet>header{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.cx312-sheet>header small{font-size:10px;color:var(--text-secondary)}
+.cx312-sheet>header h2{margin:2px 0 0;font-size:20px;font-weight:900}
+.cx312-sheet>header button{width:44px;height:44px;border:1px solid var(--border);border-radius:13px;background:var(--bg-surface);color:var(--text-primary)}
+#cx312QuickForm{display:grid;gap:12px}
+.cx312-quick-types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.cx312-quick-types button{min-height:47px;display:flex;justify-content:center;align-items:center;gap:5px;padding:8px 5px;
+ background:var(--bg-surface);border:1px solid var(--border);border-radius:12px;color:var(--text-primary);
+ font-family:inherit;font-size:12px;font-weight:800}
+.cx312-quick-types button[aria-pressed="true"]{color:#fff;background:var(--primary);border-color:var(--primary)}
+.cx312-sheet label{display:grid;gap:6px;font-size:12px;font-weight:800;color:var(--text-primary)}
+.cx312-sheet label small{font-size:10px;color:var(--text-secondary);font-weight:400}
+.cx312-sheet input,.cx312-sheet select{width:100%;min-height:46px;border:1px solid var(--border);border-radius:12px;padding:9px 11px;background:var(--bg-surface);color:var(--text-primary);font:500 14px inherit}
+.cx312-amount-box{display:flex;align-items:center;gap:5px;border:2px solid var(--primary);border-radius:16px;background:var(--bg-surface);padding:0 12px}
+.cx312-amount-box input{font-size:30px;font-weight:900;direction:ltr;text-align:right;min-height:72px;background:transparent;border:0;padding:8px 1px;outline:0}
+.cx312-amount-box span{font-weight:800;font-size:14px;flex:none;color:var(--primary)}
+.cx312-chips{display:flex;flex-wrap:wrap;gap:6px}
+.cx312-chips button{min-height:42px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg-elevated);color:var(--text-primary);font:800 11px inherit}
+.cx312-chips button i{color:var(--primary)}
+.cx312-optional{padding:10px 12px;border:1px solid var(--border);border-radius:13px;background:var(--bg-elevated);color:var(--text-primary);margin:8px 0}
+.cx312-optional>summary{cursor:pointer;font-size:11px;font-weight:900;min-height:28px;line-height:2;list-style-position:inside}
+.cx312-optional>label{margin-top:8px}
+.cx312-optional>.report311-presets{margin-top:8px}
+.cx312-optional>.report311-filters{padding:9px}
+.cx312-save{min-height:52px;border:0;background:var(--primary);color:#fff;border-radius:14px;font:900 14px inherit}
+.cx312-sheet-other{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.cx312-sheet-other button{min-height:45px;border-radius:11px;border:1px solid var(--border);font:800 11px inherit;
+ background:var(--bg-surface);color:var(--text-primary)}
+.cx312-sheet-other i{color:var(--primary)}
+.cx312-quick-foot{font-size:10px;line-height:1.8;color:var(--text-secondary);margin:0}
+#cx312QuickError{border-radius:10px;padding:9px;background:var(--bg-elevated);color:var(--expense);font-size:11px}
+.cx312-empty-account{background:var(--bg-surface);padding:18px;border-radius:13px;font-size:13px;line-height:1.8}
+.cx312-empty-account button{min-height:44px;padding:11px;border-radius:10px;background:var(--primary);color:#fff;border:0;font:800 12px inherit}
+.cx312-ai-prompts{border:1px solid var(--border);border-radius:14px;background:var(--bg-surface);padding:12px;margin:10px 0}
+.cx312-ai-prompts strong{font-size:12px}
+.cx312-ai-prompts>div{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}
+.cx312-ai-prompts button{border:1px solid var(--border);border-radius:11px;padding:9px;background:var(--primary-soft);
+ font:800 11px inherit;color:var(--primary);min-height:41px}
+.cx312-tip{font-size:11px!important;line-height:1.8;color:var(--text-secondary);margin:10px 0}
+.cx312-review-image{max-width:min(100%,320px);max-height:165px;object-fit:contain;border-radius:14px;margin:9px auto;display:block;border:1px solid var(--border)}
+.cx312-review input[name^="amount-"]{font-size:20px!important;font-weight:900}
+.cx312-review .flosy-v2-items:not([open]){background:var(--bg-elevated)}
+.flosy-customer-v312 .flosy-nav399 button{min-height:51px;touch-action:manipulation}
+.flosy-customer-v312 .flosy-nav399 button[data-ux312-quick]{background:var(--primary);color:#fff;flex:0 0 58px;border-radius:16px;min-width:0}
+.flosy-customer-v312 .flosy-real button:focus-visible,.cx312-sheet button:focus-visible,
+.cx312-sheet input:focus-visible,.cx312-sheet select:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+@media(min-width:650px){.cx312-overlay{align-items:center}.cx312-sheet{border-radius:23px;max-height:90dvh}}
+@media(max-width:355px){.cx312-metrics strong{font-size:11px}.cx312-add-rail{gap:3px}.cx312-add-rail button{min-height:66px}.cx312-add-rail b{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.cx312-sheet,.cx312-overlay,.cx312-home *{transition:none!important;animation:none!important}}
+@media print{.cx312-overlay,.cx312-home{display:none!important}}
