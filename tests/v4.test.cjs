@@ -571,8 +571,8 @@ test("Flosy AI defaults to free mode, API stays optional and offline shell is ve
  assert.ok(sw.includes("flosy-ai-local.js?v=3901"));
  assert.ok(sw.includes("flosy-receipt-ml.js?v=3401"));
  assert.ok(sw.includes("flosy-voice-nlu.js?v=3402"));
- assert.ok(sw.includes("flosy-v4-capture.js?v=3402"));
- assert.ok(sw.includes("flosy-repair.js?v=3910"));
+ assert.ok(sw.includes("flosy-v4-capture.js?v=3980"));
+ assert.ok(sw.includes("flosy-repair.js?v=3980"));
 });
 
 
