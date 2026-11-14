@@ -1,0 +1,59 @@
+/* Flosy 3.9.8 — financial necessity classification; accessible RTL sizes */
+.needs-v398-card{direction:rtl;background:var(--bg-surface);border:1px solid var(--border);
+ border-radius:21px;padding:14px;margin:10px 0;display:grid;gap:12px;
+ box-shadow:var(--card-shadow);color:var(--text-primary)}
+.needs-v398-title{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.needs-v398-title small{font-size:10px;color:var(--primary);font-weight:900}
+.needs-v398-title h3{font-size:14px;line-height:1.7;margin:2px 0 0;font-weight:900}
+.needs-v398-total{font-size:12px;font-weight:900;color:var(--primary);white-space:nowrap}
+.needs-v398-card>p{font-size:11px;line-height:1.9;margin:0;color:var(--text-secondary)}
+.needs-v398-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.needs-v398-stat{background:var(--bg-elevated);border:1px solid var(--border);
+ border-radius:15px;padding:11px 8px;display:grid;gap:7px;justify-items:start}
+.needs-v398-stat strong{font-size:11px;line-height:1.65}
+.needs-v398-stat b{font-size:13px}
+.needs-v398-stat small{font-size:10px;color:var(--text-secondary);line-height:1.8}
+.needs-v398-marker{width:10px;height:10px;display:block;border-radius:50%;background:#157F61}
+.needs-v398-marker[data-tier=flexible]{background:#C18D35}
+.needs-v398-marker[data-tier=optional]{background:#64748B}
+.needs-v398-track{height:6px;width:100%;background:var(--border);border-radius:8px;overflow:hidden}
+.needs-v398-track i{height:100%;display:block;background:#157F61;border-radius:8px}
+.needs-v398-stat[data-needs-tier=flexible] .needs-v398-track i{background:#C18D35}
+.needs-v398-stat[data-needs-tier=optional] .needs-v398-track i{background:#64748B}
+.needs-v398-caution{border-right:3px solid #C18D35;padding:5px 9px;background:var(--bg-elevated);border-radius:6px}
+.needs-v398-actions button{min-height:43px;border:1px solid var(--primary);color:var(--primary);
+ background:var(--primary-soft);border-radius:13px;padding:7px 14px;font:900 11px 'Cairo',sans-serif}
+.needs-v398-line{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+ gap:8px;margin:8px 13px 13px;padding-top:10px;border-top:1px solid var(--border)}
+.needs-v398-line .needs-v398-guess{color:var(--text-secondary);font-size:10px}
+.needs-v398-line label{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:900;
+ color:var(--text-primary)}
+.needs-v398-line select{color:var(--text-primary);background:var(--bg-elevated);
+ min-width:118px;max-width:180px;min-height:42px;border:1px solid var(--border);
+ border-radius:11px;padding:8px;font:800 11px 'Cairo',sans-serif}
+.needs-v398-line select:focus-visible{outline:3px solid var(--primary)}
+#flosyNeedsHomeV398 .needs-v398-card{margin:8px 0 15px}
+@media(max-width:365px){
+ .needs-v398-grid{gap:4px}
+ .needs-v398-stat{padding:9px 5px}
+ .needs-v398-stat strong{font-size:10px}
+ .needs-v398-stat b{font-size:11px}
+ .needs-v398-title{align-items:flex-start}
+ .needs-v398-title h3{font-size:12px}
+}
+@media(min-width:500px){.needs-v398-grid{gap:12px}}
+
+/* Item-level OCR correction: attention to uncertain numbers without alarmist colors. */
+.flosy-v398-warnings{border-right:3px solid #BD8D37;background:var(--bg-elevated);
+ padding:10px 12px;border-radius:12px;margin:8px 0;display:grid;gap:5px}
+.flosy-v398-warnings strong{font-size:12px;color:var(--text-primary)}
+.flosy-v398-warnings p{font-size:11px;color:var(--text-secondary);line-height:1.8;margin:0}
+.flosy-v398-add-item{min-height:44px;display:block;width:100%;border-radius:11px;
+ border:1px dashed var(--primary);background:var(--primary-soft);color:var(--primary);
+ padding:9px 13px;font:900 12px 'Cairo',sans-serif;margin:9px 0}
+.flosy-v398-add-item:disabled{opacity:.5}
+.flosy-v398-skip{display:flex;align-items:start;gap:9px;font-size:11px;line-height:1.85;
+ color:var(--text-primary);margin:8px 0;padding:8px 10px;border:1px solid var(--border);border-radius:11px}
+.flosy-v398-skip input{width:20px;height:20px;accent-color:var(--primary);flex:0 0 20px}
+.flosy-v398-tips{font-size:11px;line-height:1.8;color:var(--text-secondary);margin:7px 0}
+.flosy-v398-line-items .flosy-v2-item-row label{font-size:11px}

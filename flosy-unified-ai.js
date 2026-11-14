@@ -16,6 +16,20 @@
  function respond(question){
   const s=summary(),q=String(question||"").slice(0,600).trim(),data=state();
   if(!q)return {text:"اسألني عن مصروفاتك أو حساباتك أو أقساطك، وأنا معاك.",chart:null};
+  const priorities=w.FLOSY_NEEDS_V398;
+  if(priorities&&/مهم|ضروري|اختياري|غير مهم|في النص|في المنتصف|أولويات المصروف|اولويات المصروف|مصاريف.*قلل|أقلل.*مصاريف|اقدر اقلل|أقدر أقلل/i.test(q)){
+   const v=priorities.summarize(data);
+   if(!v.count)return {text:"لسه مفيش مصروفات للشهر الحالي تتقسم إلى مهم وفي المنتصف واختياري. سجّل معاملاتك وراجع أولوياتها من سجل المعاملات.",intent:"spending-priorities"};
+   return {text:"حسب "+v.count+" مصروف مسجل هذا الشهر: مهم/ضروري "+money(v.totals.essential)+
+    "، في المنتصف "+money(v.totals.flexible)+"، واختياري/غير مهم "+money(v.totals.optional)+
+    " ("+v.optionalShare+"% من مصروفات الشهر). ده اقتراح قابل للتعديل حسب ظروفك."+
+    (v.uncertain?" فيه "+v.uncertain+" عملية مش واضح أهميتها، راجعها بنفسك.":"")+
+    " افتح سجل المعاملات لتغيير أهمية كل عملية.",
+    chart:{chart_type:"bar",title:"توزيع المصروفات حسب الأهمية",currency:"EGP",data:[
+     {name:"مهم",value_minor:Math.round(v.totals.essential*100)},
+     {name:"المنتصف",value_minor:Math.round(v.totals.flexible*100)},
+     {name:"اختياري",value_minor:Math.round(v.totals.optional*100)}]},intent:"spending-priorities"};
+  }
   const personal=w.FLOSY_COPILOT?.answer?.(q,data,new Date());
   if(personal)return personal;
   const finance=w.FLOSY_FINANCE_ENGINE;

@@ -1,0 +1,54 @@
+name: Train Flosy AraReceipt Total Ranker (Real Labeled Data)
+on:
+  push:
+    branches:
+      - 'feature/flosy-v398-smart-needs-receipts-20261114'
+    paths:
+      - 'scripts/train_flosy_ararec.py'
+      - '.github/workflows/train-flosy-receipts.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Train with 100 real manually annotated Arabic receipts and evaluate held-out receipts
+        run: python3 scripts/train_flosy_ararec.py
+      - name: Validate generated model and no label leakage
+        run: |
+          test -s flosy-receipt-trained-v398.js
+          test -s docs/FLOSY_ARARECEIPT_TRAINING_RESULTS.md
+          node --check flosy-receipt-trained-v398.js
+          python3 - <<'PY'
+          from pathlib import Path
+          t=Path('flosy-receipt-trained-v398.js').read_text()
+          assert '"trainReceiptCount":80' in t
+          assert '"heldOutReceiptCount":20' in t
+          assert '"kind":"real-ararec-total-region-ranker"' in t
+          print("PASS true-data provenance")
+          PY
+      - name: Commit trained classifier and honest held-out report to review branch
+        run: |
+          git config user.name "flosy-ml-github-actions"
+          git config user.email "flosy-ml-github-actions@users.noreply.github.com"
+          git add flosy-receipt-trained-v398.js docs/FLOSY_ARARECEIPT_TRAINING_RESULTS.md
+          if git diff --staged --quiet; then
+            echo "Trained files unchanged"
+          else
+            git commit -m "ml(receipts): real AraReceipt supervised text ranker and group-heldout metrics [skip ci]"
+            git push origin HEAD:feature/flosy-v398-smart-needs-receipts-20261114
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Flosy-v398-AraReceipt-real-labeled-training
+          path: |
+            flosy-receipt-trained-v398.js
+            docs/FLOSY_ARARECEIPT_TRAINING_RESULTS.md

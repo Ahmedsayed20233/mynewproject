@@ -256,6 +256,10 @@ function parseReceipt(text){
     receiptDate:info.date||null,receiptTime:info.time||null,currency:"EGP",
     paymentMethod:info.paymentMethod||null,items:info.items||[],
     itemsSum:info.itemsSum??null,arithmeticConsistent:Boolean(info.arithmeticConsistent),
+    arithmeticContradiction:Boolean(info.arithmeticContradiction),
+    extractionWarnings:Array.isArray(info.extractionWarnings)?info.extractionWarnings.slice(0,7):[],
+    needsReview:Boolean(info.needsReview),modelVersion:info.modelVersion||"3.9.8",
+    learnedTotalRankScore:info.learnedTotalRankScore??null,
     subtotal:info.subtotal,discount:info.discount,tax:info.tax,
     paid:info.paid,change:info.change,confidence:info.confidence,
     evidence:info.evidence,modelVersion:info.modelVersion
@@ -270,7 +274,7 @@ function parseReceipt(text){
     sourceHash:"receipt-auto-ml-v1-"+hash(hashKey),
     // Printed payment method is optional when the user explicitly selected a
     // specific auto-capture account. Contradictory totals still require review.
-    autoQuality:(info.autoQuality===true||
+    autoQuality:!info.requiresOwnerReview&&(info.autoQuality===true||
       (Boolean(accountId)&&Boolean(autoPrefs().accountId)&&
        cash().some(a=>a.id===autoPrefs().accountId)&&
        info.confidence>=0.86&&Boolean(info.merchant)&&Boolean(info.date)&&
