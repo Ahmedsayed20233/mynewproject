@@ -32,3 +32,15 @@ test("every detail stays a clickable screen, every advanced tool stays a feature
  }
  assert.deepEqual(map.primary.map(x=>+x[0]),[2,3,4,5,8,9,11,15]);
 });
+test("More only displays four distinct settings; five financial extras are contextual",()=>{
+ assert.deepEqual(map.auditMore(),{more:4,contextual:5,allAdvanced:9});
+ assert.deepEqual(map.more.map(x=>x[0]),["settings","recovery","v4-privacy","rules"]);
+ const contexts={3:"portfolio",5:"v4-bank",9:"recurring",11:"v4-crisis",19:"v4-family"};
+ for(const [page,key]of Object.entries(contexts)){
+  assert.deepEqual(map.related(page).map(x=>x[0]),[key]);
+ }
+ assert.deepEqual(map.related(16),[]);
+ const all=[...map.more.map(x=>x[0]),...Object.keys(contexts).flatMap(p=>map.related(p).map(x=>x[0]))];
+ assert.equal(new Set(all).size,map.advanced.length);
+});
+
