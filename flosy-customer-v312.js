@@ -195,7 +195,13 @@
  function bindPage(id){
   const frame=d.querySelector('.phone-frame[data-screen="'+Number(id)+'"]');
   const box=frame?.querySelector(".flosy-real");if(!box)return;
-  if(Number(id)===2){box.innerHTML=homeMarkup();}
+  if(Number(id)===2){
+   const priorities=box.querySelector("#flosyNeedsHomeV398");
+   box.innerHTML=homeMarkup();
+   // Preserve the earlier real-data importance classifier; it is a working owner feature.
+   // Move rather than regenerate to keep its suggested/owner-selected tiers unchanged.
+   if(priorities)box.querySelector(".cx312-home")?.appendChild(priorities);
+  }
   if(Number(id)===5){
    box.querySelector(".flosy-v399-entry-switch")?.remove();
    box.querySelectorAll(".flosy-workspace-related").forEach(el=>el.hidden=true);
