@@ -132,7 +132,7 @@
      old.date===x.date&&String(old.description||"")===x.description&&
      String(old.source||"").startsWith("flosy39")&&
      Math.abs(Date.now()-Date.parse(old.createdAt||""))<120000));
-   if(conflict||seen.has(x.sourceHash))throw Error("العملية دي متسجلة بالفعل؛ منعت تكرار خصم الفلوس");
+   if((source!=="flosy391_manual_repeat"&&conflict)||seen.has(x.sourceHash))throw Error("العملية دي متسجلة بالفعل؛ منعت تكرار خصم الفلوس");
    seen.add(x.sourceHash);
   }
   live(s=>{s.transactions=Array.isArray(s.transactions)?s.transactions:[];
