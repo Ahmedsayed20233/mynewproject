@@ -133,5 +133,5 @@ test("Ultra cache contains restored menu and changes cache version",()=>{
  for(const file of ["flosy-ultra-more.js?v=3810","flosy-ultra-more.css?v=3810",
  "flosy-ultra-live.js?v=3810","flosy-ultra-live.css?v=3810"])
   assert.ok(xml.includes(file),file);
- assert.match(xml,/flosy-unified-v395-screen-consolidation/);
+ assert.match(xml,/flosy-unified-v396-ai-action-hub/);
 });

@@ -16,6 +16,8 @@ on:
       - 'flosy-ultra.html'
       - 'flosy.html'
       - 'flosy-unified*'
+      - 'flosy-ai-experience-v396.*'
+      - 'tests/v396-ai-browser.cjs'
       - 'flosy-ux-v391.*'
       - 'flosy-categories-v391.js'
       - 'flosy-legacy-theme-v391.css'
@@ -69,6 +71,8 @@ jobs:
         run: node tests/unified-browser.cjs
       - name: Verify v3.9.1 editable transactions, voice, OCR and four-theme settings
         run: node tests/v391-browser.cjs
+      - name: Test Flosy AI reference-image UI, voice, OCR, budget and crisis actions
+        run: node tests/v396-ai-browser.cjs
       - name: Test PDF/Excel Save As, AI Roast Me, named daily insights and notification UX
         run: node tests/v392-browser.cjs
       - name: Test unified financial profile, budget, categories, wealth, zakat and friend/family workflows
@@ -85,6 +89,9 @@ jobs:
             tests/_artifacts/ultra-emerald-356.png
             tests/_artifacts/ultra-daylight-356.png
             tests/_artifacts/ultra-sapphire-356.png
+            tests/_artifacts/flosy-ai-v396-chat.png
+            tests/_artifacts/flosy-ai-v396-actions.png
+            tests/_artifacts/flosy-ai-v396-insights.png
           retention-days: 7
           if-no-files-found: error
       - name: Save desktop and mobile design screenshots

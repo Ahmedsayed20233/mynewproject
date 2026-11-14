@@ -154,7 +154,7 @@
   const q=String(text||"").trim().slice(0,550);if(!q)return null;
   if(hasWords(q,/^(دفعت|اشتريت|صرفت|قبضت|استلمت|دخل|دفعة|حولت|حولت من)/i)&&/\d/.test(q)){
    try{const booked=api()?.fromVoiceText?.(q);
-    if(booked?.length){const msg="سجلت "+booked.length+" عملية في دفتر فلوسي، والأرصدة والتقارير اتحدثت فورًا. عندك زر تراجع.";
+    if(booked?.length){const msg="جهزت "+booked.length+" اقتراح للمراجعة. لم تُحفظ أي عملية قبل اختيار الحساب وتأكيدك.";
       addMessage("user",q);addMessage("assistant",msg);say(msg);return {text:msg,booked};}}
    catch(err){const msg="ما قدرتش أسجل الجملة: "+(err.message||"البيانات ناقصة");
     addMessage("user",q);addMessage("assistant",msg);return {text:msg};}

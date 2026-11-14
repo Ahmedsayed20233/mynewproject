@@ -108,9 +108,9 @@ const BASE="http://127.0.0.1:8141";
   await page.evaluate(()=>window.FLOSY_UNIFIED.go(5));
   assert.ok((await page.locator(".fx-category-group-label").count())>=8,"grouped category table");
   await page.evaluate(()=>window.FLOSY_UNIFIED.go(8));
-  assert.equal(await page.locator(".fx-ai-hero").isVisible(),true);
-  await page.locator("#flosyAiUnifiedInput").fill("ارسم فئات المصروفات");
-  await page.locator("#flosyAiUnifiedForm").evaluate(el=>el.requestSubmit());
+  assert.equal(await page.locator(".faix-robot").isVisible(),true);
+  await page.locator("#flosyAiInputV396").fill("ارسم فئات المصروفات");
+  await page.locator("#flosyAiComposerV396").evaluate(el=>el.requestSubmit());
   assert.ok((await page.locator(".flosy-ai-chart svg").count())>=1);
   for(const theme of ["clean-light","emerald-dark","calm-light","serene-dark"]){
    await page.evaluate(t=>window.FLOSY_UNIFIED.applyTheme(t),theme);

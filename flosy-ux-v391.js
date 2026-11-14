@@ -146,13 +146,7 @@
      'بنقترح المبلغ والنوع والتاريخ من الجملة، وبنعرض كل حاجة للمراجعة. أرصدتك لا تتغير قبل اختيار الحساب والتأكيد، وأي مبلغ غير واضح يتم رفضه.</p></section>';
  }
  function aiPage(){
-  return '<div class="fx-ai-premium">'+
-   '<div class="fx-ai-hero"><div class="fx-ai-hero-avatar"><img src="flosy-ultra-avatar.svg" alt="Flosy AI" /></div>'+
-    '<div><span>FLOSY INTELLIGENCE</span><h2>فلوسي AI</h2><p>صاحبك المالي بالمصري — صوت وتحليل ورسومات من بياناتك</p></div>'+
-    '<button type="button" class="fx-circle" data-flosy-screen="2" aria-label="الرئيسية">'+icon("fa-house")+'</button></div>'+
-    '<div class="fx-ai-insights" id="fxAiInsights"></div>'+
-    '<div class="fx-ai-shell"><div id="flosyUnifiedAI"></div></div>'+
-    '<div class="fx-ai-bottom-note"><span class="fx-dot"></span> التحليل مبني على معاملاتك المسجلة؛ مش نموذج لغوي كبير مدرَّب من الصفر.</div></div>';
+  return '<div class="faix-host"><div id="flosyUnifiedAI"></div></div>';
  }
  function topStats(list){
   const inc=list.filter(x=>x.type==="income").reduce((a,x)=>a+Number(x.amount||0),0);

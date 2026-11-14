@@ -7,6 +7,8 @@ on:
       - 'flosy-ultra.html'
       - 'flosy.html'
       - 'flosy-unified*'
+      - 'flosy-ai-experience-v396.*'
+      - 'tests/v396-ai-browser.cjs'
       - 'flosy-ux-v391.*'
       - 'flosy-categories-v391.js'
       - 'flosy-legacy-theme-v391.css'
@@ -111,6 +113,7 @@ jobs:
           node --check flosy-ultra-live.js
           node --check flosy-ultra-more.js
           node --check flosy-unified-ai.js
+          node --check flosy-ai-experience-v396.js
           node --check flosy-unified-pages.js
           node --check flosy-unified.js
           node --check flosy-report-pro.js
